@@ -1,9 +1,9 @@
 #!/usr/local/bin/python3
 # encoding: utf-8
 '''
-kimLabDEQ.select -- shortdesc
+kimLabDEQ.selectDESeqValues.py -- shortdesc AEDWIP
 
-kimLabDEQ.select is a description
+kimLabDEQ.select is a description AEDWIP
 
 It defines classes_and_methods
 
@@ -22,7 +22,8 @@ import os
 
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
-from kimLabDEQ import DESeqSelect
+import numpy as np
+from kimLabDEQ.DESeqSelect import DESeqSelect
 
 __all__ = []
 __version__ = 0.1
@@ -75,12 +76,23 @@ USAGE
     try:
         # Setup argument parser
         parser = ArgumentParser(description=program_license, formatter_class=RawDescriptionHelpFormatter)
+        requiredArg = parser.add_argument_group('required arguments')
+
+        # metavar
+        # see https://stackoverflow.com/questions/26626799/pythons-argument-parser-printing-the-argument-name-in-upper-case
+        requiredArg.add_argument("-a", "--adjPValue", dest="adjPValue", required=True ,
+                            action="store", default=None, metavar ="",
+                            help="select values with >= adjusted p-value")
         
+        requiredArg.add_argument("-l", "--logFoldChange", required=True, 
+                            dest="logFoldChange", action="store", default=None, metavar ="",
+                            help="select values >= logFoldChange " )        
+                
 #         parser.add_argument("-r", "--recursive", dest="recurse", action="store_true", 
 #                             help="recurse into subfolders [default: %(default)s]")
         
-        parser.add_argument("-v", "--verbose", dest="verbose", action="count",  default=0,
-                            help="set verbosity level [default: %(default)s]")
+#         parser.add_argument("-v", "--verbose", dest="verbose", action="count",  default=0,
+#                             help="set verbosity level [default: %(default)s]")
         
 #         parser.add_argument("-i", "--include", dest="include", 
 #                             help="only include paths matching this regex pattern. Note: exclude is given preference over include. [default: %(default)s]",
@@ -90,45 +102,28 @@ USAGE
                             help="exclude paths matching this regex pattern. [default: %(default)s]", 
                             metavar="RE" )'''
         
-        parser.add_argument('-V', '--version', action='version', version=program_version_message)
+        parser.add_argument('-v', '--version', action='version', version=program_version_message)
         
         # metavar
         # see https://stackoverflow.com/questions/26626799/pythons-argument-parser-printing-the-argument-name-in-upper-case
-        parser.add_argument("-o", "--outputDir", dest="outputDir", action="store", default=None, metavar ="",
-                            help="directory to create output files in." )
+        requiredArg.add_argument("-o", "--outputDir", dest="outputDir", required=True, 
+                            action="store", default=None, metavar ="",
+                            help="directory to create output files in.")
         
-        parser.add_argument(dest="paths", help="paths to one or more DESeq2 output files", 
+        requiredArg.add_argument(dest="paths", help="paths to one or more DESeq2 output files", 
                             metavar="path", nargs='+')
 
         # Process arguments
         args = parser.parse_args()
 
         paths = args.paths
-        verbose = args.verbose
-#         recurse = args.recurse
-#         inpat = args.include
-#         expat = args.exclude
-
-        if verbose > 0:
-            print("Verbose mode on")
-#             if recurse:
-#                 print("Recursive mode on")
-#             else:
-#                 print("Recursive mode off")
-
-#         if inpat and expat and inpat == expat:
-#             raise CLIError("include and exclude pattern are equal! Nothing will be processed.")
-
+        adjPValue = np.float(args.adjPValue)
+        logFoldChange = np.float(args.logFoldChange)
+         
         outputDir = args.outputDir
-        if not outputDir:
-            raise CLIError("required argument --outputDir is missing")
-            return 1
-        
-        for inpath in paths:
-            ### do something with inpath ###
-            #print(inpath)
-            s = DESeqSelect(inpath, outputDir)
-            
+        for inputPath in paths:
+            s = DESeqSelect(inputPath)
+            s.saveRows(outputDir,  adjPValue, logFoldChange)
         return 0
     
     except KeyboardInterrupt:
@@ -136,14 +131,12 @@ USAGE
         return 0
     
     except Exception as e:
-        if DEBUG or TESTRUN:
-            raise(e)
         
         indent = len(program_name) * " "
         # AEDWIP TODO: FIXME: use logger
         sys.stderr.write(program_name + ": " + repr(e) + "\n")
-        sys.stderr.write(indent + "  for help use --help")
-        return 2
+        sys.stderr.write(indent + "  for help use --help\n")
+        raise(e)
 
 if __name__ == "__main__":
     if DEBUG:
