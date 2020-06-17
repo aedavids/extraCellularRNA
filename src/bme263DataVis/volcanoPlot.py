@@ -14,188 +14,249 @@ It defines classes_and_methods
 @contact:    aedavids@ucsc.edu
 @deffield    updated: Updated
 '''
-from argparse import ArgumentParser
-from argparse import RawDescriptionHelpFormatter
+
 from bme263DataVis.utilities import MatPlotLibUtilities
+from bme263DataVis.volcanoPlotCommandLine import VolcanoPlotCommandLine
 from kimLabDEQ.DESeqSelect import DESeqSelect
 
-import matplotlib
 import matplotlib.pyplot as plt
-
 import numpy as np
-import os
-import sys
 
-__all__ = []
-__version__ = 0.1
-__date__ = '2020-05-26'
-__updated__ = '2020-05-26'
 
 ###############################################################################
-class CommandLine(object):
-    '''
-    Handle the command line, usage and help requests.
-    '''
-
-    def __init__(self, inOpts=None):
-        '''
-        Implement a parser to interpret the command line argv string using argparse.
-    
-        arguments:
-            inOpst: a list of cli arguments. pass None if you want to use the the
-                    true CLI arguments. pass a list if you want to use from a juypter notebook
-        '''
-    
-        program_version = "v%s" % __version__
-        program_build_date = str(__updated__)
-        program_version_message = '%%(prog)s %s (%s)' % (program_version, program_build_date)
-        program_shortdesc = __import__('__main__').__doc__.split("\n")[1]
-        program_license = '''%s    
-    
-      Created by user_name on %s.
-      Copyright 2020 organization_name. All rights reserved.
-    
-      Licensed under the Apache License 2.0
-      http://www.apache.org/licenses/LICENSE-2.0
-    
-      Distributed on an "AS IS" basis without warranties
-      or conditions of any kind, either express or implied.
-    
-    USAGE
-    ''' % (program_shortdesc, str(__date__))    
-
-        self.parser = ArgumentParser(description=program_license, formatter_class=RawDescriptionHelpFormatter)
-        self.parser.add_argument('-v', '--version', action='version', version=program_version_message)
-
-        self.requiredArg = self.parser.add_argument_group('required arguments')
-        
-        # metavar
-        # see https://stackoverflow.com/questions/26626799/pythons-argument-parser-printing-the-argument-name-in-upper-case
-        self.requiredArg.add_argument( '-i', '--inputFile', required=True, default=None, metavar ="",
-                                              action='store', help='input file name')
-        self.requiredArg.add_argument('-o', '--outputFile', required=True, default=None, metavar ="",
-                                             action='store', help='output file name')
-    
-        if inOpts is None:
-            self.args = self.parser.parse_args()
-        else:
-            self.args = self.parser.parse_args(inOpts)
-            
-                
-###############################################################################
-class VolcanoPlot(object):
+class VolcanoPlot( object ):
     '''
     classdocs
     '''
 
     ###############################################################################
-    def __init__(self, panel):
+    def __init__( self, mplu ):
         '''
-        Constructor
+        arguments:
+            mplu: object of type MatPlotLibUtilities
+            panel
         '''
-        self.panel = panel
-        
+        self.mplu = mplu
+#         self.panel = panel
+
     ###############################################################################
-    def plot(self, xlog2FoldChange, yNeglog10pValue):
+    def createColorMapLedgend( self, colorBarPanel, minValueInDataCordinates,
+                         maxValueInDataCoordinates, numSteps, label ):
         '''
-        aedwip
+        AEDWIP
         '''
-        # we do not know what the true xlim should be
-        # the values are not show in the template
-        # this is a guess
-#         self.panel.set_xlim(-12.5, 12.6)
-#         self.panel.set_ylim(0, 60)
+        # python issue, we can not pass a generator because
+        #  it is not indexable
+        yellow = tuple( ( c / 255 for c in [255, 255, 84] ) )
+        red = tuple( ( c / 255 for c in [255, 0, 0] ) )
+        green = tuple( ( c / 255 for c in [0, 255, 0] ) )
+        blueV = tuple( ( c / 255 for c in [  0, 9, 240] ) )
+        blue = tuple( ( c / 255 for c in [0, 0, 255] ) )
+
+        colorMapTuple = self.mplu.createColorBar( colorBarPanel,
+                                                 minValueInDataCordinates,
+                                                 maxValueInDataCoordinates,
+                                                  yellow,
+                                                  red, numSteps, yLabel=label )
+        # RList, GList, BList = colorMapTuple
+        return colorMapTuple
+
+    ###############################################################################
+    def plot( self, panel, xList, yList, colorByValues=None ):
+        '''
+        arguments:
+            panel:
+                type matplotlib.pyplot.axes
+
+            x, y:
+                array like object
+
+            colorByValue:
+                array type object of color tuples.  example color = (0.5, 0.3, 07)
+                default = None
+        '''
+        # make sure all points are plotted
+        xMin = np.floor( np.min( xList ) )
+        xMax = np.ceil( np.max( xList ) )
+        panel.set_xlim( xMin, xMax )
 
         # make sure all points are plotted
-        xMin =  np.floor( np.min(xlog2FoldChange) )
-        xMax = np.ceil( np.max(xlog2FoldChange) )
-        self.panel.set_xlim(xMin, xMax)        
-    
-        # make sure all points are plotted
-        yMin = np.floor( np.min(yNeglog10pValue) )
-        yMax = np.ceil( np.max(yNeglog10pValue) )
-        self.panel.set_ylim(yMin, yMax)        
-            
+        yMin = np.floor( np.min( yList ) )
+        yMax = np.ceil( np.max( yList ) )
+        panel.set_ylim( yMin, yMax )
+
         # https://matplotlib.org/tutorials/text/mathtext.html
-        self.panel.set_xlabel(r'$log_2(fold\ change)$')
-        self.panel.set_ylabel(r'$-log_{10}(adj\ p\ value)$')
-    
-        self.panel.plot(xlog2FoldChange,
-                   yNeglog10pValue,
-                   marker='o',
-                   markerfacecolor='black',  # (56/255,66/255,156/255),
-                   markeredgecolor='black',
-                   markersize=1.5,  # diameter of mark # scatter is area
-                   markeredgewidth=0,
-                   linewidth=0)
-    
-#         self.panel.plot(extremeXlog2FoldChange,
-#                    extremeYNeglog10pValue,
-#                    marker='o',
-#                    markerfacecolor='red',  # (56/255,66/255,156/255),
-#                    markeredgecolor='red',
-#                    markersize=1.5,  # diameter of mark # scatter is area
-#                    markeredgewidth=0,
-#                    linewidth=0)
-#     
-#         # add gene names to extreme  points
-#         for i, geneName in enumerate(labels):
-#             x = labelX[i]
-#             y = labelY[i]
-#             gn = geneName.strip() + " "
-#             self.panel.text(x, y, gn, fontsize=6,
-#                        horizontalalignment='right',
-#                        verticalalignment='center')
-#     
+        panel.set_xlabel( r'$log_2(fold\ change)$' )
+        panel.set_ylabel( r'$-log_{10}(adj\ p\ value)$' )
+
+        if colorByValues is not None :
+            # scatter markersize is area
+            plotMarkersize = 0.6  # 0.75 #0.5 #1 #0.75 #0.5
+
+            plotMarkerArea = np.pi * ( ( plotMarkersize / 2 ) ** 2 )
+            scatterMarkersize = plotMarkerArea * 2  # strange did not look good with * 2
+            panel.scatter( xList,
+                          yList,
+                          s=scatterMarkersize,
+                          facecolor=colorByValues,
+                          linewidth=0,
+                          alpha=0.3 )
+
+        else:
+            # plot is faster than scatter how ever does not allow points to be
+            # indvidually colored
+            panel.plot( xList,
+                       yList,
+                       marker='o',
+                       markerfacecolor='black',  # (56/255,66/255,156/255),
+                       markeredgecolor='black',
+                       markersize=1.5,  # diameter of mark
+                       markeredgewidth=0,
+                       linewidth=0,
+                       alpha=0.3 )
+
+#
 #         self.panel.tick_params(bottom=True, labelbottom=True,
 #                           left=True, labelleft=True,
 #                           right=False, labelright=False,
 #                           top=False, labeltop=False)
-    
+
 
 ########################################################################
-def main(inComandLineArgsList=None):
+class _VolcanoPlotData :
     '''
-    process command line arguments can call createPlot()  
+    future proof private class use to manage data.
+    
+    avoid return list of parallel lists. Its hard to keep track of of kind of data is at 
+    each given position. using a class lets us name the various lists. Reduces refactor bugs
+    '''
+    def __init__( self ) :
+        self.abundantX = []
+        self.x = []
+
+        self.abundantY = []
+        self.y = []
+        self.abundant = []
+
+        self.abundantBaseMean = []
+        self.baseMean = []
+
+        # the xtick values for color gradient
+        self.minAbundanceValue = 0
+        self.maxAbundanceValue = 0
+
+########################################################################
+def loadData( inputFile ):
+    '''
+    returns a _VolcanoPlotData object
+    '''
+    ret = _VolcanoPlotData()
+
+    dataLoader = DESeqSelect( inputFile )
+    geneNamesNP, baseMeanNP, xlog2FoldChangeNP, yNeglog10pValueNP = dataLoader.readVolcanoPlotData()
+
+    # find abundant values
+    # create two data sets, values that are abundant and should be colored
+    # and data that should be ploted as black points
+    std = np.std( baseMeanNP )
+    mean = np.mean( baseMeanNP )
+    threshold = mean + 2 * std
+    print( "AEDWIP mean:{} std:{} threshold:{}".format( mean, std, threshold ) )
+
+    for i in range( len( baseMeanNP ) ):
+        bm = baseMeanNP[i]
+        x = xlog2FoldChangeNP[i]
+        y = yNeglog10pValueNP[i]
+        if bm >= threshold:
+            ret.abundantX.append( x )
+            ret.abundantY.append( y )
+            ret.abundantBaseMean.append( bm )
+        else:
+            ret.x.append( x )
+            ret.y.append( y )
+            ret.baseMean.append( bm )
+
+#     print( "AEDWIP mean:{} std:{} minCut:{}".format( mean, std, mean + 2 * std ) )
+
+    # find the range of tick mark values for the color gradient panel
+    ret.minAbundanceValue = int( np.floor( threshold ) )
+    ret.maxAbundanceValue = int( np.ceil( np.max( baseMeanNP ) ) )
+
+    return ret
+
+
+########################################################################
+def main( inComandLineArgsList=None ):
+    '''
+    process command line arguments load data and  call createPlot()
     '''
     if inComandLineArgsList is None:
-        cli = CommandLine()
+        cli = VolcanoPlotCommandLine()
     else:
-        cli = CommandLine(inComandLineArgsList)
-        
+        cli = VolcanoPlotCommandLine( inComandLineArgsList )
 
     mplu = MatPlotLibUtilities()
     mplu.loadStyle()
 
-    inputFile = cli.args.inputFile
-    dataLoader = DESeqSelect(inputFile)
-    geneNamesNP, xlog2FoldChangeNP, yNeglog10pValueNP = dataLoader.readVolcanoPlotData()
-    
+    volcanoPlotData = loadData( cli.args.inputFile )
+
+    # set up figure
     # standard paper size is 8.5 inches x 11 inches
-    pageWidthInInches = 3
+    pageWidthInInches = 4
     pageHeightInInches = 3
-    fig = plt.figure(figsize=(pageWidthInInches, pageHeightInInches))
+    fig = plt.figure( figsize=( pageWidthInInches, pageHeightInInches ) )
 
-    panelWidthInInches = 2
+    # create color map
     panelHeightInInches = 2
-    
-    panel = mplu.createPanel(fig,
-                        panelWidthInInches, panelHeightInInches,
-                        leftRelativeSize=0.2, bottomRelativeSize=0.2)
+    bottomRelativeSize = 0.2
+    leftRelativeSize = 0.9
+    colorBarPanel = mplu.createPanel( fig,
+                        3 / 16, panelHeightInInches,
+                        leftRelativeSize, bottomRelativeSize )
 
-    volcanoPlot = VolcanoPlot(panel)
-    volcanoPlot.plot(xlog2FoldChangeNP, yNeglog10pValueNP)
+    # set up the base mean color gradient legend
+    label = "base mean"
+    numSteps = 10 #20  # 4  # 1000 # 4 #50 #20
+    volcanoPlot = VolcanoPlot( mplu )    
+    colorMapTuple = volcanoPlot.createColorMapLedgend( colorBarPanel,
+                                                        volcanoPlotData.minAbundanceValue,
+                                                        volcanoPlotData.maxAbundanceValue,
+                                                        numSteps, label )
     
-    pre = "/public/groups/kimlab/"
-    title = inputFile[len(pre):]
-    panel.set_title(title, fontsize=8) #arial is not installed on courtyard, font is huge
+    # create the color list data
+    RList, GList, BList = colorMapTuple
+    colorByValues = mplu.getColors( volcanoPlotData.abundantBaseMean,
+                                   RList, GList, BList )
     
+    black = (0,0,0)
+    allColors = [black] * len(volcanoPlotData.x) + colorByValues
+    
+#     colorByValues = mplu.getColors( dataList, RList, GList, BList )
+
+    # plot the main volcano plot
+    panelWidthInInches = 2
+    leftRelativeSize = 0.2
+    volcanoPanel = mplu.createPanel( fig,
+                        panelWidthInInches, panelHeightInInches,
+                        leftRelativeSize, bottomRelativeSize )
+
+    # put colored points at end of the list to avoid over plotting by black points
+    allX = volcanoPlotData.x + volcanoPlotData.abundantX
+    allY = volcanoPlotData.y + volcanoPlotData.abundantY
+    volcanoPlot.plot(volcanoPanel, allX, allY, allColors)
+
+    title = cli.args.title
+    if title:
+        volcanoPanel.set_title( title, fontsize=8 )  # arial is not installed on courtyard, default font is huge
+
+    # save image
     outputFile = cli.args.outputFile
     # png is an uncompressed bitmap format
     # output format is determined by output file name's suffix '.png'
-    plt.savefig(outputFile)  # BME163 style sheet should set dpi=600
+    plt.savefig( outputFile, dpi=600 )  # BME163 style sheet should set dpi=600
+
 
 ########################################################################
 if __name__ == "__main__":
-    #import sys;sys.argv = ['', 'Test.testName']
+    # import sys;sys.argv = ['', 'Test.testName']
     main()

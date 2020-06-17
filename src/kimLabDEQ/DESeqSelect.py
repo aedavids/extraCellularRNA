@@ -17,6 +17,7 @@ class DESeqSelect(object):
     
     logger = logging.getLogger(__name__)
     GENE_NAME_IDX = 0
+    BASE_MEAN_IDX = 1
     LOG_IDX = 2
     P_ADJ_IDX = 5
 
@@ -33,6 +34,7 @@ class DESeqSelect(object):
         returns: (geneNames, x, y)
             type: numpy array
                 geneNames: list of strings
+                baseMean
                 x: log2(fold-change)
                 y: -log10(p-value)
         '''
@@ -40,6 +42,7 @@ class DESeqSelect(object):
         
         # numpy append is much slower than python list append
         # convert to numpy before return
+        baseMeanList = []
         xList = []
         yList = []
 
@@ -47,26 +50,29 @@ class DESeqSelect(object):
             hdr = fd.readline()
             for line in fd:
                 tokens = line.strip().split(',')                
-                fancy = np.array(tokens)[ [self.LOG_IDX, self.P_ADJ_IDX] ]
+                fancy = np.array(tokens)[ [self.BASE_MEAN_IDX, self.LOG_IDX, self.P_ADJ_IDX] ]
                 # array length is 2, 'in' will be fast                 
                 if "NA" in fancy:
                     continue
                     
-                log2Fold, adjP =  fancy.astype(float)
+                baseMean, log2Fold, adjP =  fancy.astype(float)
+                
                 if adjP == 0.0:
                     # log(0) is undefined
                     adjP = 0.000001
-                
+                                    
+                baseMeanList.append( baseMean )
                 xList.append( log2Fold )
                 yList.append( adjP )
                 geneNames.append(tokens[self.GENE_NAME_IDX])
 
-        xNP = np.array(xList)
-        yNP = np.log10(yList) * -1.0 
+        baseMeanNp = np.array( baseMeanList )
+        xNP = np.array( xList )
+        yNP = np.log10( yList ) * -1.0 
         # convert to numpy so we can use fancy indexing
         geneNamesNP = np.array(geneNames)
         
-        return (geneNamesNP, xNP, yNP)
+        return (geneNamesNP,baseMeanNp, xNP, yNP)
         
     ################################################################################    
     def saveRows(self, outputDirPath, adjPValue, logFoldChange):

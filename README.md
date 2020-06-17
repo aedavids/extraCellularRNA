@@ -21,6 +21,7 @@ export PYTHONPATH="${PYTHONPATH}:`pwd`/src"
 ```
 
 create the extraCellularRNA environment from yaml file
+
 ```
 conda env create -f environment.yml
 ```
@@ -32,7 +33,7 @@ see [exporting-an-environment-file-across-platforms](https://docs.conda.io/proje
 cd extraCellularRNA
 conda activate extraCellularRNA
 conda env export --from-history > environment.yml
- ```
+```
 
 Running Unit test
 
