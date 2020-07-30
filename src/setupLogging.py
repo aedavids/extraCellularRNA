@@ -64,7 +64,7 @@ def setupLogging (
     else:
         ret = "logging.basisConfig()"
         logging.basicConfig(level=default_level)
-        #print("AEDWIP loading log loading basicConfig:")
+        print("AEDWIP loading log loading basicConfig:")
         
     return ret        
 

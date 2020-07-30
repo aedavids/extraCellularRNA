@@ -1,7 +1,7 @@
 #!/usr/local/bin/python3
 # encoding: utf-8
 '''
-bme263DataVis.volcanoPlot.py -- shortdesc AEDWIP
+bme263DataVis.volcanoPlot.py -- shortdesc create a volcano plot
 
 It defines classes_and_methods
 
@@ -22,6 +22,11 @@ from kimLabDEQ.DESeqSelect import DESeqSelect
 import matplotlib.pyplot as plt
 import numpy as np
 
+__all__ = []
+__version__ = 0.1
+__date__ = '2020-05-26'
+__updated__ = '2020-05-26'
+
 
 ###############################################################################
 class VolcanoPlot( object ):
@@ -39,28 +44,44 @@ class VolcanoPlot( object ):
         self.mplu = mplu
 #         self.panel = panel
 
+#     ###############################################################################
+#     def createColorMapLedgend( self, colorBarPanel, minValueInDataCordinates,
+#                          maxValueInDataCoordinates, numSteps, label ):
+#         '''
+#         AEDWIP
+#         '''
+#         # python issue, we can not pass a generator because
+#         #  it is not indexable
+#         yellow = tuple( ( c / 255 for c in [255, 255, 84] ) )
+#         red = tuple( ( c / 255 for c in [255, 0, 0] ) )
+#         green = tuple( ( c / 255 for c in [0, 255, 0] ) )
+#         blueV = tuple( ( c / 255 for c in [  0, 9, 240] ) )
+#         blue = tuple( ( c / 255 for c in [0, 0, 255] ) )
+# 
+#         colorMapTuple = self.mplu.createColorBar( colorBarPanel,
+#                                                  minValueInDataCordinates,
+#                                                  maxValueInDataCoordinates,
+#                                                   yellow,
+#                                                   red, numSteps, yLabel=label )
+#         # RList, GList, BList = colorMapTuple
+#         return colorMapTuple
+
     ###############################################################################
-    def createColorMapLedgend( self, colorBarPanel, minValueInDataCordinates,
-                         maxValueInDataCoordinates, numSteps, label ):
+    def createColorMapLedgend( self, colorBarPanel,lowerColorTup, upperColorTup,
+                                 minValueInDataCordinates, maxValueInDataCoordinates, numSteps, label ):
         '''
         AEDWIP
         '''
-        # python issue, we can not pass a generator because
-        #  it is not indexable
-        yellow = tuple( ( c / 255 for c in [255, 255, 84] ) )
-        red = tuple( ( c / 255 for c in [255, 0, 0] ) )
-        green = tuple( ( c / 255 for c in [0, 255, 0] ) )
-        blueV = tuple( ( c / 255 for c in [  0, 9, 240] ) )
-        blue = tuple( ( c / 255 for c in [0, 0, 255] ) )
-
+          
+  
         colorMapTuple = self.mplu.createColorBar( colorBarPanel,
                                                  minValueInDataCordinates,
                                                  maxValueInDataCoordinates,
-                                                  yellow,
-                                                  red, numSteps, yLabel=label )
+                                                  lowerColorTup,
+                                                  upperColorTup, numSteps, yLabel=label )
         # RList, GList, BList = colorMapTuple
         return colorMapTuple
-
+    
     ###############################################################################
     def plot( self, panel, xList, yList, colorByValues=None ):
         '''
@@ -126,10 +147,11 @@ class VolcanoPlot( object ):
 class _VolcanoPlotData :
     '''
     future proof private class use to manage data.
-    
-    avoid return list of parallel lists. Its hard to keep track of of kind of data is at 
+
+    avoid return list of parallel lists. Its hard to keep track of of kind of data is at
     each given position. using a class lets us name the various lists. Reduces refactor bugs
     '''
+
     def __init__( self ) :
         self.abundantX = []
         self.x = []
@@ -144,6 +166,7 @@ class _VolcanoPlotData :
         # the xtick values for color gradient
         self.minAbundanceValue = 0
         self.maxAbundanceValue = 0
+
 
 ########################################################################
 def loadData( inputFile ):
@@ -190,10 +213,11 @@ def main( inComandLineArgsList=None ):
     '''
     process command line arguments load data and  call createPlot()
     '''
+    cli = VolcanoPlotCommandLine( __version__, __date__, __updated__ )
     if inComandLineArgsList is None:
-        cli = VolcanoPlotCommandLine()
+        cli.parse()
     else:
-        cli = VolcanoPlotCommandLine( inComandLineArgsList )
+        cli.parse()( inComandLineArgsList )
 
     mplu = MatPlotLibUtilities()
     mplu.loadStyle()
@@ -216,21 +240,27 @@ def main( inComandLineArgsList=None ):
 
     # set up the base mean color gradient legend
     label = "base mean"
-    numSteps = 10 #20  # 4  # 1000 # 4 #50 #20
-    volcanoPlot = VolcanoPlot( mplu )    
+    numSteps = 10  # 20  # 4  # 1000 # 4 #50 #20
+    volcanoPlot = VolcanoPlot( mplu )
+    
+#         # python issue, we can not pass a generator because
+#         #  it is not indexable
+    yellow = tuple( ( c / 255 for c in [255, 255, 84] ) )
+    red = tuple( ( c / 255 for c in [255, 0, 0] ) )    
     colorMapTuple = volcanoPlot.createColorMapLedgend( colorBarPanel,
+                                                        yellow, red,
                                                         volcanoPlotData.minAbundanceValue,
                                                         volcanoPlotData.maxAbundanceValue,
                                                         numSteps, label )
-    
+
     # create the color list data
     RList, GList, BList = colorMapTuple
     colorByValues = mplu.getColors( volcanoPlotData.abundantBaseMean,
                                    RList, GList, BList )
-    
-    black = (0,0,0)
-    allColors = [black] * len(volcanoPlotData.x) + colorByValues
-    
+
+    black = ( 0, 0, 0 )
+    allColors = [black] * len( volcanoPlotData.x ) + colorByValues
+
 #     colorByValues = mplu.getColors( dataList, RList, GList, BList )
 
     # plot the main volcano plot
@@ -243,7 +273,7 @@ def main( inComandLineArgsList=None ):
     # put colored points at end of the list to avoid over plotting by black points
     allX = volcanoPlotData.x + volcanoPlotData.abundantX
     allY = volcanoPlotData.y + volcanoPlotData.abundantY
-    volcanoPlot.plot(volcanoPanel, allX, allY, allColors)
+    volcanoPlot.plot( volcanoPanel, allX, allY, allColors )
 
     title = cli.args.title
     if title:

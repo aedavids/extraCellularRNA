@@ -1,15 +1,89 @@
 # Kras IPSC data overview
 
-Follow up from seperate meeting with Prof and Roman on 6/9/2020
+Follow up from separate meeting with Prof and Roman on 6/9/2020, and addition notes
+
+Goal: find evidence that extracellular RNA influences IPSC differetiation
+
+## data set :
+
+## bulk intra cellular rna sequence sets
+
+- fastq files (HiSeq read data)
+    * /public/groups/kimlab/kras.ipsc/bulk.data/day.{5,7}/{ctrl,kras}.{1,2,3}/output_reverse_paired.fq.gz
+    * /public/groups/kimlab/kras.ipsc/bulk.data/day.{5,7}/{ctrl,kras}.{1,2,3}/output_forward_paired.fq.gz
+    * example first entry:
+        + first line is read identifier
+        + second line is sequence
+        + third line is always '+'
+        + forth line is read quality for each neculeotide
+```
+   (base) [aedavids@courtyard ctrl.1]$ zcat output_forward_paired.fq.gz | head -n 4
+   
+    @K00188:93:HVYFJBBXX:3:1101:1479:1490 1:N:0:GCCAAT
+    GGCGTACAGCAGTGTCAACGTAGTAGTTAACAGGGTCTCCGCTGTGGATCATCAGGCCATCCACAAACTTCATGGATTTAGCCCTCTGTCCTCGGAGTTTC
+    +
+    AAFFFJAFJJJJJJJJJJ<-FFJJJJJJJJJJF7FJ-FFF7FJA-FFJFFJFFJJFJFJFFA7F7<A<JJJ<JJ<<FJFFFFJJJFFF7<<JJAAF<7A<J
+```
+
+- the alignement files
+    * /public/groups/kimlab/kras.ipsc/bulk.data/day.{5,7}/bam.files/{ctrl,kras}.{1,2,3}star.out/pass.2/*.bam
+    
+- output files from star, salmon, can be found under
+    * /public/groups/kimlab/kras.ipsc/bulk.data/day.{5,7}/{ctrl,kras}.{1,2,3}/
+    
+## bulk extra cellular data 'library created from media in petri dish'
+we only have day 5 data
+
+- fastq files (HiSeq read data)
+    * /public/groups/kimlab/kras.ipsc/bulk.data/day.{5,7}/{ctrl,kras}.{1,2,3}/output_{forward,reverse}_{paried,unpaired}.fq.gz
+
+- the output files form star, salmon, ... can be found under 
+  * /public/groups/kimlab/kras.ipsc/exo.data/gen1c.day.5.exo.input.data/{ctrl,kras}.{1,2,3}
+  
+- the bam files
+    * /public/groups/kimlab/kras.ipsc/exo.data/gen1c.day.5.exo.input.data/{ctrl,kras}.{1,2,3}/star.out/*.bam
+    * bam example
+      + first line
+      
+      ```
+      samtools view ctrl.1.out.bam  | head -n 5 | tee ~/t
+        $ cat ~/t | head -n 1 | tail -1
+NB551675:38:HTMGLAFXY:1:11101:10183:1121    163 chr21   8254748 0   113M    =   8254748 113 GCCATGATTAAGAGGGACGGCCGGGGGCATTCGTATTGCGCCGCTAGAGGTGAAATTCTTGGACCGGCGCAAGACGGACCAGAGCGAAAGCATTTGCCAAGAATGTTTTCATT   AAAAAEEEEEAEEEEEEEEEEEEEEEEEEEEEEEE<EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEAEEEE/EEEEEEEEEE6EEEEEEE<EAEEEEAEEAE   NH:i:8  HI:i:1  AS:i:224    nM:i:0
+        ```
+        
+     + second line
+        ```
+        $ cat ~/t | head -n 2 | tail -1
+        NB551675:38:HTMGLAFXY:1:11101:10183:1121    83  chr21   8254748 0   113M    =   8254748 -113    GCCATGATTAAGAGGGACGGCCGGGGGCATTCGTATTGCGCCGCTAGAGGTGAAATTCTTGGACCGGCGCAAGACGGACCAGAGCGAAAGCATTTGCCAAGAATGTTTTCATT   <///A//EAE///<A/EEEEEAE<<EEEEAEEEEEEEEEEEEAEEEEEEA/EE/EEEEEEEEEEAEEEEAEEEAEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEAAAAA   NH:i:8  HI:i:1  AS:i:224    nM:i:0
+        
+        
+        ```
+
+
+## intra cellular Single Cell
+- /public/groups/kimlab/kras.ipsc/single.cell.data/day.5.ipsc.{ctrl,kras}
+- /public/groups/kimlab/kras.ipsc/single.cell.data/day.7.eb.{ctrl,kras}
+  * 'eb': embronic body, are three-dimensional aggregates of pluripotent stem cells
+
+## extra cellular Single cell
+- does not exist. Maybe not be possible to collect media from wells
 
 Data sets we want to focus on as prep for meeting with Kevin are
 
-Prof's directions:
+# Daniel's directions:
 a) The 3 IPSC scrambled exo rna libs
+  - AED: only day 5, these are the control replicants
 
-    - they are the extra cellular rna libs
-    - sequenced rna from the dish not the cells
-    - they are the control
+  - they are the extra cellular rna libs
+  - sequenced rna from the dish not the cells
+  - they are the control
+  - the term 'scrambled' means
+    * ref: p 105 BME notebook 9/30/19 - 'Srees examination prep lab meeting presentation'
+    * IPSC cell culture is ? set up with cripsri system?
+    * 20 nucliotide guide used to knock down kras
+    * to ensure results are not due to added RNA as opposed to actual knock down
+    * a random 20 nucliotied guide is used on the ctrl replicants. 
+    * because it is random should not effect mRNA transcription
     
 b) the 3 ipsc kras exo rna libs
 

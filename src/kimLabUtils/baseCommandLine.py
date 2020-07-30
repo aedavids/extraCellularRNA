@@ -1,20 +1,25 @@
 '''
-Created on Jun 17, 2020
+Created on Jun 21, 2020
 
 @author: andrewdavidson
+Copyright 2020 Santa Cruz Analytics. All rights reserved.
+
+example of useage see: src/scaStats/biaDescribe.py notice `-- shortdesc' in modulal documentation
 '''
 
+import logging
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
-
-###############################################################################
-class VolcanoPlotCommandLine( object ):
+################################################################################
+class BBaseCommandLine( object ):
     '''
-    Handle the command line, usage and help requests.
+    classdocs
     '''
-
+    
+    logger = logging.getLogger(__name__)
+        
     ###############################################################################
-    def __init__( self, version, date, update):
+    def __init__( self, version, author, date, update):
         '''
         Implement a parser to interpret the command line argv string using argparse.
 
@@ -24,7 +29,8 @@ class VolcanoPlotCommandLine( object ):
         '''
         self.program_version = version
         self.program_build_date = str(update)    
-        self.date = date      
+        self.date = date   
+        self.author = author   
         
         self.program_version_message = '%%(prog)s %s (%s)' % ( self.program_version, self.program_build_date )
         self.program_shortdesc = __import__( '__main__' ).__doc__.split( "\n" )[1]
@@ -33,33 +39,27 @@ class VolcanoPlotCommandLine( object ):
     def _getLicence(self):
         return '''%s
 
-      Created by user_name on %s.
-      Copyright 2020 organization_name. All rights reserved.
-
-      Licensed under the Apache License 2.0
-      http://www.apache.org/licenses/LICENSE-2.0
-
-      Distributed on an "AS IS" basis without warranties
-      or conditions of any kind, either express or implied.
+      Created by %s on %s.
+      Copyright 2020 Santa Cruz Analytics. All rights reserved.
 
     USAGE
-    ''' % ( self.program_shortdesc, str( self.date ) )
+    ''' % ( self.program_shortdesc, str(self.author), str( self.date ) )
 
     ###############################################################################
     def _build( self ):
         self.parser = ArgumentParser( description=self._getLicence(), formatter_class=RawDescriptionHelpFormatter )
-        self.parser.add_argument( '-t', '--title', default=None, metavar="",
-                                              action='store', help='plot title' )
-        self.parser.add_argument( '-v', '--version', action='version', version=self.program_version_message )
+#         self.parser.add_argument( '-t', '--title', default=None, metavar="",
+#                                               action='store', help='plot title' )
+#         self.parser.add_argument( '-v', '--version', action='version', version=self.program_version_message )
 
         self.requiredArg = self.parser.add_argument_group( 'required arguments' )
 
-        # metavar
-        # see https://stackoverflow.com/questions/26626799/pythons-argument-parser-printing-the-argument-name-in-upper-case
-        self.requiredArg.add_argument( '-i', '--inputFile', required=True, default=None, metavar="",
-                                              action='store', help='input file name' )
-        self.requiredArg.add_argument( '-o', '--outputFile', required=True, default=None, metavar="",
-                                             action='store', help='output file name' )
+#         # metavar
+#         # see https://stackoverflow.com/questions/26626799/pythons-argument-parser-printing-the-argument-name-in-upper-case
+#         self.requiredArg.add_argument( '-i', '--inputFile', required=True, default=None, metavar="",
+#                                               action='store', help='input file name' )
+#         self.requiredArg.add_argument( '-o', '--outputFile', required=True, default=None, metavar="",
+#                                              action='store', help='output file name' )
 
     ###############################################################################
     def parse( self, inOpts=None ):
@@ -68,3 +68,4 @@ class VolcanoPlotCommandLine( object ):
             self.args = self.parser.parse_args()
         else:
             self.args = self.parser.parse_args( inOpts )
+        
