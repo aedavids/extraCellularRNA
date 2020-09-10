@@ -1,0 +1,482 @@
+---
+title: "R Notebook"
+author: "Andrew Davidson, aedavids@ucsc.edu"
+date: "Aug 10, 2020"
+
+output: html_notebook
+---
+
+ref:
+
+- [bioconductor.org vignettes/DESeq2](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html)
+- [bioconductor BiocWorkshops rna-seq-data-analysis-with-deseq2](https://bioconductor.github.io/BiocWorkshops/rna-seq-data-analysis-with-deseq2.html)
+- /public/home/aedavids/extraCellularRNA/R/notebooks/kras.ipsc_exo_vs_bulk.DESeq.Rmd
+
+- [R class tutorial](https://www.datamentor.io/r-programming/object-class-introduction/)
+
+- /public/groups/kimlab/kras.ipsc/old.output.data.and.scripts/tximport.and.normalize.R
+
+
+```{r message=FALSE}
+library("apeglm")
+library("DESeq2")
+library("ggplot2")
+library('rjson')
+# tximport loads data in the format Bioconductor expects
+library("tximport")
+source("findFiles.R") # assume file in in same directory as current Rmd
+```
+## Find all the salmon estimated transcript count files
+```{r}
+rootDir <- "/home/kimlab"
+outputRoot <- "/home/aedavids/extraCellularRNA/R/output"
+```
+
+#### find all bulk day 5 control estimated transcript count files
+```{r}
+# rootDir <- "/home/kimlab"
+bulkDirPath = file.path( rootDir, 'kras.ipsc', 'data', 'bulk.data', 'day.5' )
+bulkDay5CntrlSalmonFiles <- findBulkDay5CntrlFiles(bulkDirPath)
+bulkDay5CntrlSalmonFiles
+if ( ! all(file.exists(bulkDay5CntrlSalmonFiles)) ) {
+  stop(c("ERROR: file not found: ", bulkDay5CntrlSalmonFiles))
+}
+```
+
+#### find all bulk day 5 kras estimated transcript count files
+
+```{r}
+bulkDay5KrasSalmonFiles <- findBulkDay5KrasFiles(bulkDirPath)
+bulkDay5KrasSalmonFiles
+if (! all(file.exists(bulkDay5KrasSalmonFiles)) ) {
+    stop(c("ERROR: file not found: ", bulkDay5KrasSalmonFiles))
+}
+```
+#### find all day 5 exo control estimated transcript files
+```{r}
+exoDirPath = file.path( rootDir, 'kras.ipsc', 'data', 'exo.data', 'gen1c.day.5.exo.input.data' )
+exoDay5CntrlSalmonFiles <- findExoDay5CtrlFiles(exoDirPath)
+exoDay5CntrlSalmonFiles
+if ( ! all(file.exists(exoDay5CntrlSalmonFiles)) ) {
+  stop( c("ERROR: file not found", exoDay5CntrlSalmonFiles))
+}
+```
+
+### find all day 5 exo kras estimated transcript files
+```{r}
+exoDay5KrasSalmonFiles <- findExoDay5KrasFiles( bulkDirPath )
+# TODO find a cleaner way to remove bulk.data/day.5/kras.alu.edit.out
+exoDay5KrasSalmonFiles <- exoDay5KrasSalmonFiles[1:3]
+if ( ! all(file.exists(exoDay5KrasSalmonFiles)) ) {
+  stop("ERROR: file not found", exoDay5KrasSalmonFiles)
+}
+```
+
+
+make sure the salmon files are consistent. i.e. use the same index
+```{r}
+allSalmonQuantFiles <- c(
+    exoDay5CntrlSalmonFiles,
+    exoDay5KrasSalmonFiles,
+    bulkDay5CntrlSalmonFiles,
+    bulkDay5KrasSalmonFiles
+  )
+
+# replace quant.sf with cmd_info.json
+cmdInfoJsonFiles <- lapply(allSalmonQuantFiles, function(quantFile) {
+  paste( dirname( quantFile ), "cmd_info.json", sep="/" )
+} )
+
+# get a list of json objects
+cmdInfoJSONList <- getSalmonIndexFiles( cmdInfoJsonFiles )
+
+if ( ! checkIndexIsSame(cmdInfoJSONList, cmdInfoJSONList[1]) ) {
+  stop( "ERROR: 'salmon quant' files used different index files!")
+} 
+```
+# parse out control bio types
+
+hack
+```{r}
+hackFile <- '/home/kimlab/kras.ipsc/data/exo.data/gen1c.day.5.exo.input.data/ctrl.3/gencode.salmon.out/quant.sf'
+hDF <- read.table(hackFile, header=TRUE)
+hhDF <- head(hDF)
+# newCols <- strsplit(hhDF$Name, "\\|")
+#https://stackoverflow.com/questions/7069076/split-column-at-delimiter-in-data-frame
+fooDF <- data.frame(do.call('rbind', strsplit(as.character(hhDF$Name),'|',fixed=TRUE)))
+# https://github.com/rreggiar/welcome-to-the-kim-lab/wiki/Salmon-output-data-dictionary
+colnames(fooDF) <- c("ENST", "ENSG", "OTTHUMG", "OTTHUMT", "HGNCT", "HGNCG", "refLength", "BioType") 
+aedwipDF <- cbind(fooDF, hhDF)
+```
+
+
+```{r}
+loadBioTypeDF <- function( quant.sf.path ) {
+  df <- read.table(quant.sf.path, header=TRUE)
+  
+  # split the Name col into a data frame
+  namesDF <- data.frame(do.call('rbind', strsplit(as.character(df$Name),'|',fixed=TRUE)))
+  # https://github.com/rreggiar/welcome-to-the-kim-lab/wiki/Salmon-output-data-dictionary
+  colnames(namesDF) <- c("ENST", "ENSG", "OTTHUMG", "OTTHUMT", "HGNCT", "HGNCG", "refLength", "BioType")
+  
+  # combine the data frames
+  retDF <- cbind(namesDF, df)
+  return(retDF)
+}
+
+for (filePath in allSalmonQuantFiles) {
+  print(filePath)
+  df <- loadBioTypeDF(filePath)
+  df <- df[,c("HGNCT", "HGNCG", "BioType", "TPM", "NumReads")]
+  t <- strsplit(filePath, "\\/")
+  t <- unlist(t)
+  outFileName <- paste( c(t[4:8], "biotype.csv"), collapse=".")
+  csvPath <- file.path( outputRoot, outFileName)
+  print(csvPath)
+  write.csv(df, file=csvPath)
+}
+```
+
+
+# DESeq
+
+#### Load the mapping from transcript id to gene id.
+
+```{r}
+cmdInfoJSONList[1]
+print("AEDWIP do not hard code this")
+
+readTx2GeneDF <- function() {
+  # TODO is data organized in a consistent way on disk
+  tx2Gene.csv <- file.path( '/home/kimlab/genomes.annotations/gencode.32', 
+                          'gen.32.tx.2.gene.csv')
+  gen.32.tx.2.geneDF <- read.table(file=tx2Gene.csv, header=FALSE, sep ="|")
+  #print(head(gen.32.tx.2.geneDF))
+  #tx2geneDF <- gen.32.tx.2.geneDF[, c(1,5)] # 5 is HGNC with gene specific transcript id
+  tx2geneDF <- gen.32.tx.2.geneDF[, c(1,6)] # 6 is HGNC required to stay at gene level
+  names(tx2geneDF) <- c("TXNAME", "GENEID")
+  
+  return( tx2geneDF )
+}
+
+tx2geneDF <- readTx2GeneDF()
+head( tx2geneDF )
+```
+
+# Is there a difference between bulk and exo control samples?
+load the estimated transcript count data. Create a DESeqDataSet. DESeqDataSet is a kind of SummarizedExperiment object 
+```{r}
+# tximport imports transcript-level estimates from various external software and
+# optionally summarizes abundances, counts, and transcript lengths to the
+# gene-level (default) or outputs transcript-level matrices (see txOut
+# argument).
+#
+# argument ignoreAfterBar whether to split the tx id on the '|' character to
+# facilitate matching with the tx id in tx2gene
+# 
+cntrlQuantFile <- c(bulkDay5CntrlSalmonFiles, exoDay5CntrlSalmonFiles)
+txi <- tximport(cntrlQuantFile, type="salmon", 
+                tx2gene=tx2geneDF, ignoreAfterBar=TRUE)
+```
+
+create the colData data frame. This is the meta data describing each sample
+The Rows of correspond to columns of countData 
+and cols are features that describe the replicates. The design model use the 
+columns as features
+```{r}
+numBulkCntrl <- length( bulkDay5CntrlSalmonFiles )
+numExoCntrl  <- length( exoDay5CntrlSalmonFiles )
+
+# place holder for day 5 vs 7
+day <- c( rep('5', numBulkCntrl + numExoCntrl) ) 
+day <- factor( day )
+
+sampleType <- c( rep('bulk', numBulkCntrl), rep('ex0', numExoCntrl))
+sampleType <- factor( sampleType )
+
+treatment <- c( rep('ctrl', numBulkCntrl + numExoCntrl) ) 
+treatment <- factor(treatment)
+
+colDF <- data.frame(sampleType, treatment, day)
+
+colDF
+
+# check levels. by default R choose alphabetic order
+# we need to make sure the control level is first or use the contrast argument
+levels(colDF$sampleType)
+levels(colDF$treatment)
+levels(colDF$day)
+```
+Construct a DESeq data object
+```{r}
+dds <- DESeqDataSetFromTximport(txi, colData=colDF, design = ~ sampleType)
+
+# filter rows: remove genes if they do not have a count of 5 or more in 
+# 4 or more samples
+keep <- rowSums(counts(dds) >= 5) >= 4
+table(keep)
+dds <- dds[keep,]
+```
+clean up memory to reduce bugs
+```{r}
+
+# data
+rm(cmdInfoJsonFiles, colDF, tx2geneDF, txi)
+
+# values
+rm(allSalmonQuantFiles, bulkDay5CntrlSalmonFiles, bulkDay5KrasSalmonFiles, bulkDirPath)
+
+rm(cmdInfoJSONList, cntrlQuantFile, day, exoDay5CntrlSalmonFiles, exoDay5KrasSalmonFiles)
+
+rm(exoDirPath, keep, numBulkCntrl, numExoCntrl, sampleType, treatment)
+```
+
+
+# Explore results
+```{r}
+# run
+ddsDESeq <- DESeq(dds)
+```
+results() extracts a results table with log2 fold changes, p
+values and adjusted p values. 
+
+With no additional arguments to results, the log2 fold change and Wald test p value will be for the last variable in the design formula, and if this is a factor, the comparison will be the last level of
+this variable over the reference level 
+```{r}
+coefList <- resultsNames(ddsDESeq) # lists the coefficients
+coefList
+```
+
+get results
+```{r}
+#see vignette for how to specify coefficient or contrast. contrast is the factor
+#level we want to compare against, it the control contrast also effect the log
+#fold change value if count is zero see ?results Note that the results function
+#automatically performs independent filtering based on the mean of normalized
+#counts for each gene, optimizing the number of genes which will have an
+#adjusted p value below a given FDR cutoff, alpha By default the argument alpha
+#is set to . If the adjusted p value cutoff will be a value other than , alpha
+#should be set to that value:
+# we want 0.05 in either tail. 
+#
+# we can use lfcThreshold to specify a minimum biologically meaningful effect size
+res.unShrunk <- results(ddsDESeq, name=coefList[2], lfcThreshold=1)
+head(res.unShrunk)
+```
+```{r}
+summary( res.unShrunk )
+```
+
+get meta data, 
+```{r}
+# mcols() returns a data frame
+mcols(res.unShrunk)
+```
+
+
+shrink log fold changes associated with condition
+```{r}
+# If we just use results() and plotMA() many large LFC which are not signifigant
+# these obtain a large LFC becuause of imprecises log counts
+# 
+# use lfcShrink() to shrink log fold changes association with condition:
+# Shrinkage of effect size (LFC estimates) is useful for visualization and 
+# ranking of genes.
+# we can use lfcThreshold to specify a minimum biologically meaningful effect size
+
+# type	argument "apeglm" is the adaptive Student's t prior shrinkage estimator
+# from the 'apeglm' package; "ashr" is the adaptive shrinkage estimator from the
+# 'ashr' package, using a fitted mixture of normals prior - see the Stephens
+# (2016) reference below for citation; "normal" is the 2014 DESeq2 shrinkage
+# estimator using a Normal prior;
+
+# https://rdrr.io/bioc/DESeq2/man/lfcShrink.html
+res.lfcShrink <- lfcShrink(ddsDESeq, coef=coefList[2], type="apeglm", lfcThreshold=1)
+head(res.lfcShrink)
+```
+Get meta data for res.lfcShrink
+```{r}
+# mcols() returns a dataframe
+mcols( res.lfcShrink )
+
+```
+
+### MA plot
+gray points are insignificant. Points will be colored red if the adjusted p value is
+less than 0.1. Points which fall out of the window are plotted as open triangles pointing either up or down.
+
+TODO: what are MA plots [wikipedia MA plots](https://en.wikipedia.org/wiki/MA_plot#:~:text=An%20MA%20plot%20is%20an,scales%2C%20then%20plotting%20these%20values.)
+```{r}
+par(mfrow=c(1,2))
+plotMA(res.unShrunk, ylim=c(-5,5), main="No shrinkage, LFC test")
+plotMA(res.lfcShrink, ylim=c(-5,5), main="apeglm, LFC test", alpha=0.01)
+```
+
+save to disk.
+
+write.csv() only contains a single header column name row. we use capture.output
+to capture some additional meta data like what the model was
+```{r}
+# TODO DRY
+# outputRoot <- "/home/aedavids/extraCellularRNA/R/output"
+
+coFileName = paste0("DESeq.ctrl.", coefList[2], ".lcfShrink.meta.txt")
+coFilePath <- file.path( outputRoot, coFileName)
+capture.output(res.lfcShrink, file=coFilePath)
+
+csvName = paste0("DESeq.ctrl.", coefList[2], ".lcfShrink.csv")
+csvPath <- file.path( outputRoot, csvName)
+write.csv(res.lfcShrink, file=csvPath)
+
+coFileName = paste0("DESeq.ctrl.", coefList[2], ".meta.txt")
+coFilePath <- file.path( outputRoot, coFileName)
+capture.output(res.unShrunk, file=coFilePath)
+
+csvName = paste0("DESeq.ctrl.", coefList[2], ".csv")
+csvPath <- file.path( outputRoot, csvName)
+write.csv(res.unShrunk, file=csvPath)
+```
+
+
+order unshrunk results by smallest adjusted p-value. lfcShrink() does not return
+adjusted p-values.
+
+'log2 fold change (MLE): sampleType ex0 vs bulk' tells you that the estimates are of the logarithmic fold change log2( exo/bulk )
+
+```{r}
+resOrdered <- res.unShrunk[order(res.unShrunk$padj),]
+# res.UnShrunk and res.lfcShrink are DESeqResults objs
+head(resOrdered)
+```
+```{r}
+summary(res.lfcShrink)
+```
+how many genes are signifigant
+```{r}
+#res.lfcShrink does not have p-value or padj
+names(res.lfcShrink)
+names(res.unShrunk)
+
+# check for NA
+# res.unShrunk.na <- subset( res.unShrunk, select=padj, subset=(is.na(padj)) )
+
+# find rows with incomplete cases
+# ideally we would use completecases() to find and remove rows from both
+# res.unShrunk and res.lfcShrink. Unfortunatly complete case does not work 
+# with deseq results
+res.unShrunk.clean <- subset( res.unShrunk, subset=(! is.na( padj)) )
+dim(res.unShrunk.clean)
+
+selectRowsByName<- row.names(res.unShrunk.clean)
+res.lfcShrink.clean <- res.lfcShrink[selectRowsByName,]
+dim(res.lfcShrink.clean)
+```
+
+what percentage of genes are significant?
+```{r}
+#res.lfcShrink does not have p-value or padj
+numSignifigantGenes <- sum(res.unShrunk.clean$padj < 0.05)
+numSignifigantGenes / nrow(res.unShrunk.clean) 
+```
+
+use unshrunk adjusted p-values to find most signifigant genes. Sort by
+shrunk log2FoldChange. Many large LFC which are not significant obtain a large LFC because of imprecise log counts
+
+```{r}
+res.unShrunk.sigifigantGenes <- subset(res.unShrunk.clean, subset=(padj < 0.05))
+```
+find matching shrunk results
+```{r}
+sigGeneNames <- rownames( res.unShrunk.sigifigantGenes )
+res.lfcShrink.sigificantGenes <- res.lfcShrink[ sigGeneNames, ]
+```
+
+select most important up and down regulated genes
+```{r}
+# '-' cause rows to sort in descending order
+res.lfcShrink.sorted.sigGenes <- 
+  res.lfcShrink.sigificantGenes[ order(-res.lfcShrink.sigificantGenes$log2FoldChange), ]
+
+res.lfcShrink.up <- subset( res.lfcShrink.sorted.sigGenes, 
+                           subset=(log2FoldChange > 0.0) )
+
+
+res.lfcShrink.down <- subset( res.lfcShrink.sorted.sigGenes, 
+                             subset=(log2FoldChange <= 0.0) )
+
+# sort so that the most important down regulated are on top
+res.lfcShrink.down <- res.lfcShrink.down[ order(res.lfcShrink.down$log2FoldChange), ]
+```
+
+get fragment counts for most important up and down regulated genes
+```{r}
+upGeneNames <- row.names( res.lfcShrink.up )
+downGeneNames <- row.names( res.lfcShrink.down )
+
+upGeneCountsMatrix <- assay( dds[upGeneNames, ] )
+upGeneCountsDF <- as.data.frame( upGeneCountsMatrix)
+colDF <- colData(dds)
+colnames( upGeneCountsDF ) <- colDF$sampleType
+#head(upGeneCountsDF)
+
+downGeneCountsMatrix <- assay( dds[downGeneNames, ] )
+downGeneCountsDF <- as.data.frame( downGeneCountsMatrix)
+colnames( downGeneCountsDF ) <- colDF$sampleType
+#head(downGeneCountsDF)
+
+rm(colDF)
+```
+
+sanity check. if up regulated exo values should be much bigger than bulk. If
+down regulated bulk values should be much bigger than exo
+
+Note we can not use the DESeq results baseMean value. Our most important
+gene counts are not normally distributed.
+```{r}
+colSums(upGeneCountsDF[1:50,])
+colSums(downGeneCountsDF[1:50,])
+```
+
+save most important gene fragment counts
+```{r}
+csvName = paste0("DESeq.ctrl.", coefList[2], ".upRegulatedCounts.csv")
+csvPath <- file.path( outputRoot, csvName)
+write.csv(upGeneCountsDF, file=csvPath)
+
+csvName = paste0("DESeq.ctrl.", coefList[2], ".downRegulatedCounts.csv")
+csvPath <- file.path( outputRoot, csvName)
+write.csv(downGeneCountsDF, file=csvPath)
+```
+clean up. reduce future bugs
+```{r}
+rm(downGeneCountsMatrix, upGeneCountsMatrix)
+rm(res.lfcShrink, res.lfcShrink.sigificantGenes, res.lfcShrink.sorted.sigGenes)
+rm(res.unShrunk, res.unShrunk.sigifigantGenes)
+```
+
+### Plot Counts
+```{r}
+gene <- rownames(upGeneCountsDF)[1]
+d <- plotCounts(dds, gene, 
+                intgroup=c("treatment", "sampleType"), 
+                returnData=TRUE)
+
+dd <- plotCounts(dds, 'CCDC36',
+                intgroup=c("treatment", "sampleType"),
+                returnData=TRUE)
+
+p1 <- ggplot(d, 
+       aes(x=treatment, y=count, color=treatment, shape=sampleType)) +
+       geom_point(position=position_jitter(w=0.1,h=0)) +
+        scale_y_log10(breaks=c(25,100,200, 400, 800, 1600, 3200)) +
+      ggtitle(gene)
+p1
+
+# p2 <- p1 + gg_point(dd,
+#         aes(x=treatment, y=count, color=treatment, shape=sampleType)) +
+#         geom_point(position=position_jitter(w=0.1,h=0))
+# 
+# p2
+  
+```
+

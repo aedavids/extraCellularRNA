@@ -123,6 +123,21 @@ class MatPlotLibUtilities( object ):
         return retPanel
 
     ########################################################################
+    def createPanelSameSizeAsFig( self, fig):
+        """
+        create a panel the same size as the figure
+        """
+        figWidth, figHeight = fig.get_size_inches()
+        panelWidthInInches = figWidth
+        panelHeightInInches = figHeight
+        leftRelativeSize = 0
+        bottomRelativeSize = 1
+        panel = self.createPanel(fig, panelWidthInInches, panelHeightInInches,
+                leftRelativeSize, bottomRelativeSize)
+        
+        return panel
+    
+    ########################################################################
     def getColors( self, dataList, RList, GList, BList ):
         '''
         returns a list of colors.
@@ -179,3 +194,16 @@ class MatPlotLibUtilities( object ):
         # plt.style.use('BME163.mpltstyle')
         # plt.use.style(BME163MpltstylePath)
         plt.style.use( BME163MpltStylePath )
+        
+    ########################################################################
+    def getPanelDimensionInInches(self, fig, panel):
+        """
+        ref: https://stackoverflow.com/questions/19306510/determine-matplotlib-axis-size-in-pixels
+        
+        returns (width, height)
+        """
+        bbox = panel.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+        width, height = bbox.width, bbox.height
+        
+        return (width, height)
+    

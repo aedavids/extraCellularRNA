@@ -16,8 +16,11 @@ CONTAINER_PORT=8787
 USER_ID=`id -u`
 
 #IMG='rocker/rstudio:4.0.0-ubuntu18.04'
-IMG='aedavids/ggplot2'
-
+#IMG='aedavids/ggplot2'
+#IMG='rocker/rstudio:3.5.0'
+#IMG='aedavids/biocworkshops' can not install Desq
+#IMG='bioconductor/bioconductor_docker:devel'
+IMG='aedavids/biocworkshop2018desq2'
 # docker arguments
 # -d  --detach Run container in background and print container ID
 # -rm Automatically remove the container when it exits
@@ -43,6 +46,7 @@ docker run --rm \
 	-e USERID=${USER_ID} \
 	-e PASSWORD=ggg \
 	-v /public/home/${USER}:/home/${USER} \
+	-v /public/groups/kimlab:/home/kimlab \
         ${IMG}
 
 #set -x # turn debug on
