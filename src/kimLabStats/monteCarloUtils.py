@@ -56,8 +56,9 @@ def kullbackLeiblerStat(dist1, dist2):
 # kl2 = entropy(pk=p2, qk=p1, base=2)
 # print("kl1:{} kl2:{}".format(kl1, kl2))
 ################################################################################
-def shuffleParallelList(l1, l2):
+def shuffleParallelListDEPRECATED(l1, l2):
     '''
+    this is a hack that is probably not correct. see KullbackLeiblerDivergenceMonteCarlo.py
     K-S test assume we have a distribution of a 1 dimentional random variable
     This is a hack so we can calculate biotype p-values using a permutation test
     

@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 ################################################################################
-class PlotProbMass(object):
+class PlotCumulativeProbablity(object):
     '''
-    Plot the probability Mass Function
+    Plot the cumulative probablity function Function
     
     public functions:
     __init__()
@@ -31,7 +31,7 @@ class PlotProbMass(object):
             DF: 
                 pandas data frame
                 Assumes row index is the states the random variable can assume and 
-                the columns are separate distribution. E.G. control, treatment, ...
+                the columns are separate distribution. E.G. control, treatement, ...
             
             legedLabels: 
                 default None
@@ -57,7 +57,7 @@ class PlotProbMass(object):
         panel.set_xticks( ticks )
         panel.set_xticklabels(DF.index.to_numpy(), rotation = 45, ha="right")
 
-        panel.set_ylabel("probability")
+        panel.set_ylabel("cumulative probability")
 
         panel.set_title( title )
         

@@ -6,6 +6,14 @@ date: "Aug 10, 2020"
 output: html_notebook
 ---
 
+Data overview:
+- day 5
+  * control bulk
+  * control kras
+  * exo.    bulk
+
+We do not have any exo data for day 7
+
 ref:
 
 - [bioconductor.org vignettes/DESeq2](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html)
@@ -29,7 +37,9 @@ source("findFiles.R") # assume file in in same directory as current Rmd
 ## Find all the salmon estimated transcript count files
 ```{r}
 rootDir <- "/home/kimlab"
-outputRoot <- "/home/aedavids/extraCellularRNA/R/output"
+#outputRoot <- "/home/aedavids/extraCellularRNA/R/output"
+outputRoot <- "/home/aedavids/extraCellularRNA/data/R/output"
+dir.create(outputRoot, recursive=TRUE, showWarnings = FALSE)
 ```
 
 #### find all bulk day 5 control estimated transcript count files
@@ -67,6 +77,7 @@ if ( ! all(file.exists(exoDay5CntrlSalmonFiles)) ) {
 exoDay5KrasSalmonFiles <- findExoDay5KrasFiles( bulkDirPath )
 # TODO find a cleaner way to remove bulk.data/day.5/kras.alu.edit.out
 exoDay5KrasSalmonFiles <- exoDay5KrasSalmonFiles[1:3]
+exoDay5KrasSalmonFiles
 if ( ! all(file.exists(exoDay5KrasSalmonFiles)) ) {
   stop("ERROR: file not found", exoDay5KrasSalmonFiles)
 }
@@ -95,21 +106,6 @@ if ( ! checkIndexIsSame(cmdInfoJSONList, cmdInfoJSONList[1]) ) {
 } 
 ```
 # parse out control bio types
-
-hack
-```{r}
-hackFile <- '/home/kimlab/kras.ipsc/data/exo.data/gen1c.day.5.exo.input.data/ctrl.3/gencode.salmon.out/quant.sf'
-hDF <- read.table(hackFile, header=TRUE)
-hhDF <- head(hDF)
-# newCols <- strsplit(hhDF$Name, "\\|")
-#https://stackoverflow.com/questions/7069076/split-column-at-delimiter-in-data-frame
-fooDF <- data.frame(do.call('rbind', strsplit(as.character(hhDF$Name),'|',fixed=TRUE)))
-# https://github.com/rreggiar/welcome-to-the-kim-lab/wiki/Salmon-output-data-dictionary
-colnames(fooDF) <- c("ENST", "ENSG", "OTTHUMG", "OTTHUMT", "HGNCT", "HGNCG", "refLength", "BioType") 
-aedwipDF <- cbind(fooDF, hhDF)
-```
-
-
 ```{r}
 loadBioTypeDF <- function( quant.sf.path ) {
   df <- read.table(quant.sf.path, header=TRUE)
@@ -124,6 +120,7 @@ loadBioTypeDF <- function( quant.sf.path ) {
   return(retDF)
 }
 
+# save biotypes and salmon estimated transcript counts
 for (filePath in allSalmonQuantFiles) {
   print(filePath)
   df <- loadBioTypeDF(filePath)
@@ -152,8 +149,8 @@ readTx2GeneDF <- function() {
                           'gen.32.tx.2.gene.csv')
   gen.32.tx.2.geneDF <- read.table(file=tx2Gene.csv, header=FALSE, sep ="|")
   #print(head(gen.32.tx.2.geneDF))
-  #tx2geneDF <- gen.32.tx.2.geneDF[, c(1,5)] # 5 is HGNC with gene specific transcript id
-  tx2geneDF <- gen.32.tx.2.geneDF[, c(1,6)] # 6 is HGNC required to stay at gene level
+  #tx2geneDF <- gen.32.tx.2.geneDF[, c(1,5)] # 4 + 1 is HGNC with gene specific transcript id
+  tx2geneDF <- gen.32.tx.2.geneDF[, c(1,6)] # 5 + 1 is HGNC required to stay at gene level
   names(tx2geneDF) <- c("TXNAME", "GENEID")
   
   return( tx2geneDF )
@@ -187,7 +184,7 @@ columns as features
 numBulkCntrl <- length( bulkDay5CntrlSalmonFiles )
 numExoCntrl  <- length( exoDay5CntrlSalmonFiles )
 
-# place holder for day 5 vs 7
+# place holder for day 5 vs 7. we only have exo data for day 5 control
 day <- c( rep('5', numBulkCntrl + numExoCntrl) ) 
 day <- factor( day )
 
@@ -298,7 +295,6 @@ Get meta data for res.lfcShrink
 ```{r}
 # mcols() returns a dataframe
 mcols( res.lfcShrink )
-
 ```
 
 ### MA plot
@@ -316,24 +312,29 @@ save to disk.
 
 write.csv() only contains a single header column name row. we use capture.output
 to capture some additional meta data like what the model was
+[capturing-R-printed-output/](https://www.gastonsanchez.com/visually-enforced/how-to/2014/12/21/capturing-R-printed-output/)
 ```{r}
 # TODO DRY
 # outputRoot <- "/home/aedavids/extraCellularRNA/R/output"
 
 coFileName = paste0("DESeq.ctrl.", coefList[2], ".lcfShrink.meta.txt")
 coFilePath <- file.path( outputRoot, coFileName)
+coFilePath
 capture.output(res.lfcShrink, file=coFilePath)
 
 csvName = paste0("DESeq.ctrl.", coefList[2], ".lcfShrink.csv")
 csvPath <- file.path( outputRoot, csvName)
+csvPath
 write.csv(res.lfcShrink, file=csvPath)
 
 coFileName = paste0("DESeq.ctrl.", coefList[2], ".meta.txt")
 coFilePath <- file.path( outputRoot, coFileName)
+coFilePath
 capture.output(res.unShrunk, file=coFilePath)
 
 csvName = paste0("DESeq.ctrl.", coefList[2], ".csv")
 csvPath <- file.path( outputRoot, csvName)
+csvPath
 write.csv(res.unShrunk, file=csvPath)
 ```
 
@@ -433,18 +434,21 @@ down regulated bulk values should be much bigger than exo
 Note we can not use the DESeq results baseMean value. Our most important
 gene counts are not normally distributed.
 ```{r}
-colSums(upGeneCountsDF[1:50,])
-colSums(downGeneCountsDF[1:50,])
+topNumGenes = 50
+colSums(upGeneCountsDF[1:topNumGenes,])
+colSums(downGeneCountsDF[1:topNumGenes,])
 ```
 
 save most important gene fragment counts
 ```{r}
-csvName = paste0("DESeq.ctrl.", coefList[2], ".upRegulatedCounts.csv")
+csvName = paste("DESeq.ctrl", coefList[2], topNumGenes, "upRegulatedCounts.csv", sep=".")
 csvPath <- file.path( outputRoot, csvName)
+csvPath
 write.csv(upGeneCountsDF, file=csvPath)
 
-csvName = paste0("DESeq.ctrl.", coefList[2], ".downRegulatedCounts.csv")
+csvName = paste("DESeq.ctrl", coefList[2], topNumGenes, "downRegulatedCounts.csv", sep=".")
 csvPath <- file.path( outputRoot, csvName)
+csvPath
 write.csv(downGeneCountsDF, file=csvPath)
 ```
 clean up. reduce future bugs

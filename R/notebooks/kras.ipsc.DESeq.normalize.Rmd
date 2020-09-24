@@ -1,0 +1,176 @@
+---
+title: "Normalzed biotype counts"
+author: "Andrew Davidson, aedavids@ucsc.edu"
+date: "Aug 10, 2020"
+
+output: html_notebook
+---
+Uses DESeq package to get comparable transcript counts
+
+overview: 
+  - tximport: read estimated salmon quant.sf (transcripts counts)
+  - DESeqDataSetFromTximport :
+  - estimateSizeFactors :
+  - counts()
+
+Data overview:
+- day 5
+  * control bulk
+  * control kras
+  * exo.    bulk
+  * exo     kras
+  
+file paths for first replicant
+```
+[1] "/home/kimlab/kras.ipsc/data/bulk.data/day.5/ctrl.1/gencode.salmon.out/quant.sf"
+[1] "/home/kimlab/kras.ipsc/data/bulk.data/day.5/kras.1/gencode.salmon.out/quant.sf"
+[1] "/home/kimlab/kras.ipsc/data/exo.data/gen1c.day.5.exo.input.data/ctrl.1/gencode.salmon.out/quant.sf"
+[1] "/home/kimlab/kras.ipsc/data/exo.data/gen1c.day.5.exo.input.data/kras.1/gencode.salmon.out/quant.sf"
+```
+
+We do not have any exo data for day 7
+
+ref:
+
+- [bioconductor.org vignettes/DESeq2](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html)
+- [bioconductor BiocWorkshops rna-seq-data-analysis-with-deseq2](https://bioconductor.github.io/BiocWorkshops/rna-seq-data-analysis-with-deseq2.html)
+- /public/home/aedavids/extraCellularRNA/R/notebooks/kras.ipsc_exo_vs_bulk.DESeq.Rmd
+
+- [R class tutorial](https://www.datamentor.io/r-programming/object-class-introduction/)
+
+- /public/groups/kimlab/kras.ipsc/old.output.data.and.scripts/tximport.and.normalize.R
+
+
+```{r message=FALSE}
+library("DESeq2")
+library('rjson')
+library("tximport")
+source("findFiles.R") # assume file in in same directory as current Rmd
+```
+## Find all the salmon estimated transcript count files
+```{r}
+rootDir <- "/home/kimlab"
+outputRoot <- "/home/aedavids/extraCellularRNA/data/R/output"
+dir.create(outputRoot, recursive=TRUE, showWarnings = FALSE)
+```
+
+
+# DESeq
+We do not actually run "differential expression analysis", we just use some of DESeq function to get
+comparable count data
+
+Construct a DESeq data object
+```{r}
+indexFilePath <- file.path( '/home/kimlab/genomes.annotations/gencode.32', 
+                            'gen.32.tx.2.gene.csv')
+
+# warning we are not running,using the model. should probably be something like ~ treatment + sampleType
+# sampletype is 'bulk' or 'exo', treatment is 'control' or 'kras' 
+
+# retList <-
+#   getKrasIpscDESeqDataSet(rootDir,
+#                           indexFilePath,
+#                           findFilesFunc=findDay5KrasIpscDataFiles, 
+#                           getColDFFunc=getKrasIPSCDay5ColDataDF,
+#                           design=~ sampleType)
+# 
+# csvOutFileName <- "kras.ipsc.data.day.5.bulk_exo.normalized.deseq.biotype.counts.csv"
+
+
+# day 7 does not have exo so we can not use sampleType as model because all the values are bulk
+# dds <- getDay7KrasIpscDESeqDataSet(rootDir, indexFilePath, design = ~ treatment)
+# csvDayOutFileName <- "kras.ipsc.data.day.7.bulk.normalized.deseq.biotype.counts.csv"
+retList <-
+  getKrasIpscDESeqDataSet(rootDir,
+                          indexFilePath,
+                          findFilesFunc=findDay7KrasIpscDataFiles, 
+                          getColDFFunc=getKrasIPSCDay7ColDataDF,
+                          design=~ treatment)
+csvOutFileName <- "kras.ipsc.data.day.7.bulk.normalized.deseq.biotype.counts.csv"
+
+
+dds <- retList$dds
+fileList <- retList$fileList
+
+# filter rows:
+# remove rows if they do not have a count of 5 or more in
+# 4 or more samples
+keep <- rowSums(counts(dds) >= 5) >= 4
+table(keep)
+dds <- dds[keep,]
+```
+
+create comparable count data
+```{r}
+# https://www.rdocumentation.org/packages/DESeq2/versions/1.12.3/topics/estimateSizeFactors
+# This function estimates the size factors using the "median ratio method"
+# described by Equation 5 in Anders and Huber (2010). The estimated size factors
+# can be accessed using the accessor function sizeFactors
+dds <- estimateSizeFactors( dds )
+
+# https://www.rdocumentation.org/packages/DESeq2/versions/1.12.3/topics/counts
+#
+# The counts slot holds the count data as a matrix of non-negative integer count
+# values, one row for each observational unit (gene or the like), and one column
+# for each sample.
+#
+# normalized: logical indicating whether or not to divide the counts by the size
+# factors or normalization factors before returning (normalization factors
+# always preempt size factors)
+#
+# https://www.rdocumentation.org/packages/DESeq2/versions/1.12.3/topics/normalizationFactors
+# Gene-specific normalization factors for each sample can be provided as a
+# matrix, which will preempt sizeFactors. In some experiments, counts for each
+# sample have varying dependence on covariates, e.g. on GC-content for
+# sequencing data run on different days, and in this case it makes sense to
+# provide gene-specific factors for each sample rather than a single size
+# factor.
+#
+#
+# https://www.rdocumentation.org/packages/DESeq2/versions/1.12.3/topics/sizeFactors
+# The sizeFactors vector assigns to each column of the count matrix a value, the
+# size factor, such that count values in the columns can be brought to a common
+# scale by dividing by the corresponding size factor (as performed by
+# counts(dds, normalized=TRUE))
+
+ddsCounts <- counts(dds, normalized=TRUE)
+df <- as.data.frame( ddsCounts )
+```
+
+change column name to format "sampleType_treatment_replicantId". if we have a 
+small number of rows, ie. biotype, it would be easier to work with the data if
+it was denormalized. that is to say keep sampleType, treatment, and replicant id
+as separate columns. If we are in gene space this would add a lot of redundant data
+```{r}
+# get factor values as string, not level
+colDF <- colData(dds)
+x <- as.character(colDF[,"sampleType"])
+y <- as.character(colDF[,"treatment"])
+#replicant <- rep(c(1,2,3), 4)
+
+
+numDataSets <- length(fileList)
+#numDataSets
+replicant <- list()
+for (i in 1:numDataSets) {
+  j <- length( fileList[[i]] )
+  replicant <-  c(unlist(replicant), 1:j)
+}
+#replicantList
+
+z <- mapply( paste,  x,  y, replicant, sep="_", SIMPLIFY=TRUE) 
+
+colnames(df) <- z
+```
+
+
+```{r}
+#head( df )
+
+# save
+csvFilePath <- file.path( outputRoot, csvOutFileName)
+csvFilePath
+
+write.csv(df, csvFilePath)
+```
+
