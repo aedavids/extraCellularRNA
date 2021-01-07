@@ -3,6 +3,15 @@
 # 7/28/2020
 #
 
+# 
+# starts a detached docker container
+# when you are done with the container
+# 1) find the container id
+#   docker ps 
+# 2) stop and remove the container
+#   docker rm -f container_id 
+#
+
 #set -x # turn debug on
 # set + x # turn debug off
 
@@ -20,7 +29,8 @@ USER_ID=`id -u`
 #IMG='rocker/rstudio:3.5.0'
 #IMG='aedavids/biocworkshops' can not install Desq
 #IMG='bioconductor/bioconductor_docker:devel'
-IMG='aedavids/biocworkshop2018desq2'
+#IMG='aedavids/biocworkshop2018desq2'
+IMG='aedavids/extra_cellular_rna'
 # docker arguments
 # -d  --detach Run container in background and print container ID
 # -rm Automatically remove the container when it exits

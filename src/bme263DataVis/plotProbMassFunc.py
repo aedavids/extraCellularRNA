@@ -21,9 +21,7 @@ class PlotProbMass(object):
     def __init__(self, panel, DF, legendLabels=None, title=None):
         """
         creates a matplotlib line plot of the probability mass function
-        
-        TODO: replace with bar graph
-        
+                
         arguments:
             panel:
                 type matplotlib axes. plot will be rendered in this panel
@@ -40,20 +38,25 @@ class PlotProbMass(object):
             title:
                 type string
                 default None
+                
+        Note: Do not call this function from a for loop. The plot x labels will reflect
+        the last call. If all the iterations of the loop do not the same row index
+        plot will be off
             
         """
         nRows, nCols = DF.shape
         x = np.arange( 1, nRows + 1, 1)
 
         dataSetLabels = DF.columns.to_numpy()
-        panel.plot(x, DF, label= dataSetLabels)
+        #panel.plot(x, DF, label= dataSetLabels)
+        DF.plot(ax=panel)
         
         if (legendLabels != None) :
             panel.legend(legendLabels )
         else:
             panel.legend(dataSetLabels )
 
-        ticks = [i for i in range(1, len(DF.index) + 1)]
+        ticks = [i for i in range(0, len(DF.index) +1)]
         panel.set_xticks( ticks )
         panel.set_xticklabels(DF.index.to_numpy(), rotation = 45, ha="right")
 

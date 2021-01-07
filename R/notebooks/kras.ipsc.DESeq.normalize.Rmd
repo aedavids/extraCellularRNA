@@ -45,6 +45,7 @@ ref:
 library("DESeq2")
 library('rjson')
 library("tximport")
+source("DESeqUtils.R") # assume file in in same directory as current Rmd
 source("findFiles.R") # assume file in in same directory as current Rmd
 ```
 ## Find all the salmon estimated transcript count files
@@ -81,63 +82,21 @@ indexFilePath <- file.path( '/home/kimlab/genomes.annotations/gencode.32',
 # dds <- getDay7KrasIpscDESeqDataSet(rootDir, indexFilePath, design = ~ treatment)
 # csvDayOutFileName <- "kras.ipsc.data.day.7.bulk.normalized.deseq.biotype.counts.csv"
 retList <-
-  getKrasIpscDESeqDataSet(rootDir,
+  getNormalizedDESeqDataSet(rootDir,
                           indexFilePath,
                           findFilesFunc=findDay7KrasIpscDataFiles, 
                           getColDFFunc=getKrasIPSCDay7ColDataDF,
                           design=~ treatment)
+
 csvOutFileName <- "kras.ipsc.data.day.7.bulk.normalized.deseq.biotype.counts.csv"
-
-
 dds <- retList$dds
 fileList <- retList$fileList
 
-# filter rows:
-# remove rows if they do not have a count of 5 or more in
-# 4 or more samples
-keep <- rowSums(counts(dds) >= 5) >= 4
-table(keep)
-dds <- dds[keep,]
+df <- createComparableCounts( dds, filterRowCount=5, filterSampleCount=4 )
 ```
 
-create comparable count data
-```{r}
-# https://www.rdocumentation.org/packages/DESeq2/versions/1.12.3/topics/estimateSizeFactors
-# This function estimates the size factors using the "median ratio method"
-# described by Equation 5 in Anders and Huber (2010). The estimated size factors
-# can be accessed using the accessor function sizeFactors
-dds <- estimateSizeFactors( dds )
 
-# https://www.rdocumentation.org/packages/DESeq2/versions/1.12.3/topics/counts
-#
-# The counts slot holds the count data as a matrix of non-negative integer count
-# values, one row for each observational unit (gene or the like), and one column
-# for each sample.
-#
-# normalized: logical indicating whether or not to divide the counts by the size
-# factors or normalization factors before returning (normalization factors
-# always preempt size factors)
-#
-# https://www.rdocumentation.org/packages/DESeq2/versions/1.12.3/topics/normalizationFactors
-# Gene-specific normalization factors for each sample can be provided as a
-# matrix, which will preempt sizeFactors. In some experiments, counts for each
-# sample have varying dependence on covariates, e.g. on GC-content for
-# sequencing data run on different days, and in this case it makes sense to
-# provide gene-specific factors for each sample rather than a single size
-# factor.
-#
-#
-# https://www.rdocumentation.org/packages/DESeq2/versions/1.12.3/topics/sizeFactors
-# The sizeFactors vector assigns to each column of the count matrix a value, the
-# size factor, such that count values in the columns can be brought to a common
-# scale by dividing by the corresponding size factor (as performed by
-# counts(dds, normalized=TRUE))
-
-ddsCounts <- counts(dds, normalized=TRUE)
-df <- as.data.frame( ddsCounts )
-```
-
-change column name to format "sampleType_treatment_replicantId". if we have a 
+change column name to format "sampleType_treatment_replicantId". if we have a
 small number of rows, ie. biotype, it would be easier to work with the data if
 it was denormalized. that is to say keep sampleType, treatment, and replicant id
 as separate columns. If we are in gene space this would add a lot of redundant data
@@ -158,7 +117,7 @@ for (i in 1:numDataSets) {
 }
 #replicantList
 
-z <- mapply( paste,  x,  y, replicant, sep="_", SIMPLIFY=TRUE) 
+z <- mapply( paste,  x,  y, replicant, sep="_", SIMPLIFY=TRUE)
 
 colnames(df) <- z
 ```

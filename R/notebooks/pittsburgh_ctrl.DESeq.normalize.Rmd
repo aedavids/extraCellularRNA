@@ -1,0 +1,343 @@
+---
+title: "Normalzed biotype counts"
+author: "Andrew Davidson, aedavids@ucsc.edu"
+date: "Oct 14, 2020"
+
+output: html_notebook
+---
+Uses DESeq package to get comparable transcript counts
+
+overview: 
+  - tximport: read estimated salmon quant.sf (transcripts counts)
+  - DESeqDataSetFromTximport :
+  - estimateSizeFactors :
+  - counts()
+
+
+ref:
+
+- [bioconductor.org vignettes/DESeq2](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html)
+- [bioconductor BiocWorkshops rna-seq-data-analysis-with-deseq2](https://bioconductor.github.io/BiocWorkshops/rna-seq-data-analysis-with-deseq2.html)
+- /public/home/aedavids/extraCellularRNA/R/notebooks/kras.ipsc_exo_vs_bulk.DESeq.Rmd
+
+- [R class tutorial](https://www.datamentor.io/r-programming/object-class-introduction/)
+
+- /public/groups/kimlab/kras.ipsc/old.output.data.and.scripts/tximport.and.normalize.R
+
+
+```{r message=FALSE}
+library("DESeq2")
+library("tximport")
+source("DESeqUtils.R") # assume file in in same directory as current Rmd
+source("findFiles.R") # assume file in in same directory as current Rmd
+```
+## Find all the salmon estimated transcript count files
+```{r}
+startTime <- Sys.time()
+
+print( sprintf("BEGIN: %s", Sys.time()) )
+
+rootDir <- "/home/kimlab/exoRNA-biomarkers-panc/data"
+
+# set up figuration parameters for each data set
+# The main difference between data sets is the ref genome used to estimate transcript counts
+# list items are the data set specific directories containing the salmon files
+# kimlab/exoRNA-biomarkers-panc/data/pittsburgh_ctrl/ctrl.10.0.4/ctrl.10.0.4_sel.align.gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx_2020-10-18-14.06.48-PDT/quant.sf
+dataSetList <-list(
+                "v35.process.aware.salmon.v1.3.0"="gencode.v35.process.aware.salmon.v1.3.0",
+                
+                "v35.salmon.v1.3.0"="gencode.v35.salmon.v1.3.0",
+                
+                "v35.ucsc.rmsk.salmon.v1.3.0"="gencode.v35.ucsc.rmsk.salmon.v1.3.0"
+                )
+
+dataSetName <- "v35.ucsc.rmsk.salmon.v1.3.0"
+print(sprintf("processing data set:%s", dataSetName))
+
+if (dataSetName == 'v35.process.aware.salmon.v1.3.0') {
+  # ref: salmon cmd_info.json output file captures arguments
+  # indexFilePath <- file.path('/public/groups/kimlab/indexes/',
+  #                             'sel.align.gencode.v35.process.aware.salmon.v1.3.0.sidx')
+
+  stop("ERROR TODO configure v35.process.aware.salmon.v1.3.0 data set")
+  
+} else if (dataSetName == 'v35.salmon.v1.3.0') {
+  stop("ERROR TODO configure v35.salmon.v1.3.0 data set")
+  
+} else if (dataSetName == 'v35.ucsc.rmsk.salmon.v1.3.0') {
+  salmonDataDirNameRegEx = paste0("*", dataSetList[dataSetName], "*")
+  tx2MappingFile <- 'gencode.v35.ucsc.rmsk.tx.to.gene.csv'
+  tx2MappingFilePath <- file.path( '/home/kimlab/genomes.annotations/gencode.35',
+                                   tx2MappingFile)
+  
+  # tximport needs a 2 column data frame to map transcript ids to some other id
+  # E.G. a hugo gene id, biotype, or a Ensembl transcript id
+  
+  # if the mapping file follows the format found in 'gencode.v35.tx.to.gene.csv'
+  # mapToId <- SALMON_QUANT_SF_NAMES_LIST()$BIO_TYPE
+  # genericTransriptMapperDF <- genericTranscriptMapper(indexFilePath, mapToId)
+  # 
+  transcriptMapperDF <- TE_TranscriptMapper(tx2MappingFilePath)
+  biotypeTranscriptMapperDF <- TE_bioTypeTranscriptMapper(tx2MappingFilePath)  
+  
+  ignoreAfterBar <- FALSE
+  
+} else {
+  stop("ERROR unknown data set")
+  
+}
+
+outputDir <- paste0('normalizedCounts.', tx2MappingFile)
+outputRoot <- file.path("/home/aedavids/extraCellularRNA/data/R/output", outputDir)
+dir.create(outputRoot, recursive=TRUE, showWarnings = FALSE)
+```
+
+
+# DESeq
+We do not actually run "differential expression analysis", we just use some of DESeq function to get
+comparable count data
+
+```{r}
+########################################################################
+findPittsburgh_ctrlCondition <- function(rootDir, salmonDataDirNameRegEx, condition) {
+  #
+  # finds salmon quant.sf files. Checks to make sure file exists
+  #
+  # arguments
+  #   rootDir: example "/public/groups/kimlab/exoRNA-biomarkers-panc/data/"
+  #
+  #   condition:  "ctrl"
+  #
+  #
+  # returns
+  #   a list of full salmon file path
+  
+  # example file path
+  # pittsburgh_ctrl/ctrl.11.1.1/ctrl.11.1.1_sel.align.gencode.v35.salmon.v1.3.0.sidx_2020-10-15-21.33.25-PDT/quant.sf
+
+
+  # find all files 
+  dataDir <- paste0("pittsburgh_", condition)
+  print(dataDir)
+  conditionSample <- paste0(condition, "*")
+  pittPaths <- file.path(rootDir, dataDir, conditionSample)
+  
+#   aedwip TE files are something like
+#   aedwp /public/groups/kimlab/exoRNA-biomarkers-panc/data/pittsburgh_ctrl/ctrl.10.0.4
+#   aedwip ctrl.10.0.4_sel.align.gencode.v35.process.aware.salmon.v1.3.0.sidx_2020-10-09-16.29.20-PDT/
+#   aedwp ctrl.10.0.4_sel.align.gencode.v35.salmon.v1.3.0.sidx_2020-10-15-21.33.25-PDT/
+# aedwip ctrl.10.0.4_sel.align.gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx_2020-10-18-14.06.48-PDT
+  
+  #regExPath <- file.path(pittPaths,  "*sel.align.gencode.v35.salmon.v1.3.0.sidx*", "quant.sf")
+  regExPath <- file.path(pittPaths,  salmonDataDirNameRegEx, "quant.sf")
+  salmonFiles <- Sys.glob(regExPath)
+
+  if ( ! all(file.exists(salmonFiles)) ) {
+    stop(c("ERROR: file not found: ", salmonFiles))
+  }
+
+  return(salmonFiles)
+}
+
+findPittsburgh_ctrlFiles <- function(rootDir) {
+  dataFilesList = list()
+  
+  uglyHack <- salmonDataDirNameRegEx # TODO do not use global variables
+  ctrlSalmonFiles <- findPittsburgh_ctrlCondition(rootDir, salmonDataDirNameRegEx, "ctrl")
+  dataFilesList$ctrlSalmonFiles <- ctrlSalmonFiles
+  
+  return( dataFilesList)
+}
+
+```
+
+
+```{r}
+getPittsburgh_ctrlFilesColDataDF <- function (fileList) {
+  # create the colData data frame. This is the meta data describing each sample
+  # The Rows of correspond to columns of countData and cols are features that
+  # describe the replicates. The design model use the columns as features
+  
+  numCtrl <- length( fileList$ctrlSalmonFiles )
+  
+  diseaseState <- c( rep('ctrl', numCtrl ) ) 
+  
+  diseaseState <- factor( diseaseState, levels=c("ctrl") )
+  
+  colDF <- data.frame(diseaseState)
+  
+  return(colDF)  
+}
+```
+
+
+```{r}
+# # tximport needs a 2 column data frame to map transcript ids to some other id
+# # E.G. a hugo gene id, biotype, or a Ensembl transcript id
+# 
+# # if the mapping file follows the format found in 'gencode.v35.tx.to.gene.csv'
+# # mapToId <- SALMON_QUANT_SF_NAMES_LIST()$BIO_TYPE
+# # genericTransriptMapperDF <- genericTranscriptMapper(indexFilePath, mapToId)
+# # 
+# # if you just want to normalize the transcript counts using TE
+# # and 'gencode.v35.ucsc.rmsk.tx.to.gene.csv'
+# TE_transriptMapperDF <- TE_TranscriptMapper(indexFilePath)
+# 
+# # if you just want to normalize the biotype counts using TE
+# # and 'gencode.v35.ucsc.rmsk.tx.to.gene.csv'
+# biotypeTransriptMapperDF <- TE_bioTypeTranscriptMapper(indexFilePath)
+```
+
+Construct a DESeq data object for biotypes
+```{r}
+# warning we are not using the model. 
+retList <-
+  getNormalizedDESeqDataSet(rootDir,
+                          indexFilePath,
+                          findFilesFunc=findPittsburgh_ctrlFiles, 
+                          getColDFFunc=getPittsburgh_ctrlFilesColDataDF,
+                          design = ~ 1,
+                          transcriptMapperDF=biotypeTranscriptMapperDF,
+                          ignoreAfterBar=ignoreAfterBar 
+                          )
+
+bioTypeDDS <- retList$dds
+fileList <- retList$fileList
+
+#csvBioTypeOutFileName <- paste0("pittsburgh_ctrl.normalized.deseq.", mapToIdName, ".counts.csv")
+csvBioTypeOutFileName <- paste0("pittsburgh_ctrl.normalized.deseq.", 
+                                tx2MappingFile, 
+                                ".BIO_TYPE.counts.csv")
+```
+split to aid debug
+```{r}
+
+#aediwp 5,4 was when we had 6 replicants in 2 conditions
+#bioTypeDF <- createComparableCounts( bioTypeDDS, filterRowCount=5, filterSampleCount=4 )
+
+# minNumberOfSamples = function(fileList, percent=0.25) {
+#   # calcuate filterSampleCount so that we only consider
+#   # transcript that are in at least 25% of our samples
+#   fileCount <- 0
+#   for (lname in names(fileList)) {
+#     fileCount <- fileCount + length(fileList[[lname]])
+#   }
+#   fileCount <- as.integer(round( fileCount * percent ))
+#   
+#   return( fileCount )
+# }
+# 
+
+# aedwip see statquest https://youtu.be/Gi0JdrxRq5s edgeR and DESeq2, part2: Independent Filtering (removing genes with low read counts)
+filterSampleCount = minNumberOfSamples(fileList, percent=0.25)
+bioTypeDF <- createComparableCounts( bioTypeDDS, filterRowCount=5, filterSampleCount )
+```
+
+construct DESeq data object for Ensembl transcript stable id  
+```{r}
+
+retList <-
+  getNormalizedDESeqDataSet(rootDir,
+                          indexFilePath,
+                          findFilesFunc=findPittsburgh_ctrlFiles, 
+                          getColDFFunc=getPittsburgh_ctrlFilesColDataDF,
+                          design= ~ 1,
+                          transcriptMapperDF,
+                          ignoreAfterBar=ignoreAfterBar 
+                          )
+
+txDDS <- retList$dds
+fileList <- retList$fileList
+
+#csvENSTOutFileName <- paste0("pittsburgh_ctrl.normalized.deseq.", mapToIdName, ".counts.csv")
+csvTxOutFileName <- paste0("pittsburgh_ctrl.normalized.deseq.", tx2MappingFile,  ".tx.counts.csv")
+
+aedwip bug do we filter before or after normalization?
+  
+filterSampleCount = minNumberOfSamples(fileList, percent=0.25)
+txDDSDF <- createComparableCounts( txDDS, filterRowCount=5, filterSampleCount )
+```
+
+
+```{r}
+getCountDataColNames <- function( fileList ) {
+  #
+  # arguments
+  #   fileList
+  #     example of an element
+  #     "/home/kimlab/pancreas.plasma.ev.long.RNA/data/PDAC/SRR9624965/salmon.out/quant.sf"
+  #
+  # returns a list of colData column names. format diseaseState_sampleIs
+  #   example
+  #     "healthy_SRR10080507" "healthy_SRR10080508" "healthy_SRR10080509" 
+
+  tokensListList <- strsplit( fileList, split="/" )
+  tokensList <- unlist(tokensListList)
+  # [1] ""                                                                            
+  # [2] "home"                                                                        
+  # [3] "kimlab"                                                                      
+  # [4] "exoRNA-biomarkers-panc"                                                      
+  # [5] "data"                                                                        
+  # [6] "pittsburgh_ctrl"                                                             
+  # [7] "ctrl.10.0.4"                                                                 
+  # [8] "ctrl.10.0.4_sel.align.gencode.v35.salmon.v1.3.0.sidx_2020-10-15-21.33.25-PDT"
+  # [9] "quant.sf" 
+  
+  
+  m <- matrix( tokensList, ncol=9, byrow=TRUE)
+  sampleIdIdx <-7
+  metaTokensMatrix <- m[, c(sampleIdIdx)]
+  sampleTokens <- strsplit(metaTokensMatrix, split="\\.")
+  #[[1]]
+  #[1] "ctrl" "13"   "0"    "7"   
+
+  retList <- lapply(sampleTokens, function(tokens){
+    sampleType <- tokens[1]
+    sampleIdList <- tokens[-1] # same as python [1:]
+    sampleId <- paste(sampleIdList, collapse=".")
+    paste(sampleType, sampleId, sep="_")
+  })
+
+  return( unlist(retList) )
+}
+```
+
+change column name to format "diseaseState_sampleId". if we have a
+small number of rows, ie. biotype, it would be easier to work with the data if
+it was denormalized. that is to say keep sampleType, treatment, and replicant id
+as separate columns. If we are in gene space this would add a lot of redundant data
+```{r}
+
+metaColNames1 <- getCountDataColNames(fileList$ctrlSalmonFiles)
+colnames(bioTypeDF) <- metaColNames1
+colnames(txDDSDF) <- metaColNames1
+
+```
+
+
+```{r}
+# save
+outFiles <- list( list(bioTypeDF, csvBioTypeOutFileName) , list(txDDSDF, csvTxOutFileName) )
+for (outfileItem in outFiles) {
+  df <- outfileItem[1]
+  outfile <- outfileItem[2]
+  csvFilePath <- file.path( outputRoot, outfile)
+  print(csvFilePath)
+  write.csv(df, csvFilePath)
+}
+
+endTime <- Sys.time()
+print( sprintf("END: %s", endTime) )
+print(endTime - startTime)
+```
+
+
+separate( gene, sep = "\\|", into=c(NA, NA, NA, NA, 'tx', 'gene', 'len', 'biotype’))
+
+
+parse the bottom of 'gencode.v35.ucsc.rmsk.tx.to.gene.csv'
+
+
+
+
+

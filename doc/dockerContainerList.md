@@ -10,3 +10,5 @@
 - bioconductor/bioconductor_docker:devel Ubuntu 18.04.4 LTS R4.0.0
     + aedavids/biocworkshop2018desq2
         * installed packages for desq2 workshop using BiocManager::install()y
+    +  aedavids/extra_cellular_rna
+       * installed tidyr in rStudio server console

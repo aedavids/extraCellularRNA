@@ -1,0 +1,277 @@
+---
+title: "Normalzed biotype counts"
+author: "Andrew Davidson, aedavids@ucsc.edu"
+date: "Oct 14, 2020"
+
+output: html_notebook
+---
+Uses DESeq package to get comparable transcript counts
+
+overview: 
+  - tximport: read estimated salmon quant.sf (transcripts counts)
+  - DESeqDataSetFromTximport :
+  - estimateSizeFactors :
+  - counts()
+
+Data overview:
+[/public/groups/kimlab/pancreas.plasma.ev.long.RNA/README.md](/public/groups/kimlab/pancreas.plasma.ev.long.RNA/README.md)
+
+ref:
+
+- [bioconductor.org vignettes/DESeq2](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html)
+- [https://www.bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#theory-behind-deseq2](https://www.bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#theory-behind-deseq2)
+- [bioconductor BiocWorkshops rna-seq-data-analysis-with-deseq2](https://bioconductor.github.io/BiocWorkshops/rna-seq-data-analysis-with-deseq2.html)
+- /public/home/aedavids/extraCellularRNA/R/notebooks/kras.ipsc_exo_vs_bulk.DESeq.Rmd
+
+- [R class tutorial](https://www.datamentor.io/r-programming/object-class-introduction/)
+
+- /public/groups/kimlab/kras.ipsc/old.output.data.and.scripts/tximport.and.normalize.R
+
+
+```{r message=FALSE}
+startTime <- Sys.time()
+print( sprintf("BEGIN: %s", Sys.time()) )
+
+library("DESeq2")
+library("readr")
+library("tximport")
+source("DESeqUtils.R") # assume file in in same directory as current Rmd
+source("findFiles.R") # assume file in in same directory as current Rmd
+source("te.R") # assume file in in same directory as current Rmd
+```
+
+## Find all the salmon estimated transcript count files
+
+```{r}
+#rootDir <- "/home/kimlab/pancreas.plasma.ev.long.RNA"
+
+parametersList <- list(
+  'debug'=list(
+    'rootDir' = "/home/aedavids/extraCellularRNA/data/debugTximport/pancreas.plasma.ev.long.RNA",
+    'findFilesFunc' = findPancreasPlasmaEV_longRNAFiles, 
+    'getColDFFunc' = getPancreasPlasmaEV_longRNAColDataDF,    
+    'tx2MappingFile' = 'debugTx2Gene.csv',
+    'tx2MappingDir' = file.path('/home/aedavids/extraCellularRNA/data/debugTximport',
+                           'genomes.annotations/gencode.v35'),  
+    # 'outputRoot' = "/home/aedavids/extraCellularRNA/data/R/output/debug",
+    'outputRoot' = "/home/aedavids/extraCellularRNA/data/R/debugTximport/output",
+    'mapToIdName'='gene',
+    'transcriptMapperDFFunc'=getTEGeneMapper,    
+    
+    # ignoreAfterBar logical, whether to split the tx id on the '|' character to 
+    # facilitate matching with the tx id in tx2gene (default FALSE)
+    #'ignoreAfterBar'=FALSE #bug we do not get gene names in output
+    'ignoreAfterBar'=FALSE,
+    
+    #  txOut     avoid gene-level summarization by setting txOut=TRUE
+    #       if you are trying to normalize transcript and not map them to
+    #       genes, or biotype, setting txOut=TRUE reduces required memory
+    #       this allows use gencode.v35.ucsc.rmsk.tx.to.gene.csv    
+    'txOut'=FALSE
+  ),
+  'TE.bioType'=list(
+    'rootDir' = "/home/kimlab/pancreas.plasma.ev.long.RNA",
+    'findFilesFunc' = findPancreasPlasmaEV_longRNAFiles, 
+    'getColDFFunc' = getPancreasPlasmaEV_longRNAColDataDF,        
+    'tx2MappingFile'='gencode.v35.ucsc.rmsk.tx.to.gene.csv',
+    'tx2MappingDir' = file.path('/home/kimlab/genomes.annotations/gencode.35'),
+    'outputRoot' = "/home/aedavids/extraCellularRNA/data/R/output",
+    #'outputRoot' = "/home/kimlab/aedavids/extraCellularRNA/data/R/output",
+    'mapToIdName'='biotype',
+    'transcriptMapperDFFunc'=getTETBioTypeMapper,
+    'ignoreAfterBar'=FALSE,
+    'txOut'=FALSE
+    ),
+
+  'TE.gene'=list(
+    'rootDir' = "/home/kimlab/pancreas.plasma.ev.long.RNA",
+    'findFilesFunc' = findPancreasPlasmaEV_longRNAFiles, 
+    'getColDFFunc' = getPancreasPlasmaEV_longRNAColDataDF,        
+    'tx2MappingFile'='gencode.v35.ucsc.rmsk.tx.to.gene.csv',
+    'tx2MappingDir' = file.path('/home/kimlab/genomes.annotations/gencode.35'),
+    'mapToIdName'='gene',
+    'outputRoot' = "/home/aedavids/extraCellularRNA/data/R/output",
+    #'outputRoot' = "/home/kimlab/aedavids/extraCellularRNA/data/R/output",
+    'transcriptMapperDFFunc'=getTEGeneMapper,
+    # ignoreAfterBar logical, whether to split the tx id on the '|' character to 
+    # facilitate matching with the tx id in tx2gene (default FALSE)
+    #'ignoreAfterBar'=FALSE #bug we do not get gene names in output
+    'ignoreAfterBar'=FALSE,
+    'txOut'=FALSE
+    ),
+  
+ 'TE.tx'=list(
+    'rootDir' = "/home/kimlab/pancreas.plasma.ev.long.RNA",
+    'findFilesFunc' = findPancreasPlasmaEV_longRNAFiles, 
+    'getColDFFunc' = getPancreasPlasmaEV_longRNAColDataDF,        
+    'tx2MappingFile'='gencode.v35.ucsc.rmsk.tx.to.gene.csv',
+    'tx2MappingDir' = file.path('/home/kimlab/genomes.annotations/gencode.35'),
+    'outputRoot' = "/home/aedavids/extraCellularRNA/data/R/output",
+    #'outputRoot' = "/home/kimlab/aedavids/extraCellularRNA/data/R/output",
+    'mapToIdName'='tx',
+    'transcriptMapperDFFunc'=getTETxMapper,
+    #'ignoreAfterBar'=FALSE, # crash
+    'ignoreAfterBar'=TRUE,
+    'txOut'=TRUE
+    ),  
+  
+  #
+  # these parameters do not include TE's
+  #
+
+  'BIO_TYPE'=list(
+    'rootDir' = "/home/kimlab/pancreas.plasma.ev.long.RNA",
+    'findFilesFunc' = findPancreasPlasmaEV_longRNAFiles, 
+    'getColDFFunc' = getPancreasPlasmaEV_longRNAColDataDF,        
+    'tx2MappingFile'='gencode.v35.tx.to.gene.csv',
+    'tx2MappingDir' = file.path('/home/kimlab/genomes.annotations/gencode.35'),
+    'outputRoot' = "/home/aedavids/extraCellularRNA/data/R/output",
+    'mapToIdName' = names(SALMON_QUANT_SF_NAMES_LIST()[SALMON_QUANT_SF_NAMES_LIST()$BIO_TYPE]),
+    'transcriptMapperDFFunc'=getBiotypeMapper,
+    'ignoreAfterBar'=TRUE,
+    'txOut'=FALSE
+    ),
+
+  'ENST'=list(
+    'rootDir' = "/home/kimlab/pancreas.plasma.ev.long.RNA",
+    'tx2MappingFile'='gencode.v35.tx.to.gene.csv',
+    'tx2MappingDir' = file.path('/home/kimlab/genomes.annotations/gencode.35'),
+    'outputRoot' = "/home/aedavids/extraCellularRNA/data/R/output",
+    'mapToIdName'= names(SALMON_QUANT_SF_NAMES_LIST()[SALMON_QUANT_SF_NAMES_LIST()$ENST]),
+    'transcriptMapperDFFunc'=getENSTMapper,
+    'ignoreAfterBar'=TRUE,
+    'txOut'=FALSE
+    ),
+
+  'HGNC'=list(
+    'rootDir' = "/home/kimlab/pancreas.plasma.ev.long.RNA",
+    'tx2MappingFile'='gencode.v35.tx.to.gene.csv',
+    'tx2MappingDir' = file.path('/home/kimlab/genomes.annotations/gencode.35'),
+    'mapToIdName' = names(SALMON_QUANT_SF_NAMES_LIST()[SALMON_QUANT_SF_NAMES_LIST()$HGNC]),
+    'outputRoot' = "/home/aedavids/extraCellularRNA/data/R/output",
+    'transcriptMapperDFFunc'=getHGNCMapper,
+    'ignoreAfterBar'=TRUE,
+    'txOut'=FALSE
+    )
+)
+```
+
+
+```{r}
+getCountDataColNames <- function( fileList ) {
+  #
+  # arguments
+  #   fileList
+  #     example of an element
+  #     "/home/kimlab/pancreas.plasma.ev.long.RNA/data/PDAC/SRR9624965/salmon.out/quant.sf"
+  #     /home/aedavids/extraCellularRNA/data/debugTximport/pancreas.plasma.ev.long.RNA/data/PDAC/SRR10080545/salmon.out/quant.sf
+  #
+  # returns a list of colData column names. format diseaseState_sampleIs
+  #   example
+  #     "healthy_SRR10080507" "healthy_SRR10080508" "healthy_SRR10080509" 
+
+  tokensListList <- strsplit( fileList, split="/" )
+  # [[1]]
+  # [1] ""                            "home"                        "kimlab"              
+  # [4] "pancreas.plasma.ev.long.RNA" "data"                        "healthy"             
+  # [7] "SRR10080507"                 "salmon.out"                  "quant.sf"            
+  # 
+  # [[2]]
+  # [1] ""                            "home"                        "kimlab"              
+  # [4] "pancreas.plasma.ev.long.RNA" "data"                        "healthy"             
+  # [7] "SRR10080508"                 "salmon.out"                  "quant.sf"            
+  
+  tokensList <- unlist(tokensListList)
+  # [1] ""                            "home"                        "kimlab"            
+  # [4] "pancreas.plasma.ev.long.RNA" "data"                        "healthy"             
+  # [7] "SRR10080507"                 "salmon.out"                  "quant.sf"            
+  # [10] ""                            "home"                        "kimlab"             
+  # [13] "pancreas.plasma.ev.long.RNA" "data"                        "healthy"            
+  # [16] "SRR10080508"                 "salmon.out"                  "quant.sf" 
+  
+  #m <- matrix( tokensList, ncol=9, byrow=TRUE)
+  # warning("AEDWIP getCountDataColNames browser")
+  # browser()
+  m <- matrix( tokensList, ncol=length(tokensListList[[1]]), byrow=TRUE)
+  
+  # diseaseStateIdx <- 6
+  # sampleIdIdx <-7
+  # metaTokensMatrix <- m[, c(diseaseStateIdx, sampleIdIdx)]
+  
+  pancIdx <- match(c("pancreas.plasma.ev.long.RNA"),tokensList)
+  diseaseStateIdx <- pancIdx + 2
+  sampleIdIdx <- pancIdx + 3
+  metaTokensMatrix <- m[, c(diseaseStateIdx, sampleIdIdx)]
+
+  
+  retList <- paste(metaTokensMatrix[,1], metaTokensMatrix[,2], sep='_')
+  #[1] "healthy_SRR10080507" "healthy_SRR10080508" "healthy_SRR10080509" "healthy_SRR10080510"
+  
+  return( retList )
+}
+```
+
+fix column names
+```{r}
+fixColNames <- function(fileList, dsCountsDF) {
+  # broke this out to make debug easier
+  #
+  # change column name to format "diseaseState_sampleId". if we have a
+  # small number of rows, ie. biotype, it would be easier to work with the data if
+  # it was denormalized. that is to say keep sampleType, treatment, and replicant id
+  # as separate columns. If we are in gene space this would add a lot of redundant data
+  metaColNames1 <- getCountDataColNames(fileList$healthySalmonFiles)
+  metaColNames2 <- getCountDataColNames(fileList$PDACSalmonFiles)
+  # warning("AEDWIP remove browser from fixColNames")
+  # browser()
+  colnames(dsCountsDF) <- c(metaColNames1, metaColNames2)
+  
+  return(dsCountsDF)
+}
+
+```
+
+
+## main()
+```{r}
+runNomalization <- function(parametersList, dataSetNamesList) {
+    #parameters <- parametersList$TE.gene
+    for (dataSetName in dataSetNamesList) {
+      parameters <- parametersList[[dataSetName]]
+
+      retList    <- loadAndNormlize(parameters)
+      dsCountsDF <- retList$ddsCountsDF
+      dds        <- retList$dds
+      fileList   <- retList$fileList
+      
+      dsCountsDF <- fixColNames(fileList, dsCountsDF)
+      saveNormalizedDF(dsCountsDF, parameters)
+  }
+}
+
+# use trace to set debug break point in package
+# trace("tximport", edit=TRUE)
+# trace("getTETBioTypeMapper", edit=TRUE)
+
+#dataSetNamesList <- list('debug')
+#dataSetNamesList <- list('TE.gene')
+#dataSetNamesList <- list('TE.tx')
+dataSetNamesList <- list('TE.bioType')
+#dataSetNamesList <- list('BIO_TYPE', 'ENST', 'HGNC')
+#dataSetNamesList <- list('ENST', 'HGNC')
+runNomalization(parametersList, dataSetNamesList)
+```
+
+test functions
+```{r}
+sqnlist <- SALMON_QUANT_SF_NAMES_LIST()#$ENSG
+mapToList <- c(sqnlist$BIO_TYPE, sqnlist$ENSG, sqnlist$ENST)
+for (mapToId in mapToList) {
+  print(      SALMON_QUANT_SF_NAMES_LIST()[mapToId] )
+  print(names(SALMON_QUANT_SF_NAMES_LIST()[mapToId]))
+}
+
+endTime <- Sys.time()
+print( endTime - startTime )
+```
+

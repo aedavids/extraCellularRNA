@@ -1,0 +1,160 @@
+---
+title: "testTEParsing.Rmd"
+output: html_notebook
+---
+
+```{r}
+#library(data.table)
+source("te.R") # assume file in in same directory as current Rmd
+
+# tx2MappingFile <- 'gencode.v35.ucsc.rmsk.tx.to.gene.csv'
+# tx2MappingDir <- file.path( '/home/kimlab/genomes.annotations/gencode.35')
+
+
+tx2MappingFile <- 'debugTx2Biotype.csv'
+tx2MappingDir <- file.path('/home/aedavids/extraCellularRNA/data/debugTximport',
+                           'genomes.annotations/gencode.v35')
+
+tx2MappingPath <- file.path(tx2MappingDir, tx2MappingFile)
+                           
+# this is slow, try using readr read_csv, it returns tibble instead of a dataframe
+#rawTx2GeneDF <- read.table(indexFilePath, header=FALSE, col.names=c('gene'))
+
+rawTx2GeneDF <- read_csv( tx2MappingPath, col_names=c( 'id', 'gene') )
+summary(rawTx2GeneDF)
+```
+
+```{r}
+te.family.clade.csvPath <- file.path( '/home/kimlab/exoRNA-biomarkers-panc/output.data/reference.data/te.family.clade.csv')
+
+# https://en.wikipedia.org/wiki/Clade
+# this is 
+te.family.cladeDF <- read.csv(te.family.clade.csvPath, 
+                              header=FALSE,
+                              col.names=c('gene', 'family', 'clade')) %>%
+                    distinct()
+
+summary(te.family.cladeDF)
+head(te.family.cladeDF)
+```
+
+
+```{r}
+smallTestTopMapDF <- head(rawTx2GeneDF)
+smallTestBottomMapDF <- tail(rawTx2GeneDF)
+```
+
+
+# Test top parse
+```{r}
+source("te.R") # assume file in in same directory as current Rmd
+
+# use trace to set a break point. typically you only use trace
+# when you do not have the source code
+#trace("parseTop_", edit=TRUE)
+smallStandardDF <- parseStandardFormat_(smallTestTopMapDF, debug=TRUE)
+smallStandardDF
+```
+
+
+
+TEST Bottom Parse
+```{r message=TRUE}
+source("te.R") # assume file in in same directory as current Rmd
+
+smallBottomMapDF <- parseTEFormat_(smallTestBottomMapDF, te.family.cladeDF, debug=TRUE)
+smallBottomMapDF
+```
+
+debug
+fa <- filter_at(tx2GeneDF, vars(contains('.')), any_vars(. >= 10)) 
+```
+(base) [aedavids@plaza gencode.35]$ grep -o -n \\. gencode.v35.ucsc.rmsk.tx.to.gene.csv |cut -d : -f1 | uniq -c | sed -e 's/^[ \t]*//' |cut -d " " -f 1 | sort | uniq -c
+   5811 2
+  10662 3
+ 181397 4
+    913 5
+    118 6
+  30679 7
+  
+  
+with out filter_at()
+Expected 8 pieces. Additional pieces discarded in 412749 rows [33, 283, 313, 314, 466, 476, 488, 491, 507, 531, 572, 577, 578, 644, 660, 688, 826, 832, 834, 846, ...].      tx                gene           cladeBiotype       familyBiotype     
+ Length:4657569     Length:4657569     Length:4657569     Length:4657569    
+ Class :character   Class :character   Class :character   Class :character  
+ Mode  :character   Mode  :character   Mode  :character   Mode  :character 
+ 
+ with
+ Error: `.predicate` has no matching columns.
+
+```
+```{r}
+source("te.R") # assume file in in same directory as current Rmd
+x <- parseTEFormat_(rawTx2GeneDF, te.family.cladeDF, debug=FALSE)
+summary(x)
+x
+```
+
+
+
+test getRMASKMapDF
+```{r}
+source("te.R") # assume file in in same directory as current Rmd
+
+start_time <- Sys.time()
+retDF = getRMASKMapDF(tx2MappingPath, te.family.clade.csvPath)
+end_time <- Sys.time()
+# time difference of 5.889426 mins
+print(end_time - start_time)
+
+summary(retDF)
+head(retDF)
+tail(retDF)
+```
+
+cache data R is sloooow
+
+
+```{r}
+AEDWIP 
+```
+
+```{r}
+cacheDir <- file.path("/home/aedavids/extraCellularRNA/data/R/output","normalizedCounts.gencode.v35.ucsc.rmsk.tx.to.gene.csv")
+dir.create(cacheDir, recursive=TRUE, showWarnings = FALSE)
+
+dataFile <- paste("subset", basename(indexFilePath), sep=".")
+
+cacheFilePath <- file.path(cacheDir, dataFile)
+cacheFilePath
+
+start_time <- Sys.time()
+# readr write_csv is faster 
+# Time difference of 29.80145 secs
+write_csv(retDF, cacheFilePath)
+end_time <- Sys.time()
+print(end_time - start_time)
+
+summary(retDF)
+```
+
+```{r}
+library(readr)
+start_time <- Sys.time()
+# 1.208057 mins
+# foo <- read.csv(cacheFilePath, header=TRUE)
+
+#col_types = list(col_character, col_character(), col_character())
+# readr read_csv is faster 
+# Time difference of 15.83652 secs with out col_types
+# Time difference of 16.12727 secs
+foo <- read_csv(cacheFilePath
+                #,col_types = c(col_character, col_character(), col_character())
+                ,col_type=c(col_character(), col_character(), col_character())
+                )
+end_time <- Sys.time()
+print(end_time - start_time)
+
+summary(foo)
+```
+

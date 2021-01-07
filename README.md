@@ -24,6 +24,7 @@ create the extraCellularRNA environment from yaml file
 
 ```
 conda env create -f environment.yml
+pip install tensorflow
 ```
 
 updating dependencies

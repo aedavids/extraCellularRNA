@@ -1,0 +1,137 @@
+---
+title: "Test tximport"
+output: html_notebook
+---
+
+figure out why we can not get normalized counts when we use     'tx2MappingFile'='gencode.v35.ucsc.rmsk.tx.to.gene.csv',
+
+ref: [https://support.bioconductor.org/p/p133461/#p133466](https://support.bioconductor.org/p/p133461/#p133466)
+
+
+```{r}
+library("DESeq2")
+library("readr")
+library("tximport")
+source("findFiles.R") # assume file in in same directory as current Rmd
+source("te.R")
+```
+
+set break point in package function. ie we do not have source code
+This will open an editor you can use to add debug statements into
+e.g. add print(), warninging or browser(). browser() is a programatic way to
+set a break point on a particular point in the execution of a function
+```{r}
+trace("tximport", edit=TRUE)
+```
+
+
+```{r}
+#rootDir <- "/home/kimlab/pancreas.plasma.ev.long.RNA"
+rootDir <- "/home/aedavids/extraCellularRNA/data/debugTximport/pancreas.plasma.ev.long.RNA"
+
+#tx2MappingFile <- 'gencode.v35.ucsc.rmsk.tx.to.gene.csv'
+tx2MappingFile <- 'debugTx2Gene.csv'
+tx2MappingDir <- file.path('/home/aedavids/extraCellularRNA/data/debugTximport',
+                           'genomes.annotations/gencode.v35') 
+
+outputRoot = "/home/aedavids/extraCellularRNA/data/debugTximport/output"
+outputDir <- paste0('normalizedCounts.', tx2MappingFile)
+outputRoot <- file.path(outputRoot, outputDir)
+dir.create(outputRoot, recursive=TRUE, showWarnings = FALSE)
+```
+
+```{r}
+# filesList <- findPancreasPlasmaEV_longRNAFiles(rootDir)
+dataRoot <- "/home/aedavids/extraCellularRNA/data/debugTximport/pancreas.plasma.ev.long.RNA/data"
+fileList <- list(
+  file.path(dataRoot,"healthy/SRR10080507/salmon.out/debugQuant.sf"),
+  file.path(dataRoot,"healthy/SRR10080508/salmon.out/debugQuant.sf"),
+  file.path(dataRoot,"PDAC/SRR10080544/salmon.out/debugQuant.sf"),
+  file.path(dataRoot,"PDAC/SRR10080545/salmon.out/debugQuant.sf")
+)
+```
+
+```{r}
+transcriptMapperDF <- getTEGeneMapper(tx2MappingDir, tx2MappingFile)
+```
+
+```{r}
+txId <- transcriptMapperDF$tx 
+txId
+```
+
+```{r}
+transcriptMapperDF[,c(2)]
+```
+
+
+# Test tximport with defaults
+```{r}
+allSalmonQuantFiles <- unlist(fileList, use.names = FALSE)
+
+# ignoreAfterBar 
+# whether to split the tx id on the '|' character to
+# facilitate matching with the tx id in transcriptMapperDF, ie tx2gene
+# default = FALSE
+
+# txOut	
+# logical, whether the function should just output transcript-level (default FALSE)
+
+txi <- tximport(allSalmonQuantFiles, 
+                  type="salmon", 
+                  tx2gene=transcriptMapperDF, 
+                  ignoreAfterBar=FALSE,
+                  txOut=FALSE)
+```
+
+
+```{r}
+geneNames <- attributes(txi$abundance)[2]$dimnames[[1]]
+expectedGeneNames <- list("ALR/Alpha", "DDX11L1","L1PA3") 
+geneNames == expectedGeneNames
+```
+
+# test normalization
+
+```{r}
+ # get the meta data for each column of count data.
+numHealthy <- 2
+numPDAC  <- 2
+
+diseaseState <- c( rep('healthy', numHealthy ),
+                   rep('PDAC', numPDAC )) 
+
+diseaseState <- factor(diseaseState, levels=c("healthy", "PDAC"))
+
+colDF <- data.frame(diseaseState)
+colDF
+```
+
+```{r}
+design=~ diseaseState
+dds <- DESeqDataSetFromTximport(txi, colData=colDF, design)
+```
+
+
+```{r}
+# skip filtering debug quant.sf files are to small
+dds <- estimateSizeFactors( dds )
+ddsCounts <- counts(dds, normalized=TRUE)
+ddsCountsDF <- as.data.frame( ddsCounts )
+```
+
+## save
+```{r}
+
+mapToIdName <- "gene"
+csvOutFileName <- paste0("pancreas.plasma.ev.long.RNA.normalized.deseq.", 
+                         mapToIdName, 
+                         ".counts.csv")   
+
+csvFilePath <- file.path( outputRoot, csvOutFileName)
+print(sprintf("save to:\n%s",csvFilePath))
+
+# write_csv does not write row names
+write.csv(ddsCountsDF, csvFilePath)
+
+```

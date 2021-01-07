@@ -1,4 +1,7 @@
 
+see /Users/andrewdavidson/googleUCSC/kimLab/docker/gettingStarted/notes.md
+
+
 [https://www.docker.com/101-tutorial](https://www.docker.com/101-tutorial)
 
 todo: pick up at [http://localhost/tutorial/multi-container-apps/](http://localhost/tutorial/multi-container-apps/)
@@ -162,3 +165,18 @@ docker build -t getting-started .
 ```
 
 ??? do we need to push our image back to the docker repo?
+
+
+## ssh into a running container
+[https://phase2.github.io/devtools/common-tasks/ssh-into-a-container/](https://phase2.github.io/devtools/common-tasks/ssh-into-a-container/)
+
+```
+$ docker exec -it <container name> /bin/bash 
+```
+
+## saving changes made to a running container
+E.G. you install a package in R studio
+[https://docs.docker.com/engine/reference/commandline/commit/](https://docs.docker.com/engine/reference/commandline/commit/)
+```
+$ docker commit [CONTAINER_ID] [new_image_name]
+```

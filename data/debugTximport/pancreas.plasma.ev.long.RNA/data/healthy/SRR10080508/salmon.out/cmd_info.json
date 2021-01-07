@@ -1,0 +1,15 @@
+{
+    "salmon_version": "1.3.0",
+    "index": "/public/groups/kimlab/indexes/sel.align.gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx",
+    "libType": "A",
+    "mates1": "./data/healthy/SRR10080508/SRR10080508_pass_1.fastq.gz",
+    "mates2": "./data/healthy/SRR10080508/SRR10080508_pass_2.fastq.gz",
+    "threads": "8",
+    "recoverOrphans": [],
+    "validateMappings": [],
+    "gcBias": [],
+    "seqBias": [],
+    "rangeFactorizationBins": "4",
+    "output": "./data/healthy/SRR10080508/salmon.out",
+    "auxDir": "aux_info"
+}

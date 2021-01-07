@@ -2,3 +2,14 @@
 .Rhistory
 .RData
 .Ruserdata
+git.commit.msg.txt
+*.log
+*~
+
+# ignore directories
+output
+img
+html
+__pycache__
+*.pyc
+.ipynb_checkpoints

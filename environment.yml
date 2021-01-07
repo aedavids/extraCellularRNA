@@ -1,11 +1,17 @@
 name: extraCellularRNA
 channels:
+  - conda-forge
   - defaults
 dependencies:
-  - python=3.7.6
   - numpy
   - matplotlib
+  - python=3.7.6
+  - notebook
   - gseapy
-  - jupyter_conda
-prefix: /Users/andrewdavidson/anaconda3/envs/extraCellularRNA
-
+  - scipy
+  - trimmomatic
+  - sra-tools
+  - fastqc
+  - salmon
+  - scikit-learn
+prefix: /public/home/aedavids/miniconda3/envs/extraCellularRNA

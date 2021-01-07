@@ -1,0 +1,269 @@
+---
+title: "Normalzed biotype counts"
+author: "Andrew Davidson, aedavids@ucsc.edu"
+date: "Oct 14, 2020"
+
+output: html_notebook
+---
+Uses DESeq package to get comparable transcript counts
+
+overview: 
+  - tximport: read estimated salmon quant.sf (transcripts counts)
+  - DESeqDataSetFromTximport :
+  - estimateSizeFactors :
+  - counts()
+
+
+ref:
+
+- [bioconductor.org vignettes/DESeq2](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html)
+- [bioconductor BiocWorkshops rna-seq-data-analysis-with-deseq2](https://bioconductor.github.io/BiocWorkshops/rna-seq-data-analysis-with-deseq2.html)
+- /public/home/aedavids/extraCellularRNA/R/notebooks/kras.ipsc_exo_vs_bulk.DESeq.Rmd
+
+- [R class tutorial](https://www.datamentor.io/r-programming/object-class-introduction/)
+
+- /public/groups/kimlab/kras.ipsc/old.output.data.and.scripts/tximport.and.normalize.R
+
+
+```{r message=FALSE}
+library("DESeq2")
+#library('rjson')
+library("tximport")
+source("DESeqUtils.R") # assume file in in same directory as current Rmd
+source("findFiles.R") # assume file in in same directory as current Rmd
+```
+## Find all the salmon estimated transcript count files
+```{r}
+print( sprintf("BEGIN: %s", Sys.time()) )
+#rootDir <- "/home/kimlab/exoRNA-biomarkers-panc/data"
+rootDir <- "/home/kimlab/exoRNA-biomarkers-panc/data"
+outputRoot <- "/home/aedavids/extraCellularRNA/data/R/output"
+dir.create(outputRoot, recursive=TRUE, showWarnings = FALSE)
+
+# ref: salmon cmd_info.json output file captures arguments
+# indexFilePath <- file.path('/public/groups/kimlab/indexes/',
+#                             'sel.align.gencode.v35.process.aware.salmon.v1.3.0.sidx')
+
+indexFilePath <- file.path( '/home/kimlab/genomes.annotations/gencode.35', 
+                            'gencode.v35.ucsc.rmsk.tx.to.gene.csv')
+```
+
+
+# DESeq
+We do not actually run "differential expression analysis", we just use some of DESeq function to get
+comparable count data
+
+```{r}
+########################################################################
+findPanc1_intraCondition <- function(rootDir, condition) {
+  #
+  # finds salmon quant.sf files. Checks to make sure file exists
+  #
+  # arguments
+  #   rootDir: example "/public/groups/kimlab/exoRNA-biomarkers-panc/data/"
+  #
+  #   condition: "ctrl" or "kras"
+  #
+  #
+  # returns
+  #   a list of full salmon file path
+  
+  # example file path
+  #panc1_intra/ctrl.3.intra/ctrl.3.intra_sel.align.gencode.v35.salmon.v1.3.0.sidx_2020-10-15-21.33.49-PDT/quant.sf
+  #panc1_intra/kras.1.intra/kras.1.intra_sel.align.gencode.v35.salmon.v1.3.0.sidx_2020-10-15-21.33.49-PDT/quant.sf
+
+  # find all files 
+  # dataDir <- paste0("panc1_intra", condition)
+  # print(dataDir)
+  # conditionSample <- paste0(condition, "*")
+  # # bioIvtPaths <- file.path(rootDir, dataDir, conditionSample)
+  # bioIvtPaths <- file.path(rootDir, dataDir, conditionSample)
+  # regExPath <- file.path(bioIvtPaths,  "*sel.align.gencode.v35.salmon.v1.3.0.sidx*", "quant.sf")
+  
+  # find all files 
+  conditionSample <- paste0(condition, "*")
+  panc1_intraPath <- file.path(rootDir, "panc1_intra", conditionSample)
+  #print(sprintf("panc1_intraPath: %s", panc1_intraPath))
+  regExPath <- file.path(panc1_intraPath,  "*sel.align.gencode.v35.salmon.v1.3.0.sidx*", "quant.sf")
+  #print(sprintf("regExPath : %s", regExPath))
+
+  salmonFiles <- Sys.glob(regExPath)
+
+  if ( ! all(file.exists(salmonFiles)) ) {
+    stop(c("ERROR: file not found: ", salmonFiles))
+  }
+
+  return(salmonFiles)
+}
+
+findPanc1_intraFiles <- function(rootDir) {
+  dataFilesList = list()
+  
+  # TODO figure out how to pass args to getNormalizedDESeqDataSet()
+  index = "sel.align.gencode.v35.salmon.v1.3.0.sidx"
+  
+  ctrlSalmonFiles <- findPanc1_intraCondition(rootDir, "ctrl")
+  dataFilesList$ctrlSalmonFiles <- ctrlSalmonFiles
+  
+  krasSalmonFiles <- findPanc1_intraCondition(rootDir, "kras")
+  dataFilesList$krasSalmonFiles <- krasSalmonFiles
+  
+  return( dataFilesList)
+}
+```
+
+
+```{r}
+getPanc1_intraColDataDF <- function (fileList) {
+  # create the colData data frame. This is the meta data describing each sample
+  # The Rows of correspond to columns of countData and cols are features that
+  # describe the replicates. The design model use the columns as features
+  
+  numCtrl <- length( fileList$ctrlSalmonFiles )
+  numkras  <- length( fileList$krasSalmonFiles )
+
+  diseaseState <- c( rep('ctrl', numCtrl ),
+                     rep('kras', numkras )) 
+  
+  diseaseState <- factor(diseaseState, levels=c("ctrl", "kras"))
+  
+  colDF <- data.frame(diseaseState)
+  
+  return(colDF)  
+}
+```
+
+Construct a DESeq data object for biotypes
+```{r}
+mapToId <- SALMON_QUANT_SF_NAMES_LIST()$BIO_TYPE
+mapToIdName <- names(SALMON_QUANT_SF_NAMES_LIST()[mapToId])
+
+# warning we are not using the model. 
+retList <-
+  getNormalizedDESeqDataSet(rootDir,
+                          indexFilePath,
+                          findFilesFunc=findPanc1_intraFiles, 
+                          getColDFFunc=getPanc1_intraColDataDF,
+                          design=~ diseaseState,
+                          mapToId
+                          )
+
+bioTypeDDS <- retList$dds
+fileList <- retList$fileList
+
+csvBioTypeOutFileName <- paste0("panc1_intra.normalized.deseq.", mapToIdName, ".counts.csv")
+
+#aediwp 5,4 was when we had 6 replicants in 2 conditions
+bioTypeDF <- createComparableCounts( bioTypeDDS, filterRowCount=5, filterSampleCount=4 )
+```
+
+construct DESeq data object for Ensembl transcript stable id  
+```{r}
+mapToId <- SALMON_QUANT_SF_NAMES_LIST()$ENST
+mapToIdName <- names(SALMON_QUANT_SF_NAMES_LIST()[mapToId])
+
+retList <-
+  getNormalizedDESeqDataSet(rootDir,
+                          indexFilePath,
+                          findFilesFunc=findPanc1_intraFiles, 
+                          getColDFFunc=getPanc1_intraColDataDF,
+                          design=~ diseaseState,
+                          mapToId
+                          )
+
+enstDDS <- retList$dds
+fileList <- retList$fileList
+
+csvENSTOutFileName <- paste0("panc1_intra.normalized.deseq.", mapToIdName, ".counts.csv")
+
+enstDDSDF <- createComparableCounts( enstDDS, filterRowCount=5, filterSampleCount=4 )
+```
+
+
+
+```{r}
+getCountDataColNames <- function( fileList ) {
+  #
+  # arguments
+  #   fileList
+  #     example of an element
+  #     "/home/kimlab/pancreas.plasma.ev.long.RNA/data/PDAC/SRR9624965/salmon.out/quant.sf"
+  #
+  # returns a list of colData column names. format diseaseState_sampleIs
+  #   example
+  #     "healthy_SRR10080507" "healthy_SRR10080508" "healthy_SRR10080509" 
+
+  tokensListList <- strsplit( fileList, split="/" )
+  # [[1]]
+  # [1] ""                                                                                   
+  # [2] "home"                                                                               
+  # [3] "kimlab"                                                                             
+  # [4] "exoRNA-biomarkers-panc"                                                             
+  # [5] "data"                                                                               
+  # [6] "a549_0.2MOI_24hr"                                                                   
+  # [7] "SRR11412239.Mock.2"                                                                 
+  # [8] "SRR11412239.Mock.2_sel.align.gencode.v35.salmon.v1.3.0.sidx_2020-10-15-21.32.19-PDT"
+  # [9] "quant.sf"                                                                           
+
+  tokensList <- unlist(tokensListList)
+  # [1] ""                                                                             
+  # [2] "home"                                                                         
+  # [3] "kimlab"                                                                       
+  # [4] "exoRNA-biomarkers-panc"                                                       
+  # [5] "data"                                                                         
+  # [6] "panc1_intra"                                                                  
+  # [7] "ctrl.1.intra"                                                                 
+  # [8] "ctrl.1.intra_sel.align.gencode.v35.salmon.v1.3.0.sidx_2020-10-15-21.33.49-PDT"
+  # [9] "quant.sf"   
+        
+
+  m <- matrix( tokensList, ncol=9, byrow=TRUE)
+  diseaseStateIdx <- 6
+  sampleIdIdx <-7
+  metaTokensMatrix <- m[, c(sampleIdIdx)]
+  sampleTokens <- strsplit(metaTokensMatrix, split="\\.")
+  # [[1]]
+  # [1] "ctrl"  "1"     "intra"
+
+
+  #retList <- paste(sampleTokens[1], sampleTokens[2], sep="_")
+  retList <- lapply(sampleTokens, function(tokens){
+    sampleType <- tokens[1]
+    #sampleIdList <- tokens[-1] # tokens[-1] same as python [1:]
+    #sampleId <- paste(sampleIdList, collapse="")
+    sampleId <- tokens[2]
+    paste(sampleType, sampleId, sep="_")
+  })
+
+  return( unlist(retList) )
+}
+```
+
+change column name to format "diseaseState_sampleId". if we have a
+small number of rows, ie. biotype, it would be easier to work with the data if
+it was denormalized. that is to say keep sampleType, treatment, and replicant id
+as separate columns. If we are in gene space this would add a lot of redundant data
+```{r}
+
+metaColNames1 <- getCountDataColNames(fileList$ctrlSalmonFiles)
+metaColNames1
+metaColNames2 <- getCountDataColNames(fileList$krasSalmonFiles)
+colnames(bioTypeDF) <- c(metaColNames1, metaColNames2)
+colnames(enstDDSDF) <- c(metaColNames1, metaColNames2)
+
+```
+
+```{r}
+# save
+outFiles <- list( list(bioTypeDF, csvBioTypeOutFileName) , list(enstDDSDF, csvENSTOutFileName) )
+for (outfileItem in outFiles) {
+  df <- outfileItem[1]
+  outfile <- outfileItem[2]
+  csvFilePath <- file.path( outputRoot, outfile)
+  print(csvFilePath)
+  write.csv(df, csvFilePath)
+}
+
+print( sprintf("END: %s", Sys.time()) )
+```
+
