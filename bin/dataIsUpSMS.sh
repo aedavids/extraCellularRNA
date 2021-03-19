@@ -5,7 +5,7 @@ if [ $# -lt 1 ]; then
     scriptName=`basename $0`
     echo "sends txt message to phone number"
     echo "error: usage $scriptName phoneNumber ..."
-    echo "missing phone number. example phoneNumber 6508622639@txt.att.net"
+    echo "missing phone number. example phoneNumber 6508662639@txt.att.net"
     exit 1
 fi
 

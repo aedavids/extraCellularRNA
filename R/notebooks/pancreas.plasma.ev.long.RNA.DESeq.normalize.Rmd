@@ -56,6 +56,7 @@ parametersList <- list(
     # 'outputRoot' = "/home/aedavids/extraCellularRNA/data/R/output/debug",
     'outputRoot' = "/home/aedavids/extraCellularRNA/data/R/debugTximport/output",
     'mapToIdName'='gene',
+    'normalizedFileName'='pancreas.plasma.ev.long.RNA.normalized.deseq',
     'transcriptMapperDFFunc'=getTEGeneMapper,    
     
     # ignoreAfterBar logical, whether to split the tx id on the '|' character to 
@@ -78,6 +79,7 @@ parametersList <- list(
     'outputRoot' = "/home/aedavids/extraCellularRNA/data/R/output",
     #'outputRoot' = "/home/kimlab/aedavids/extraCellularRNA/data/R/output",
     'mapToIdName'='biotype',
+    'normalizedFileName'='pancreas.plasma.ev.long.RNA.normalized.deseq',
     'transcriptMapperDFFunc'=getTETBioTypeMapper,
     'ignoreAfterBar'=FALSE,
     'txOut'=FALSE
@@ -90,6 +92,7 @@ parametersList <- list(
     'tx2MappingFile'='gencode.v35.ucsc.rmsk.tx.to.gene.csv',
     'tx2MappingDir' = file.path('/home/kimlab/genomes.annotations/gencode.35'),
     'mapToIdName'='gene',
+    'normalizedFileName'='pancreas.plasma.ev.long.RNA.normalized.deseq',
     'outputRoot' = "/home/aedavids/extraCellularRNA/data/R/output",
     #'outputRoot' = "/home/kimlab/aedavids/extraCellularRNA/data/R/output",
     'transcriptMapperDFFunc'=getTEGeneMapper,
@@ -109,6 +112,7 @@ parametersList <- list(
     'outputRoot' = "/home/aedavids/extraCellularRNA/data/R/output",
     #'outputRoot' = "/home/kimlab/aedavids/extraCellularRNA/data/R/output",
     'mapToIdName'='tx',
+    'normalizedFileName'='pancreas.plasma.ev.long.RNA.normalized.deseq',
     'transcriptMapperDFFunc'=getTETxMapper,
     #'ignoreAfterBar'=FALSE, # crash
     'ignoreAfterBar'=TRUE,
@@ -127,6 +131,7 @@ parametersList <- list(
     'tx2MappingDir' = file.path('/home/kimlab/genomes.annotations/gencode.35'),
     'outputRoot' = "/home/aedavids/extraCellularRNA/data/R/output",
     'mapToIdName' = names(SALMON_QUANT_SF_NAMES_LIST()[SALMON_QUANT_SF_NAMES_LIST()$BIO_TYPE]),
+    'normalizedFileName'='pancreas.plasma.ev.long.RNA.normalized.deseq',
     'transcriptMapperDFFunc'=getBiotypeMapper,
     'ignoreAfterBar'=TRUE,
     'txOut'=FALSE
@@ -138,6 +143,7 @@ parametersList <- list(
     'tx2MappingDir' = file.path('/home/kimlab/genomes.annotations/gencode.35'),
     'outputRoot' = "/home/aedavids/extraCellularRNA/data/R/output",
     'mapToIdName'= names(SALMON_QUANT_SF_NAMES_LIST()[SALMON_QUANT_SF_NAMES_LIST()$ENST]),
+    'normalizedFileName'='pancreas.plasma.ev.long.RNA.normalized.deseq',
     'transcriptMapperDFFunc'=getENSTMapper,
     'ignoreAfterBar'=TRUE,
     'txOut'=FALSE
@@ -148,6 +154,7 @@ parametersList <- list(
     'tx2MappingFile'='gencode.v35.tx.to.gene.csv',
     'tx2MappingDir' = file.path('/home/kimlab/genomes.annotations/gencode.35'),
     'mapToIdName' = names(SALMON_QUANT_SF_NAMES_LIST()[SALMON_QUANT_SF_NAMES_LIST()$HGNC]),
+    'normalizedFileName'='pancreas.plasma.ev.long.RNA.normalized.deseq',
     'outputRoot' = "/home/aedavids/extraCellularRNA/data/R/output",
     'transcriptMapperDFFunc'=getHGNCMapper,
     'ignoreAfterBar'=TRUE,
@@ -156,6 +163,41 @@ parametersList <- list(
 )
 ```
 
+Make sure parameters are not missing values
+
+```{r}
+missingParmeters <- function( warningLabel, parameterList) {
+  #cat( "AEDWIP ", names(parameterList))
+  error = FALSE
+  keyList = list('rootDir', 'findFilesFunc', 'getColDFFunc', 'tx2MappingFile', 
+                 'tx2MappingDir', 'mapToIdName', 'normalizedFileName', 
+                 'outputRoot', 'transcriptMapperDFFunc',
+                  'ignoreAfterBar', 'txOut')
+  
+  for (key in keyList) {
+    if (! exists(key, parameterList) ) {
+      error = TRUE
+      # warning( paste(warningLabel, key, " is missing") )
+      warning( paste("\n", warningLabel, key," is missing")  )
+    }
+  }
+  
+  # find unexpected parameters. probably spelling error
+  badKeys = setdiff( names(parameterList), keyList )
+  if ( length(badKeys) != 0 ) {
+    warning(paste("\n", warningLabel, "unknown keys", badKeys))
+  }
+  
+  return( error )
+}
+
+# test driver
+testSet = 'debug'
+isMissing = missingParmeters(testSet, parametersList[[testSet]])
+if (isMissing) {
+  warning('\nERROR')
+}
+```
 
 ```{r}
 getCountDataColNames <- function( fileList ) {
@@ -238,6 +280,11 @@ runNomalization <- function(parametersList, dataSetNamesList) {
     #parameters <- parametersList$TE.gene
     for (dataSetName in dataSetNamesList) {
       parameters <- parametersList[[dataSetName]]
+      error = missingParmeters(dataSetName, parameters )
+      
+      if (error ) {
+        next # ie continue in most languages
+      }
 
       retList    <- loadAndNormlize(parameters)
       dsCountsDF <- retList$ddsCountsDF
@@ -246,6 +293,32 @@ runNomalization <- function(parametersList, dataSetNamesList) {
       
       dsCountsDF <- fixColNames(fileList, dsCountsDF)
       saveNormalizedDF(dsCountsDF, parameters)
+      
+      retList    <- runDifferentialExpression(dds, parameters)
+      coefList <- retList[ "coefList" ]
+      unShrunkResults <- retList[ "unShrunkResults" ]
+      lfcShrinkResults <- retList[ "lfcShrinkResults" ]
+
+      # save results
+      # warning(paste("\nAEDWIP runNomalization coefList:", coefList))
+      # warning(paste("\nAEDWIP runNomalization coefList[1]:", coefList[1]))
+      # cat(paste("\n ???? [[1]]", coefList[[1]]))
+      # # cat(paste("\n ???? wtf", coefList[2]))
+      # cat(paste("\n ???? [[2]]", coefList[[2]]))
+      # cat(paste("\n ???? 1 1", coefList[1][1]))
+      # cat(paste("\n ???? 1 2", coefList[1][2]))
+      # warning(paste("\nAEDWIP runNomalization coefList[2]:", coefList[2]))
+      
+      # coefList$coefList12]
+      # [1] "Intercept"
+      # coefList$coefList[2]
+      # [1] "diseaseState_PDAC_vs_healthy"
+      
+      nameAEDWIP = paste0(coefList$coefList[2], ".unShrunk")
+      saveResults( unShrunkResults, nameAEDWIP, parameters )
+      nameAEDWIP = paste0(coefList$coefList[2], ".lfcShrink")
+      saveResults( lfcShrinkResults, nameAEDWIP, parameters )
+      
   }
 }
 
@@ -255,10 +328,11 @@ runNomalization <- function(parametersList, dataSetNamesList) {
 
 #dataSetNamesList <- list('debug')
 #dataSetNamesList <- list('TE.gene')
-#dataSetNamesList <- list('TE.tx')
-dataSetNamesList <- list('TE.bioType')
+dataSetNamesList <- list('TE.tx')
+#dataSetNamesList <- list('TE.bioType')
 #dataSetNamesList <- list('BIO_TYPE', 'ENST', 'HGNC')
 #dataSetNamesList <- list('ENST', 'HGNC')
+
 runNomalization(parametersList, dataSetNamesList)
 ```
 
@@ -273,5 +347,19 @@ for (mapToId in mapToList) {
 
 endTime <- Sys.time()
 print( endTime - startTime )
+```
+
+# debug
+```{r}
+# debugSaveResults <- function() {
+#   source("DESeqUtils.R") # assume file in in same directory as current Rmd
+#   name="aedwip"
+#   testSet = 'debug'
+#   parameters = parametersList[[testSet]]
+#   saveResults( results, name, parameters )
+# }
+# 
+# debugSaveResults()
+
 ```
 

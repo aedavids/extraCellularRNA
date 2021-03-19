@@ -1,6 +1,6 @@
 
 see /Users/andrewdavidson/googleUCSC/kimLab/docker/gettingStarted/notes.md
-
+see /Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/dockerContainerList.md
 
 [https://www.docker.com/101-tutorial](https://www.docker.com/101-tutorial)
 
@@ -180,3 +180,85 @@ E.G. you install a package in R studio
 ```
 $ docker commit [CONTAINER_ID] [new_image_name]
 ```
+
+## saving and restoring docker images (moving images from public to private machines)
+original goal, docker image was created on courtyard wanted to run it on plaza
+ 
+ ref:  BME Notebook # 2, 10/21/20 p 11 'Saving and Restoring Docker images'
+ 
+ for following example the source machine will be plaza. The destination/target machine will be mustard
+ 
+ 1. find the image you want to save on the source machine. 
+ By convention we tag our images with our email
+    ```
+ [aedavids@plaza ~]$ docker images |grep aedavids
+ aedavids/extra_cellular_rna      latest          b8c2a26d9690        3 months ago        5.02GB
+ aedavids/biocworkshop2018desq2   latest          e3d760f202cc        6 months ago        5.01GB
+    ```
+
+2. create a director on local machine to save image
+   ```
+   $ mkdir -p /scratch/aedavids
+   ```
+   
+3. create a compressed tar file back up of image.
+This is slow
+   ```
+   [plaza ~]$ docker save b8c2a26d9690 | gzip > /scratch/aedavids/extra_cellular_rna.tar.gz
+   $ ls -lh /scratch/aedavids/extra_cellular_rna.tar.gz
+   -rw-r--r-- 1 aedavids giuser 2.0G Feb 12 12:32 /scratch/aedavids/extra_cellular_rna.tar.gz
+   ```
+
+4. copy image to a tempory place on the destination machine
+   ```
+   [aedavids@mustard tmp]$ rsync -avhz aedavids@plaza:/scratch/aedavids/extra_cellular_rna.tar.gz .
+   aedavids@plaza's password: 
+   receiving incremental file list
+   extra_cellular_rna.tar.gz
+
+   sent 43 bytes  received 2.03G bytes  9.50M bytes/sec
+   total size is 2.05G  speedup is 1.01
+   [aedavids@mustard tmp]$ ls -lh ~/tmp
+   total 3.9G
+   -rw-r--r-- 1 aedavids prismuser 2.0G Feb 12 12:32 extra_cellular_rna.tar.gz
+ 
+   ```
+
+5. change the file permision
+   ```
+   $ chmod 755 extra_cellular_rna.tar.gz
+   ```
+ 
+ 6. restore the image on the destination machine
+ you should see all the layers of your image load
+    ```
+    $ docker load --input extra_cellular_rna.tar.gz
+    b187ff70b2e4: Loading layer [==============================================>]  65.58MB/65.58MB
+    
+    ...
+    
+    Loaded image ID: sha256:b8c2a26d9690b742cbe2a8f3008cf6f1a61f560c7e826a44250916d2e60ab790
+    ```
+    
+7. check
+ ```
+ $ docker images | grep b8c2a26d9690
+
+ <none>   <none>    b8c2a26d9690        3 months ago        5.02GB
+ ```
+ 
+ 8. create a tag to make it easier to work with your image
+ ```
+ $ docker tag b8c2a26d9690 aedavids/extra_cellular_rna
+$ docker images |grep aedavids
+aedavids/extra_cellular_rna   latest  b8c2a26d9690        3 months ago        5.02GB
+
+ ```
+ 
+ 
+ 9. remove all the tmp files
+```
+plaza $ rm -i /scratch/aedavids/*
+mustard $ rm -i ~/tmp/*
+```
+

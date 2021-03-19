@@ -55,8 +55,8 @@ docker run --rm \
         -e USER=${USER} \
 	-e USERID=${USER_ID} \
 	-e PASSWORD=ggg \
-	-v /public/home/${USER}:/home/${USER} \
-	-v /public/groups/kimlab:/home/kimlab \
+	-v /private/home/${USER}:/home/${USER} \
+	-v /private/groups/kimlab:/home/kimlab \
         ${IMG}
 
 #set -x # turn debug on

@@ -321,6 +321,59 @@ loadAndNormlize <- function(parameters) {
 }
 
 ########################################################################
+runDifferentialExpression <- function(dds, parameters) {
+  # TODO add documentation
+  # returns a list with names "coefList", "unShrunkResults", "lfcShrinkResults"
+  
+  # run differial expersion
+  ddsDESeq <- DESeq(dds)
+  
+  # results() extracts a results table with log2 fold changes, p values and
+  # adjusted p values.
+  #
+  # With no additional arguments to results, the log2 fold change and Wald test
+  # p value will be for the last variable in the design formula, and if this is
+  # a factor, the comparison will be the last level of this variable over the
+  # reference level
+  
+  coefList <- resultsNames(ddsDESeq) # lists the coefficients
+  # [1] "Intercept"              "sampleType_ex0_vs_bulk"
+  
+  #see vignette for how to specify coefficient or contrast. contrast is the
+  #factor level we want to compare against, it the control contrast also effect
+  #the log fold change value if count is zero see ?results Note that the results
+  #function automatically performs independent filtering based on the mean of
+  #normalized counts for each gene, optimizing the number of genes which will
+  #have an adjusted p value below a given FDR cutoff, alpha By default the
+  #argument alpha is set to . If the adjusted p value cutoff will be a value
+  #other than , alpha should be set to that value: we want 0.05 in either tail.
+  #
+  # we can use lfcThreshold to specify a minimum biologically meaningful effect size
+  res.unShrunk <- results(ddsDESeq, name=coefList[2], lfcThreshold=1)
+  
+  # If we just use results() and plotMA() many large LFC which are not
+  # signifigant these obtain a large LFC becuause of imprecises log counts
+  #
+  # use lfcShrink() to shrink log fold changes association with condition:
+  # Shrinkage of effect size (LFC estimates) is useful for visualization and
+  # ranking of genes. we can use lfcThreshold to specify a minimum biologically
+  # meaningful effect size
+  
+  # type  argument "apeglm" is the adaptive Student's t prior shrinkage
+  # estimator from the 'apeglm' package; "ashr" is the adaptive shrinkage
+  # estimator from the 'ashr' package, using a fitted mixture of normals prior -
+  # see the Stephens (2016) reference below for citation; "normal" is the 2014
+  # DESeq2 shrinkage estimator using a Normal prior;
+  
+  # https://rdrr.io/bioc/DESeq2/man/lfcShrink.html
+  res.lfcShrink <- lfcShrink(ddsDESeq, coef=coefList[2], type="apeglm", lfcThreshold=1)
+
+  retList = list(coefList, res.unShrunk, res.lfcShrink)
+  names( retList ) <- c("coefList", "unShrunkResults", "lfcShrinkResults")
+  return( retList )
+}
+
+########################################################################
 saveNormalizedDF <- function(dsCountsDF, parameters) {
   # broke this out to make debugging easier
   
@@ -333,8 +386,9 @@ saveNormalizedDF <- function(dsCountsDF, parameters) {
   
   mapToIdName <- parameters$mapToIdName
   
-  stop("AEDWIP TODO paramterize out file name it is hard code")
-  csvOutFileName <- paste0("pancreas.plasma.ev.long.RNA.normalized.deseq.", 
+  fileName = parameters$normalizedFileName
+  csvOutFileName <- paste0(fileName,
+                            ".", 
                            mapToIdName, 
                            ".counts.csv")   
   
@@ -346,4 +400,62 @@ saveNormalizedDF <- function(dsCountsDF, parameters) {
   
   # write_csv does not write row names
   write.csv(dsCountsDF, csvFilePath)
+}
+
+########################################################################
+saveResults <- function(results, nameAEDWIP, parameters) {
+  # TODO documentation
+  # arguments
+  #   results: 
+  #           an object of type DESeqDataSet() returned by calling
+  #           DESeq, nbinomWaldTest, or nbinomLRT
+  #
+  #   designString:
+  #           example: coefList[2]
+  #               
+  
+  # cat(paste( "\n AEDWIP coefList ", coefList) )
+  # cat(paste( "\n AEDWIP coefList[2] ", coefList[2]) )
+  # 
+  # coFileName = paste0("DESeq.ctrl.", coefList[2], ".lcfShrink.meta.txt")
+  # coFilePath <- file.path( outputRoot, coFileName)
+  # cat(sprintf("save to:\n%s\n",csvFilePath))
+  # 
+  # skdflksd
+  
+  tx2MappingFile <- parameters$tx2MappingFile
+  outputDir <- paste0('normalizedCounts.', tx2MappingFile)
+  outputRoot <- parameters$outputRoot
+  outputRoot <- file.path(outputRoot, outputDir)
+  dir.create(outputRoot, recursive=TRUE, showWarnings = FALSE)
+  
+  mapToIdName <- parameters$mapToIdName
+  
+  fileName = parameters$normalizedFileName
+  csvOutFileName <- paste0(fileName,
+                            ".", 
+                           mapToIdName, 
+                           ".",
+                           nameAEDWIP, 
+                           ".csv")   
+  
+  csvFilePath <- file.path( outputRoot, csvOutFileName)
+  write.csv( results, file=csvFilePath )
+  cat( sprintf("save to:\n%s\n",csvFilePath) )
+  
+  #
+  # capture meta data write.csv() only contains a single header column name row.
+  # we use capture.output to capture some additional meta data like what the
+  # model was
+  # https://www.gastonsanchez.com/visually-enforced/how-to/2014/12/21/capturing-R-printed-output/
+  # 
+  csvMetaOutFileName <- paste0(fileName,
+                           ".", 
+                           mapToIdName, 
+                           ".",
+                           nameAEDWIP, 
+                           ".meta.csv")   
+  csvMetaFilePath <- file.path( outputRoot, csvMetaOutFileName)
+  capture.output(results, file=csvMetaFilePath)
+  cat( sprintf("save to:\n%s\n",csvMetaFilePath) )
 }

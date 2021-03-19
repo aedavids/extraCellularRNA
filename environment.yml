@@ -1,6 +1,7 @@
 name: extraCellularRNA
 channels:
   - conda-forge
+  - bioconda
   - defaults
 dependencies:
   - numpy
@@ -14,4 +15,5 @@ dependencies:
   - fastqc
   - salmon
   - scikit-learn
+  - gsutil
 prefix: /public/home/aedavids/miniconda3/envs/extraCellularRNA

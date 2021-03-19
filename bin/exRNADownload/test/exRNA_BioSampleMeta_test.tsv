@@ -1,0 +1,81 @@
+##########################################################################################################
+##### ERC Consortium Data Access Policy #################
+##########################################################################################################
+# By downloading datasets from the exRNA Atlas, you agree to this data access policy:
+# Common Fund exRNA Communication Consortium (ERCC) Data Sharing and Access Policy
+#
+# Revised December, 2015
+#
+# The ERCC. The ERCC is a community resource project designed to catalyze exRNA research activities in the scientific community. Thus, data are shared with the scientific community PRIOR to publication. In pre-publication data sharing, the desire to share data widely with the scientific community must be balanced with the desire for the data generators to have a protected period of time to analyze and publish the data they have produced.
+#
+# ERCC Data Sharing Policy. The following policy has been developed to address this balance. By accessing pre-publication ERCC data, users agree to adhere to these policies and to follow appropriate scientific etiquette regarding collaboration, publication, and authorship.
+#
+# The entity responsible for ERCC data deposition is the ERCC Data Management and Resource Repository (DMRR). All data are date stamped by the DMRR upon receipt from the data producers. The DMRR processes all ERCC data through consortium-approved analysis pipelines to ensure that the data are processed in a uniform fashion. 
+# ERCC Pre-publication Data Sharing.Users of the pre-publication ERCC data agree to a protected period (embargo) of 12 months AFTER the DMRR date stamp.
+# By requesting and accepting any released ERCC dataset, the user:
+#
+# - Agrees to comply with this pre-publication data sharing policy
+# - May access and analyze ERCC data
+# - May NOT submit any analyses or conclusions for publication or scientific meeting presentation until the 12 month embargo period for that dataset has ended, or the data generator has published a manuscript on the data, whichever comes first
+# - Takes full responsibility for adhering to a 12 month embargo period and is responsible for being aware of the publication status of the data they use 
+# - Agrees to cite ERCC data appropriately in meeting presentations and publications
+#
+# Researchers wishing to publish on datasets prior to the expiration of the embargo should discuss their plans with the data generator(s) and must obtain their consent prior to using the unpublished data in their individual publications or grant submissions.
+#
+# Following expiration of the embargo period, any investigator may submit manuscripts or make presentations without restriction, including integrated analyses using multiple unrestricted datasets.
+#
+# Proper Citation of the Datasets Used. Researchers who use ERCC datasets in oral presentations or publications are expected to cite the Consortium in all of the following ways:
+#
+# - Cite the ERCC overview publication [The NIH Extracellular RNA Communication Consortium. J Extracell Vesicles. 2015 Aug 28;4:27493. doi: 10.3402/jev.v4.27493. eCollection 2015. (PMID: 26320938)
+# - Reference the www.exrna.org website and/or GEO accession numbers of the datasets
+# - Acknowledge the NIH Common Fund, ERCC and the ERCC data producer that generated the dataset(s)
+#
+# Data Quality Metrics. The consortium is still in the process of developing consensus data quality metrics for different assay types so that data users will have a sense of the relative quality of a given data set. We encourage the scientific community to use these pre-publication datasets, however users should be aware that final determinations concerning the quality of a given dataset might not become clear until the consortium performs an integrative analysis of all the data produced by the ERCC.
+#
+# Unrestricted-Access and Controlled-Access Datasets. The ERCC will generate both unrestricted-access (e.g. GEO) and controlled-access datasets (e.g. dbGaP). Currently only unrestricted-access datasets are available. Once controlled-access ERCC datasets become available, we will update this link and describe in more detail how they can be accessed through dbGaP (http://www.ncbi.nlm.nih.gov/gap).
+#
+# Questions? Please contact William Thistlethwaite (thistlew@bcm.edu)
+#
+# The full data deposition, sharing, and publication policy is available at http://exrna.org/resources/data/data-access-policy.
+#
+##########################################################################################################
+#### INSTRUCTIONS ON HOW TO DOWNLOAD DATA AND METADATA ###########
+##########################################################################################################
+# This tab-delimited file contains a list of URLs for batch downloading the selected files.
+# The first column in this file contains the name of the file and the second column contains the URL to download the file.
+# There are (at least) 2 ways to download these files:
+#
+# 1. You can copy and paste each URL in your browser and hit Enter to download each file in this list.
+# 2. If you want to download the files in bulk, you can use a command line program to download these files.
+# For example, you could do something like this with wget (tested on Linux):
+# sed '/#/d' exRNA_Atlas_Biosample_Metadata_Downloads_Thu-Jan-07-2021-10_58_50-GMT-0800-_Pacific-Standard-Time_.tsv | cut -f 2 | tr ',' '\n' | xargs wget
+# If you wanted to use curl instead, you could do (tested on Linux):
+# sed '/#/d' exRNA_Atlas_Biosample_Metadata_Downloads_Thu-Jan-07-2021-10_58_50-GMT-0800-_Pacific-Standard-Time_.tsv | cut -f 2 | tr ',' '\n' | xargs -n 1 curl -O
+#
+# Please refer to this "Download Help": http://genboree.org/theCommons/projects/exrna-mads/wiki/Downloading_Data_and_Metadata_from_the_exRNA_Atlas for more details.
+##########################################################################################################
+#### IMPORTANT NOTE ON PROTECTED SAMPLES ###########
+##########################################################################################################
+# If you selected any protected samples (for which the associated study is in a controlled access database like dbGaP or will be in the future),
+# you may not see the associated downloads for those samples below.
+# Any potentially identifying files (raw FASTQ files or full alignments) fall into this category of protected downloads.
+# If data from the associated study has already been deposited into a controlled access database, you can go back to the Atlas grid results page
+# and click the Links to External Databases icon in the External References column for a given sample to view the study ID(s) associated with that sample.
+# You can then visit the controlled access database website(s) to request access.
+##########################################################################################################
+#### IMPORTANT NOTE ON RNA-SEQ VERSUS QPCR PROFILES ###########
+##########################################################################################################
+# We support both RNA-seq and qPCR profiles in the Atlas. However, each sample profile is only associated with a single assay (not both).
+# If you selected a combination of RNA-seq and qPCR profiles, your list of downloads will only contain downloads for those assays which are relevant to the type of download.
+# For example, if you choose to download qPCR Target Files, your list of downloads will only include those samples which were profiled using qPCR.
+# As another example, if you choose to download raw data (FASTQ) files, your list of downloads will only include those samples which were profiled using RNA-seq.
+# Finally, as a third example, if you choose to download biosample metadata files, your list of downloads will include both RNA-seq and qPCR profiles,
+# since biosample metadata exists for both assays.
+##########################################################################################################
+#### LIST OF DOWNLOADS ###########
+##########################################################################################################
+#DOWNLOAD NAME	DOWNLOAD URL	BIOSAMPLE NAME	CONDITION	BIOFLUID	RNA SOURCE	RNA ISOLATION KIT	ANATOMICAL LOCATION	CELL CULTURE SOURCE	PROFILING ASSAY	SPECIES	MEETS ERCC QC STANDARDS?	TRANSCRIPTOME READS	REFERENCE GENOME READS	TRANSCRIPTOME GENOME RATIO	BIOSAMPLE ACCESSION ID	RELATED DATASET ACCESSION ID	FASTQ IDENTIFIER
+EXR-TPATE1NEBLIBN31-BS.metadata.tsv	ftp://ftp.genboree.org/exRNA-atlas/grp/Extracellular%20RNA%20Atlas/db/exRNA%20Repository%20-%20hg19/file/exRNA-atlas/exceRptPipeline_v4.6.2/TPATE1-human-plasma-healthyVsCancer-2016-10-17/metadataFiles/EXR-TPATE1NEBLIBN31-BS.metadata.tsv	Sample_N31	Healthy Control	Plasma	total cell-free biofluid RNA	miRNeasy (Qiagen)	Entire cardiovascular system	Not Applicable	small RNA-Seq	Human	PASS	7015939	7121089	0.985234	EXR-TPATE1NEBLIBN31-BS	EXR-TPATE1OqELFf-AN	sample_Sample_N31_fastq
+EXR-TPATE1NEBLIBN36-BS.metadata.tsv	ftp://ftp.genboree.org/exRNA-atlas/grp/Extracellular%20RNA%20Atlas/db/exRNA%20Repository%20-%20hg19/file/exRNA-atlas/exceRptPipeline_v4.6.2/TPATE1-human-plasma-healthyVsCancer-2016-10-17/metadataFiles/EXR-TPATE1NEBLIBN36-BS.metadata.tsv	Sample_N36	Healthy Control	Plasma	total cell-free biofluid RNA	miRNeasy (Qiagen)	Entire cardiovascular system	Not Applicable	small RNA-Seq	Human	PASS	6463789	6598510	0.979583	EXR-TPATE1NEBLIBN36-BS	EXR-TPATE1OqELFf-AN	sample_Sample_N36_fastq
+EXR-TPATE1NEBLIB4S7-BS.metadata.tsv	ftp://ftp.genboree.org/exRNA-atlas/grp/Extracellular%20RNA%20Atlas/db/exRNA%20Repository%20-%20hg19/file/exRNA-atlas/exceRptPipeline_v4.6.2/TPATE1-human-plasma-healthyVsCancer-2016-10-17/metadataFiles/EXR-TPATE1NEBLIB4S7-BS.metadata.tsv	Sample_4S7	Colon Carcinoma	Plasma	total cell-free biofluid RNA	miRNeasy (Qiagen)	Entire cardiovascular system	Not Applicable	small RNA-Seq	Human	PASS	6763598	6906819	0.979264	EXR-TPATE1NEBLIB4S7-BS	EXR-TPATE1OqELFf-AN	sample_Sample_4S7_fastq
+EXR-TPATE1NEBLIBN45-BS.metadata.tsv	ftp://ftp.genboree.org/exRNA-atlas/grp/Extracellular%20RNA%20Atlas/db/exRNA%20Repository%20-%20hg19/file/exRNA-atlas/exceRptPipeline_v4.6.2/TPATE1-human-plasma-healthyVsCancer-2016-10-17/metadataFiles/EXR-TPATE1NEBLIBN45-BS.metadata.tsv	Sample_N45	Healthy Control	Plasma	total cell-free biofluid RNA	miRNeasy (Qiagen)	Entire cardiovascular system	Not Applicable	small RNA-Seq	Human	PASS	8237116	8368018	0.984357	EXR-TPATE1NEBLIBN45-BS	EXR-TPATE1OqELFf-AN	sample_Sample_N45_fastq
