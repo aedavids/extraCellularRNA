@@ -14,7 +14,7 @@ workflow salmon_quant {
     }
 
     String sampleId
-    File refIndex
+    File refIndexTarGz
     File leftReads
     File rightReads
     String outDir
@@ -33,7 +33,7 @@ workflow salmon_quant {
     call salmon_paired_reads {
         input:
             sampleId=sampleId,
-            refIndex=refIndex,
+            refIndexTarGz=refIndexTarGz,
             leftReads=leftReads,
             rightReads=rightReads,
             outDir=outDir,
@@ -42,13 +42,12 @@ workflow salmon_quant {
             runtime_cpu=runtime_cpu,
             memoryGb=memoryGb,
             diskSpaceGb=diskSpaceGb
-            
     }
 }
 
 task salmon_paired_reads {
     String sampleId
-    File refIndex
+    File refIndexTarGz
     File leftReads
     File rightReads
     String outDir
@@ -62,6 +61,13 @@ task salmon_paired_reads {
     command {
 
         mkdir -p ${outDir}
+
+        # by convention foo.tar would have a root dir name foo. how ever we can not
+        # guarantee conventions was followed
+        # use sed remove the last slash
+        refIndexDir=`tar -tzf ${refIndexTarGz} | \
+                       head -n 1 | \
+                       sed -e 's/\/$//`
         
         # https://salmon.readthedocs.io/en/latest/salmon.html#quantifying-in-mapping-based-mode
         # --libType A : automatically infer the library type
@@ -74,7 +80,7 @@ task salmon_paired_reads {
         # AEDWIP  --recoverOrphans : only be used in conjunction with selective alignment)
 
         salmon quant \
-               -i "${refIndex}" \
+               -i "${refIndexDir}" \
                --libType A \
                -1 "${leftReads}" \
                -2 "${rightReads}" \
