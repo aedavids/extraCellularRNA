@@ -26,7 +26,7 @@ task bashTask {
     # see bash man page "SHELL BUILTIN COMMANDS" for details
     # set -euxo pipefail
     # set -e Exit immediately if a pipeline see shell builtin command it is more complicated
-    # set -u Treat unset variables and parameters as  an  error
+    # aedwip_set -u Treat unset variables and parameters as  an  error
 # set -x turn debug trace on. output goes to stderr, normal output goes to stdout; merge these
     # set -o print value of current options
 
@@ -54,6 +54,11 @@ task bashTask {
     # we can not expand varibles if they are not in the input list
 
     ls .
+
+    # how to local variables work?
+    # you can not use \$\{var\} you must use dollar var
+    count=`ls . | wc -l`
+    echo "the number of files in . is $count"
 
   }
   output {
