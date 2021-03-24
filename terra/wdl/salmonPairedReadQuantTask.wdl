@@ -24,9 +24,9 @@ workflow salmon_quant {
     Int memoryGb = 8
     Int diskSpaceGb = 40
 
-    parameter_meta {
-        library: 'Salmon library type: https://salmon.readthedocs.io/en/latest/salmon.html#what-s-this-libtype; by default, automatically infer'
-    }
+    #parameter_meta {
+    #    library: 'Salmon library type: https://salmon.readthedocs.io/en/latest/salmon.html#what-s-this-libtype; by default, automatically infer'
+    #}
 
     # scatter TODO I think terra will automatically spin up a docker for each file
     # so no need to run scatter
@@ -80,7 +80,7 @@ task salmon_paired_reads {
         # AEDWIP  --recoverOrphans : only be used in conjunction with selective alignment)
 
         salmon quant \
-               -i "${refIndexDir}" \
+               -i $refIndexDir \
                --libType A \
                -1 "${leftReads}" \
                -2 "${rightReads}" \
