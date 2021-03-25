@@ -3,6 +3,20 @@
 # java -jar ~/extraCellularRNA/java/bin/womtool-58.jar inputs testBashTask.wdl > testBashTask.wdl.input.json
 # java -jar ~/extraCellularRNA/java/bin/cromwell-58.jar run --inputs testBashTask.wdl.input.json testBashTask.wdl
 
+# where to find output
+# cromwell-executions/testBashTask/61d8ad79-f976-42b4-8a0b-cf2f12594a0f/call-bashTask/execution/stdout
+# general form cromwell-execution/workflow name/GUID/call-taskName/execution/
+# useful files
+#   stdout
+#   stderr
+#   script
+#      cromwell generates a bash script with replacing task input variables with there values
+#      useful for debugging
+#
+#
+# the --input file can be found at
+# ls cromwell-executions/testBashTask/e23b4923-cc77-4878-ab0c-0f148d26bcf3/call-bashTask/inputs/-1375731305/testBashTask.wdl.input.json 
+
 
 workflow testBashTask {
     String name
@@ -40,7 +54,7 @@ task bashTask {
     exec 2>&1
 
     set -x
-    echo 'hello ${name}!'
+    echo 'argument was specified in task input: hello ${name}!'
 
     pwd
 
@@ -56,7 +70,7 @@ task bashTask {
     ls .
 
     # how to local variables work?
-    # you can not use \$\{var\} you must use dollar var
+    # syntax for local variable is different that syntx for task input variables
     count=`ls . | wc -l`
     echo "the number of files in . is $count"
 
