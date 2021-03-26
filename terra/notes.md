@@ -47,3 +47,50 @@ Operation completed over 1 objects/16.0 GiB.
 (extraCellularRNA) $ 
 
 ```
+
+
+# testing wdl
+
+Notes:
+* shell script variable. use '${myVar}' for all input variables. Use $myVar for local variables. Note cromwell will try and expand ${myVar} even if it is in a comment
+
+* when you run cromwell make sure you set the user id else you will not be able to remove files created in your command task. The owner at least on mustard will be nfsnobody
+
+
+## Test a WDL file from the command line
+
+1. validating a wdl file
+```
+java -jar ../../java/bin/womtool-58.jar validate testBashTask.wdl
+```
+
+2. creating a json input template
+Things to notice, Files must exist, even if you do not use them. ie just touch them
+
+```
+(base) [aedavids@mustard wdl]$ java -jar ../../java/bin/womtool-58.jar inputs salmonPairedRe\
+adQuantTask.wdl
+{
+  "salmon_quant.memoryGb": "Int (optional, default = 8)",
+  "salmon_quant.dockerImg": "String (optional, default = \"quay.io/biocontainers/salmon:0.14\
+.1--h86b0361_1\")",
+  "salmon_quant.refIndexTarGz": "File",
+  "salmon_quant.sampleId": "String",
+  "salmon_quant.diskSpaceGb": "Int (optional, default = 40)",
+  "salmon_quant.outDir": "String",
+  "salmon_quant.rightReads": "File",
+  "salmon_quant.runtime_cpu": "Int (optional, default = 8)",
+  "salmon_quant.leftReads": "File"
+}
+```
+
+3. running cromwell
+Note $EUID is your user id. You can also get this by running `id -u` or just `id`
+
+### use extracellularRNA/bin/runCromwell.sh
+```
+(base) [aedavids@mustard wdl]$ java -Dbackend.providers.Local.config.runtime-attributes='Str\
+ing? docker String? docker_user="$EUID"'  -jar ../../java/bin/cromwell-58.jar run --inputs s\
+almonPairedReadQuantTask.wdl.input.json salmonPairedReadQuantTask.wdl
+
+```

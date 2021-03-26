@@ -78,7 +78,7 @@ task salmon_paired_reads {
 
         set -x
 
-        #mkdir -p ${outDir} mkdir create a file that i can not remove when testing using cromwell
+        aedwpi mkdir -p ${outDir} mkdir create a file that i can not remove when testing using cromwell
 
         # by convention foo.tar would have a root dir name foo. how ever we can not
         # guarantee conventions was followed
@@ -88,6 +88,9 @@ task salmon_paired_reads {
         tar -tf -  | \
         head -n 1 | \
         sed -e 's/\/$//'`
+
+        # extract teh actual tar file
+        zcat ${refIndexTarGz} | tar -xf -
         
         # https://salmon.readthedocs.io/en/latest/salmon.html#quantifying-in-mapping-based-mode
         # --libType A : automatically infer the library type
