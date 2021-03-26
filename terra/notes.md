@@ -85,12 +85,10 @@ adQuantTask.wdl
 ```
 
 3. running cromwell
-Note $EUID is your user id. You can also get this by running `id -u` or just `id`
+Use runCromwell.sh it sets the user id so that you can delete an files created by the task command bash script. $EUID is your user id. You can also get this by running `id -u` or just `id`
 
-### use extracellularRNA/bin/runCromwell.sh
 ```
-(base) [aedavids@mustard wdl]$ java -Dbackend.providers.Local.config.runtime-attributes='Str\
-ing? docker String? docker_user="$EUID"'  -jar ../../java/bin/cromwell-58.jar run --inputs s\
-almonPairedReadQuantTask.wdl.input.json salmonPairedReadQuantTask.wdl
-
+(base) [aedavids@mustard wdl]$ ~/extraCellularRNA/bin/runCromwell.sh -jar ../../java/bin/cromwell-58.jar run --inputs salmonPairedReadQuantTask.wdl.input.json salmonPairedReadQuantTask.wdl
++ java '-Dbackend.providers.Local.config.runtime-attributes=String? docker String? docker_user="$EUID"' -jar ../../java/bin/cromwell-58.jar run --inputs salmonPairedReadQuantTask.wdl.input.json salmonPairedReadQuantTask.wdl
+[2021-03-26 08:42:04,28] [info] Running with database db.url = jdbc:hsqldb:mem:9e9bff35-6e77-4505-b836-7e4a906e847f;shutdown=false;hsqldb.tx=mvcc
 ```
