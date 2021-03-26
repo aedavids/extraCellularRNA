@@ -17,7 +17,7 @@ workflow salmon_quant {
     File refIndexTarGz
     File leftReads
     File rightReads
-    String outDir
+    String outDir = "salmon.out"
 
     String dockerImg = 'quay.io/biocontainers/salmon:0.14.1--h86b0361_1'
     #String dockerImg =  'ubuntu:latest'
@@ -78,8 +78,10 @@ task salmon_paired_reads {
 
         set -x
 
-        aedwpi mkdir -p ${outDir} mkdir create a file that i can not remove when testing using cromwell
 
+        # what version of link are we using
+        cat /etc/os-release
+        
         # by convention foo.tar would have a root dir name foo. how ever we can not
         # guarantee conventions was followed
         # use sed remove the last slash
@@ -89,8 +91,17 @@ task salmon_paired_reads {
         head -n 1 | \
         sed -e 's/\/$//'`
 
-        # extract teh actual tar file
+        # extract the actual tar file
         zcat ${refIndexTarGz} | tar -xf -
+
+        # make sure the extracted tar file and anything else cromwell copied
+        # into our local bucket will always be removed
+        #unlink ${refIndexTarGz}
+        #tmpFiles=`find $refIndexDir`
+        #for i in $tmpFiles;
+        #do
+        #        unlink $i
+        #done
         
         # https://salmon.readthedocs.io/en/latest/salmon.html#quantifying-in-mapping-based-mode
         # --libType A : automatically infer the library type
@@ -101,7 +112,7 @@ task salmon_paired_reads {
         #          starting with certain nucleotide motifs.
 
         # AEDWIP  --recoverOrphans : only be used in conjunction with selective alignment)
-
+        mkdir -p ${outDir}
         echo AEDWIP salmon quant \
         -i $refIndexDir \
         --libType A \

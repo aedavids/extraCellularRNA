@@ -1,12 +1,12 @@
 {
   "salmon_quant.memoryGb": "4",
   "salmon_quant.dockerImg": "quay.io/biocontainers/salmon:0.14.1--h86b0361_1",
-  "salmon_quant.refIndexTarGz": "rootTarDoesNotmatch.tar.gz",
+  "salmon_quant.refIndexTarGz": "/scratch/aedavids/sel.align.gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx.tar.gz",
   "salmon_quant.sampleId": "AEDWIP_SampleID",
   "salmon_quant.diskSpaceGb": "30",
-  "salmon_quant.outDir": "AEDWIP_OUT",
-  "salmon_quant.rightReads": "AEDWIP_right",
+  "salmon_quant.outDir": "salmon.out",
+  "salmon_quant.rightReads": "/scratch/aedavids/SRR10080540_pass_1.fastq.gz",
   "salmon_quant.runtime_cpu": "4",
-  "salmon_quant.leftReads": "AEDWIP_left"
+  "salmon_quant.leftReads": "/scratch/aedavids/SRR10080540_pass_2.fastq.gz"
 }
 
