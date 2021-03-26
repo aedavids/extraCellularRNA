@@ -86,13 +86,20 @@ task salmon_paired_reads {
         # guarantee conventions was followed
         # use sed remove the last slash
         # the not all docker images have GNU tar. works is use zcat
-        refIndexDir=`zcat ${refIndexTarGz} | \
+        time refIndexDir=`zcat ${refIndexTarGz} | \
         tar -tf -  | \
         head -n 1 | \
         sed -e 's/\/$//'`
 
+        # not all distributions support -z
+        # refIndexDir=`tar -tf ${refIndexTarGz} | \
+        # head -n 1 | \
+        # sed -e 's/\/$//' `
+
         # extract the actual tar file
-        zcat ${refIndexTarGz} | tar -xf -
+        time zcat ${refIndexTarGz} | tar -xf -
+        # not all distributions support -z
+        # tar -xzf ${refIndexTarGz}
 
         # make sure the extracted tar file and anything else cromwell copied
         # into our local bucket will always be removed
@@ -113,18 +120,18 @@ task salmon_paired_reads {
 
         # AEDWIP  --recoverOrphans : only be used in conjunction with selective alignment)
         mkdir -p ${outDir}
-        echo AEDWIP salmon quant \
-        -i $refIndexDir \
-        --libType A \
-        -1 "${leftReads}" \
-        -2 "${rightReads}" \
-        -p 8 \
-        --recoverOrphans \
-        --validateMappings \
-        --gcBias \
-        --seqBias \
-        --rangeFactorizationBins 4 \
-        --output ${outDir}
+        time salmon quant \
+            -i $refIndexDir \
+            --libType A \
+            -1 "${leftReads}" \
+            -2 "${rightReads}" \
+            -p 8 \
+            --recoverOrphans \
+            --validateMappings \
+            --gcBias \
+            --seqBias \
+            --rangeFactorizationBins 4 \
+            --output ${outDir}
 
         # should we gzip quant and tar aux_info? cmd_info.json can be helpful
     }
