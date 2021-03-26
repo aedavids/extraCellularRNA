@@ -19,7 +19,7 @@ workflow salmon_quant {
     File rightReads
     String outDir = "salmon.out"
 
-    String dockerImg = 'quay.io/biocontainers/salmon:0.14.1--h86b0361_1'
+    String dockerImg = 'quay.io/biocontainers/salmon:1.4.0--hf69c8f4_0'
     #String dockerImg =  'ubuntu:latest'
     Int runtime_cpu = 8
     Int memoryGb = 8
@@ -123,8 +123,8 @@ task salmon_paired_reads {
         time salmon quant \
             -i $refIndexDir \
             --libType A \
-            -1 "${leftReads}" \
-            -2 "${rightReads}" \
+            -1 "${rightReads}" \
+            -2 "${leftReads}" \
             -p 8 \
             --recoverOrphans \
             --validateMappings \
