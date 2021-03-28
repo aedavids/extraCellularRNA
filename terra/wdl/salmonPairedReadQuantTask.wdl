@@ -1,7 +1,5 @@
 # ref:
 # https://github.com/openwdl/wdl/blob/main/versions/1.0/SPEC.md
-# https://aedavids@github.com/aedavids/extraCellularRNA.git
-# bin/runSalmon.pancreas.plasma.ev.long.RNA.sh
 # https://portal.firecloud.org/?return=terra#methods/mxhe/salmon_quant_array/9
 
 # using womtool to validate
@@ -82,34 +80,23 @@ task salmon_paired_reads {
         # what version of link are we using
         cat /etc/os-release
         
-        # by convention foo.tar would have a root dir name foo. how ever we can not
-        # guarantee conventions was followed
-        # use sed remove the last slash
-        # the not all docker images have GNU tar. works is use zcat
-        time refIndexDir=`zcat ${refIndexTarGz} | \
-        tar -tf -  | \
-        head -n 1 | \
-        sed -e 's/\/$//'`
-
-        # not all distributions support -z
-        # refIndexDir=`tar -tf ${refIndexTarGz} | \
-        # head -n 1 | \
-        # sed -e 's/\/$//' `
-
         # extract the actual tar file
         time zcat ${refIndexTarGz} | tar -xf -
         # not all distributions support -z
         # tar -xzf ${refIndexTarGz}
 
+        refIndexDir=`ls -t | head -n 1 | sed -e 's/\/$//' `
+
         # make sure the extracted tar file and anything else cromwell copied
         # into our local bucket will always be removed
-        #unlink ${refIndexTarGz}
+        # unlink ${refIndexTarGz}
+        # AEDWIP our image does not contain unlink
         #tmpFiles=`find $refIndexDir`
         #for i in $tmpFiles;
         #do
         #        unlink $i
         #done
-        
+
         # https://salmon.readthedocs.io/en/latest/salmon.html#quantifying-in-mapping-based-mode
         # --libType A : automatically infer the library type
         # --gcBias: model will attempt to correct for biases in how likely a
@@ -120,25 +107,40 @@ task salmon_paired_reads {
 
         # AEDWIP  --recoverOrphans : only be used in conjunction with selective alignment)
         mkdir -p ${outDir}
-        time salmon quant \
-            -i $refIndexDir \
-            --libType A \
-            -1 "${rightReads}" \
-            -2 "${leftReads}" \
-            -p 8 \
-            --recoverOrphans \
-            --validateMappings \
-            --gcBias \
-            --seqBias \
-            --rangeFactorizationBins 4 \
-            --output ${outDir}
+        
+        time (
+          salmon quant \
+              -i $refIndexDir \
+              --libType A \
+              -1 "${rightReads}" \
+              -2 "${leftReads}" \
+              -p 8 \
+              --recoverOrphans \
+              --validateMappings \
+              --gcBias \
+              --seqBias \
+              --rangeFactorizationBins 4 \
+              --output ${outDir};
 
+        export salmonRet=$?
+        echo "AEDWIP in time salmonRet=$salmonRetXXXX"
+        )
         # should we gzip quant and tar aux_info? cmd_info.json can be helpful
+        echo "AEDWIP out time salmonRet=$salmonRetXXXX"
+        if [ $salmonRet -eq 0 ]; then
+            gzip -c salmon_quant/quant.genes.sf > ${sampleId}.quant.genes.sf.gz
+            tar -c salmon_quant/aux_info/*.gz > ${sampleId}.aux_info.tar.gz
+        else
+            echo "Salmon ERROR code $salmonRet"
+        fi
+
+        # clean up tmp files
+        rm -rf $refIndexDir
     }
 
     output {
         # File cmd_info_json = '${sampleId}.cmd_info.json'
-        # File quantFile     = '${sampleId}.quant.sf'
+        File quantFile     = '${sampleId}.quant.sf'
 
         #File aux_info     = '${sampleId}.aux_info.tar.gz'
         #File meta_json    = '${sampleId}.meta_info.json'
@@ -147,9 +149,9 @@ task salmon_paired_reads {
     }
 
     runtime {
-        # disks: 'local-disk ${diskSpaceGb} HDD'
-        # cpu: '${runtime_cpu}'
-        # memory: '${memoryGb} GB'
+        disks: 'local-disk ${diskSpaceGb} HDD'
+        cpu: '${runtime_cpu}'
+        memory: '${memoryGb} GB'
         docker: '${dockerImg}'
 
         # https://cloud.google.com/kubernetes-engine/docs/how-to/preemptible-vms
