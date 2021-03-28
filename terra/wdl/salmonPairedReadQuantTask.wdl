@@ -107,57 +107,54 @@ task salmon_paired_reads {
 
         # AEDWIP  --recoverOrphans : only be used in conjunction with selective alignment)
         mkdir -p ${outDir}
-        
-        time (
-          salmon quant \
-              -i $refIndexDir \
-              --libType A \
-              -1 "${rightReads}" \
-              -2 "${leftReads}" \
-              -p 8 \
-              --recoverOrphans \
-              --validateMappings \
-              --gcBias \
-              --seqBias \
-              --rangeFactorizationBins 4 \
-              --output ${outDir};
 
-        export salmonRet=$?
-        echo "AEDWIP in time salmonRet=$salmonRetXXXX"
-        )
-        # should we gzip quant and tar aux_info? cmd_info.json can be helpful
-        echo "AEDWIP out time salmonRet=$salmonRetXXXX"
+        
+        salmon quant \
+          -i $refIndexDir \
+          --libType A \
+          -1 "${rightReads}" \
+          -2 "${leftReads}" \
+          -p 8 \
+          --recoverOrphans \
+          --validateMappings \
+          --gcBias \
+          --seqBias \
+          --rangeFactorizationBins 4 \
+          --output ${outDir}
+
+          salmonRet=$?
+
+        echo "AEDWIP in time salmonRet=$salmonRetXXXX";
+
+         # should we gzip quant and tar aux_info? cmd_info.json can be helpful
+
         if [ $salmonRet -eq 0 ]; then
-            gzip -c salmon_quant/quant.genes.sf > ${sampleId}.quant.genes.sf.gz
-            tar -c salmon_quant/aux_info/*.gz > ${sampleId}.aux_info.tar.gz
+          gzip -c salmon_quant/quant.genes.sf > ${sampleId}.quant.genes.sf.gz;
+          tar -c salmon_quant/aux_info/*.gz > ${sampleId}.aux_info.tar.gz;
         else
-            echo "Salmon ERROR code $salmonRet"
+          echo "Salmon ERROR code $salmonRet";
         fi
 
+        
         # clean up tmp files
         rm -rf $refIndexDir
-    }
+     }
 
-    output {
-        # File cmd_info_json = '${sampleId}.cmd_info.json'
-        File quantFile     = '${sampleId}.quant.sf'
+     output {
+         File quantFile     = '${sampleId}.quant.sf'
+         File aux_info     = '${sampleId}.aux_info.tar.gz'
+     }
 
-        #File aux_info     = '${sampleId}.aux_info.tar.gz'
-        #File meta_json    = '${sampleId}.meta_info.json'
-        #File resource_log = 'resource_usage.log'
-        #File salmon_log   = '${sampleId}.salmon_quant.log'
-    }
+     runtime {
+         disks: 'local-disk ${diskSpaceGb} HDD'
+         cpu: '${runtime_cpu}'
+         memory: '${memoryGb} GB'
+         docker: '${dockerImg}'
 
-    runtime {
-        disks: 'local-disk ${diskSpaceGb} HDD'
-        cpu: '${runtime_cpu}'
-        memory: '${memoryGb} GB'
-        docker: '${dockerImg}'
+         # https://cloud.google.com/kubernetes-engine/docs/how-to/preemptible-vms
+         # instances that last a maximum of 24 hours in general, and provide no availability guarantees.
+         # Preemptible VMs are priced lower than standard Compute Engine
+         # preemptible: '${runtime_preemptible}' 
 
-        # https://cloud.google.com/kubernetes-engine/docs/how-to/preemptible-vms
-        # instances that last a maximum of 24 hours in general, and provide no availability guarantees.
-        # Preemptible VMs are priced lower than standard Compute Engine
-        # preemptible: '${runtime_preemptible}' 
-
-    }
-}
+     }
+ }
