@@ -128,13 +128,13 @@ task salmon_paired_reads {
 
          # should we gzip quant and tar aux_info? cmd_info.json can be helpful
 
-        quantOut=
-        #if [ $salmonRet -eq 0 ]; then
+        
+        if [ $salmonRet -eq 0 ]; then
           gzip -c ${outDir}/quant.sf > ${sampleId}.quant.sf.gz;
           tar -c ${outDir}/aux_info/*.gz > ${sampleId}.aux_info.tar.gz;
-        #else
+        else
           echo "Salmon ERROR code $salmonRet";
-        #fi
+        fi
 
         
         # clean up tmp files
