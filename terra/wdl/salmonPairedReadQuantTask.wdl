@@ -57,7 +57,8 @@ task salmon_paired_reads {
     Int diskSpaceGb
 
     
-    command {
+    command  <<<
+        
         # see bash man page "SHELL BUILTIN COMMANDS" for details
         # set -euxo pipefail
         # set -e Exit immediately if a pipeline see shell builtin command it is more complicated
@@ -85,7 +86,7 @@ task salmon_paired_reads {
         # not all distributions support -z
         # tar -xzf ${refIndexTarGz}
 
-        refIndexDir=`ls -t | head -n 1 | sed -e 's/\/$//' `
+        export refIndexDir=`ls -t | head -n 1 | sed -e 's/\/$//' `
 
         # make sure the extracted tar file and anything else cromwell copied
         # into our local bucket will always be removed
@@ -108,22 +109,31 @@ task salmon_paired_reads {
         # AEDWIP  --recoverOrphans : only be used in conjunction with selective alignment)
         mkdir -p ${outDir}
 
+        # AEDWIP salmon exits with error code 137? the outdir does not exist in execution buck
+        # for a file
+        echo "hello world" > ${outDir}/helloWorld.txt
+
         
-        salmon quant \
-          -i $refIndexDir \
-          --libType A \
-          -1 "${rightReads}" \
-          -2 "${leftReads}" \
-          -p 8 \
-          --recoverOrphans \
-          --validateMappings \
-          --gcBias \
-          --seqBias \
-          --rangeFactorizationBins 4 \
-          --output ${outDir}
+        # grouping command in bash using () cause them to run in a sub shell
+        # using {} cause them to execute in the current shell
+        # https://www.gnu.org/software/bash/manual/html_node/Command-Grouping.html
+        time {
+            salmon quant \
+              -i $refIndexDir \
+              --libType A \
+              -1 "${rightReads}" \
+              -2 "${leftReads}" \
+              -p 8 \
+              --recoverOrphans \
+              --validateMappings \
+              --gcBias \
+              --seqBias \
+              --rangeFactorizationBins 4 \
+              --output ${outDir}
 
-          salmonRet=$?
-
+             salmonRet=$?
+        }
+      
         echo "AEDWIP in time salmonRet=$salmonRetXXXX";
 
          # should we gzip quant and tar aux_info? cmd_info.json can be helpful
@@ -139,11 +149,19 @@ task salmon_paired_reads {
         
         # clean up tmp files
         rm -rf $refIndexDir
-     }
+     >>>
 
      output {
          File quantFile     = '${sampleId}.quant.sf.gz'
          File aux_info     = '${sampleId}.aux_info.tar.gz'
+
+         # we can not return a directory. We have two choices
+         # 1) tar the directory and return the tar as type 'File'
+         # 2) return an array of file names ie Array[File]
+         # glob does not return files in sub directories
+         # https://github.com/openwdl/wdl/blob/main/versions/1.0/SPEC.md#globs
+         #   Array[File] output_bams = glob("*.bam")
+         #Array[File] salmon_aedwip = glob("${outDir}/*")
      }
 
      runtime {
