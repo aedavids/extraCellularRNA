@@ -20,8 +20,8 @@ workflow salmon_quant {
     String dockerImg = 'quay.io/biocontainers/salmon:1.4.0--hf69c8f4_0'
     #String dockerImg =  'ubuntu:latest'
     Int runtime_cpu = 8
-    Int memoryGb = 8
-    Int diskSpaceGb = 40
+    Int memoryGb = 64
+    Int diskSpaceGb = 80
 
     #parameter_meta {
         #    library: 'Salmon library type: https://salmon.readthedocs.io/en/latest/salmon.html#what-s-this-libtype; by default, automatically infer'
@@ -75,11 +75,18 @@ task salmon_paired_reads {
         # out goes (the file).
         exec 2>&1
 
-        set -x
+        # put copy of runtime parameters in output. Makes debug easier
+        echo "runtime parameters"
+        echo "memoryGb   : ${memoryGb}"
+        echo "runtime_cpu: ${runtime_cpu}"
+        echo "diskSpaceGb: ${diskSpaceGb}"
+        echo "dockerImg  : ${dockerImg}"
 
-        # AEDWIP salmon runs out of memory. Terra seems to ignore runtime configuration
-        # debug
-        echo "AEDWIP salmon runs out of memory runtime parameter memoryGb: ${memoryGb}"
+        set -x # turn shell trace debugging on 
+
+        # how much disk has been used
+        du -sh .
+        
         # print docker memory stats
         cat /sys/fs/cgroup/memory/memory.stat
 
@@ -95,16 +102,6 @@ task salmon_paired_reads {
 
         ls -l $refIndexDir
 
-        # make sure the extracted tar file and anything else cromwell copied
-        # into our local bucket will always be removed
-        # unlink ${refIndexTarGz}
-        # AEDWIP our image does not contain unlink
-        #tmpFiles=`find $refIndexDir`
-        #for i in $tmpFiles;
-        #do
-        #        unlink $i
-        #done
-
         # https://salmon.readthedocs.io/en/latest/salmon.html#quantifying-in-mapping-based-mode
         # --libType A : automatically infer the library type
         # --gcBias: model will attempt to correct for biases in how likely a
@@ -119,10 +116,12 @@ task salmon_paired_reads {
         # grouping command in bash using () cause them to run in a sub shell
         # using {} cause them to execute in the current shell
         # https://www.gnu.org/software/bash/manual/html_node/Command-Grouping.html
-        #time {
+        # man time: can configured to display memory metric
+        #time - {
 
-            # AEDWIP debug terra runtime parameters normally we would not use sh
-#            sh -c '\
+            # AEDWIP debug terra runtime parameters run salmon in background so we can
+            # collect system performance metrics
+            #sh -c '\
             salmon quant \
               -i $refIndexDir \
               --libType A \
@@ -134,18 +133,21 @@ task salmon_paired_reads {
               --gcBias \
               --seqBias \
               --rangeFactorizationBins 4 \
-            --output ${outDir} 
+            --output ${outDir} #\
             #' &
 
              salmonRet=$?
         #}
 
         # AEDWIP check runtime memory usage
+        # seems to crash after about 45 min
         # for i in {1..50};
         # do
         #     echo "debug memory stats i:$i"
+        #     date
+        #     du -sh .
         #     cat /sys/fs/cgroup/memory/memory.stat
-        #     sleep 60
+        #     sleep 300
         # done
         
         echo "AEDWIP in time salmonRet=$salmonRetXXXX";
@@ -158,15 +160,14 @@ task salmon_paired_reads {
           echo "Salmon ERROR code $salmonRet";
         fi
 
+        # how much disk has been used
+        du -sh .        
         
         # clean up tmp files
         #rm -rf $refIndexDir
      >>>
 
      output {
-         File quantFile     = '${sampleId}.quant.sf.gz'
-         File aux_info     = '${sampleId}.aux_info.tar.gz'
-
          # we can not return a directory. We have two choices
          # 1) tar the directory and return the tar as type 'File'
          # 2) return an array of file names ie Array[File]
@@ -174,6 +175,9 @@ task salmon_paired_reads {
          # https://github.com/openwdl/wdl/blob/main/versions/1.0/SPEC.md#globs
          #   Array[File] output_bams = glob("*.bam")
          #Array[File] salmon_aedwip = glob("${outDir}/*")
+         
+         File quantFile     = '${sampleId}.quant.sf.gz'
+         File aux_info     = '${sampleId}.aux_info.tar.gz'
      }
 
      runtime {
