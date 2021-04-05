@@ -77,6 +77,11 @@ task salmon_paired_reads {
 
         set -x
 
+        # AEDWIP salmon runs out of memory. Terra seems to ignore runtime configuration
+        # debug
+        echo "AEDWIP salmon runs out of memory runtime parameter memoryGb: ${memoryGb}"
+        # print docker memory stats
+        cat /sys/fs/cgroup/memory/memory.stat
 
         # what version of link are we using
         cat /etc/os-release
@@ -109,15 +114,16 @@ task salmon_paired_reads {
         # AEDWIP  --recoverOrphans : only be used in conjunction with selective alignment)
         mkdir -p ${outDir}
 
-        # AEDWIP salmon exits with error code 137? the outdir does not exist in execution buck
-        # for a file
         echo "hello world" > ${outDir}/helloWorld.txt
-
+        
         
         # grouping command in bash using () cause them to run in a sub shell
         # using {} cause them to execute in the current shell
         # https://www.gnu.org/software/bash/manual/html_node/Command-Grouping.html
-        time {
+        #time {
+
+            # AEDWIP debug terra runtime parameters normally we would not use sh
+            sh -c '\
             salmon quant \
               -i $refIndexDir \
               --libType A \
@@ -129,11 +135,20 @@ task salmon_paired_reads {
               --gcBias \
               --seqBias \
               --rangeFactorizationBins 4 \
-              --output ${outDir}
+            --output ${outDir} \
+            ' &
 
-             salmonRet=$?
-        }
-      
+             #salmonRet=$?
+        #}
+
+        # AEDWIP check runtime memory usage
+        for i in {1..50};
+        do
+            echo "debug memory stats i:$i"
+            cat /sys/fs/cgroup/memory/memory.stat
+            sleep 60
+        done
+        
         echo "AEDWIP in time salmonRet=$salmonRetXXXX";
 
          # should we gzip quant and tar aux_info? cmd_info.json can be helpful
