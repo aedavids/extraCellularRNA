@@ -17,11 +17,15 @@ workflow salmon_quant {
     File rightReads
     String outDir = "salmon.out"
 
+    # https://cromwell.readthedocs.io/en/stable/RuntimeAttributes/
     String dockerImg = 'quay.io/biocontainers/salmon:1.4.0--hf69c8f4_0'
     #String dockerImg =  'ubuntu:latest'
     Int runtime_cpu = 8
     Int memoryGb = 64
     Int diskSpaceGb = 80
+    # https://cromwell.readthedocs.io/en/stable/RuntimeAttributes/#preemptible
+    Int runtime_preemptible = 3
+
 
     #parameter_meta {
         #    library: 'Salmon library type: https://salmon.readthedocs.io/en/latest/salmon.html#what-s-this-libtype; by default, automatically infer'
@@ -40,7 +44,9 @@ workflow salmon_quant {
         dockerImg=dockerImg,
         runtime_cpu=runtime_cpu,
         memoryGb=memoryGb,
-        diskSpaceGb=diskSpaceGb
+        diskSpaceGb=diskSpaceGb,
+        runtime_preemptible=runtime_preemptible
+
     }
 }
 
@@ -55,7 +61,7 @@ task salmon_paired_reads {
     Int runtime_cpu
     Int memoryGb
     Int diskSpaceGb
-
+    Int runtime_preemptible
     
     command  <<<
         
@@ -81,6 +87,8 @@ task salmon_paired_reads {
         echo "runtime_cpu: ${runtime_cpu}"
         echo "diskSpaceGb: ${diskSpaceGb}"
         echo "dockerImg  : ${dockerImg}"
+        echo "runtime_preemptible: ${runtime_preemptible}"
+
 
         set -x # turn shell trace debugging on 
 
@@ -189,7 +197,7 @@ task salmon_paired_reads {
          # https://cloud.google.com/kubernetes-engine/docs/how-to/preemptible-vms
          # instances that last a maximum of 24 hours in general, and provide no availability guarantees.
          # Preemptible VMs are priced lower than standard Compute Engine
-         # preemptible: '${runtime_preemptible}' 
+         preemptible: '${runtime_preemptible}' 
 
      }
  }
