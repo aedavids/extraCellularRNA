@@ -93,6 +93,8 @@ task salmon_paired_reads {
 
         export refIndexDir=`ls -t | head -n 1 | sed -e 's/\/$//' `
 
+        ls -l $refIndexDir
+
         # make sure the extracted tar file and anything else cromwell copied
         # into our local bucket will always be removed
         # unlink ${refIndexTarGz}
@@ -113,9 +115,6 @@ task salmon_paired_reads {
 
         # AEDWIP  --recoverOrphans : only be used in conjunction with selective alignment)
         mkdir -p ${outDir}
-
-        echo "hello world" > ${outDir}/helloWorld.txt
-        
         
         # grouping command in bash using () cause them to run in a sub shell
         # using {} cause them to execute in the current shell
@@ -123,7 +122,7 @@ task salmon_paired_reads {
         #time {
 
             # AEDWIP debug terra runtime parameters normally we would not use sh
-            sh -c '\
+#            sh -c '\
             salmon quant \
               -i $refIndexDir \
               --libType A \
@@ -135,23 +134,21 @@ task salmon_paired_reads {
               --gcBias \
               --seqBias \
               --rangeFactorizationBins 4 \
-            --output ${outDir} \
-            ' &
+            --output ${outDir} 
+            #' &
 
-             #salmonRet=$?
+             salmonRet=$?
         #}
 
         # AEDWIP check runtime memory usage
-        for i in {1..50};
-        do
-            echo "debug memory stats i:$i"
-            cat /sys/fs/cgroup/memory/memory.stat
-            sleep 60
-        done
+        # for i in {1..50};
+        # do
+        #     echo "debug memory stats i:$i"
+        #     cat /sys/fs/cgroup/memory/memory.stat
+        #     sleep 60
+        # done
         
         echo "AEDWIP in time salmonRet=$salmonRetXXXX";
-
-         # should we gzip quant and tar aux_info? cmd_info.json can be helpful
 
         
         if [ $salmonRet -eq 0 ]; then
@@ -163,7 +160,7 @@ task salmon_paired_reads {
 
         
         # clean up tmp files
-        rm -rf $refIndexDir
+        #rm -rf $refIndexDir
      >>>
 
      output {
