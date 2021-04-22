@@ -40,7 +40,7 @@ task samtools_view {
         memory: "${memoryGb}GB"
         disks: "local-disk ${diskSpaceGb} HDD"
         cpu: "${runtime_cpu}"
-        preemptible: "${runtime_reemptible}"
+        preemptible: "${runtime_preemptible}"
     }
 
     meta {
