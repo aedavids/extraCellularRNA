@@ -20,6 +20,12 @@ workflow salmon_quant {
     # https://cromwell.readthedocs.io/en/stable/RuntimeAttributes/
     String dockerImg = 'quay.io/biocontainers/salmon:1.4.0--hf69c8f4_0'
     #String dockerImg =  'ubuntu:latest'
+
+    #
+    # best practice 2 core min: one for os one for work
+    # https://cromwell.readthedocs.io/en/stable/RuntimeAttributes/#cpu
+    # In Google Cloud: this is interpreted as "the minimum number of cores to use."
+    #    
     Int runtime_cpu = 8
     Int memoryGb = 64
     Int diskSpaceGb = 80

@@ -47,7 +47,13 @@ task samToFastq {
     runtime {
 	docker: "broadinstitute/genomes-in-the-cloud:2.3.1-1500064817"
 	memory: "${memoryGb} GB"
-	cpu: "1"
+
+        #
+        # best practice 2 core min: one for os one for work
+        # https://cromwell.readthedocs.io/en/stable/RuntimeAttributes/#cpu
+        # In Google Cloud: this is interpreted as "the minimum number of cores to use."
+        #
+	cpu: "2"
 	disks: "local-disk ${diskSpaceGb} HDD"
         preemptible: '${runtime_preemptible}' 
     }

@@ -11,7 +11,13 @@ task samtools_view {
 
     Int memoryGb = 10
     Int diskSpaceGb = 40
-    Int runtime_cpu = 1
+
+    #
+    # best practice 2 core min: one for os one for work
+    # https://cromwell.readthedocs.io/en/stable/RuntimeAttributes/#cpu
+    # In Google Cloud: this is interpreted as "the minimum number of cores to use."
+    #        
+    Int runtime_cpu = 2
 
     #
     # https://cloud.google.com/kubernetes-engine/docs/how-to/preemptible-vms
