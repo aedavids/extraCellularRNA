@@ -26,6 +26,10 @@ task samtools_view {
 
     command {
         set -euo pipefail
+
+        # use cpuinfo to debug preemptiple/cpu/threading quotas and performance
+        cat /proc/cpuinfo
+        
         echo $(date +"[%b %d %H:%M:%S] Running 'samtools view'.")
         samtools view ${options} ${bam_file}  > ${sampleName}.umap.bam
         echo $(date +"[%b %d %H:%M:%S] done.")

@@ -101,6 +101,9 @@ task salmon_paired_reads {
 
         set -x # turn shell trace debugging on 
 
+        # use cpuinfo to debug preemptiple/cpu/threading quotas and performance
+        cat /proc/cpuinfo
+        
         # how much disk has been used
         du -sh .
         

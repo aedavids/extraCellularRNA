@@ -23,6 +23,9 @@ task samToFastq {
     Int runtime_preemptible = 3
 
     command <<<
+        # use cpuinfo to debug preemptiple/cpu/threading quotas and performance
+        cat /proc/cpuinfo
+        
 	java -jar /usr/gitc/picard.jar SamToFastq \
 	TMP_DIR=. \
 	INPUT=${inputBam} \
