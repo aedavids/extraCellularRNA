@@ -148,12 +148,25 @@ task salmon_paired_reads {
             # AEDWIP debug terra runtime parameters run salmon in background so we can
             # collect system performance metrics
             #sh -c '\
+
+            #
+            # determin the number of threads.
+            # do not create more threads than we have cores for
+            # we need one core for OS
+            #
+            minRunTimeCPU=2
+            if [  "${runtime_cpu}" -lt $minRunTimeCPU ]; then    
+                echo "ERROR  ${runtime_cpu} must be >=  $minRunTimeCPU"
+                exit 1
+            fi
+            numThr=$(expr "${runtime_cpu}" - 1)
+            
             salmon quant \
               -i $refIndexDir \
               --libType A \
               -1 "${rightReads}" \
               -2 "${leftReads}" \
-              -p 8 \
+              -p $numThr \
               --recoverOrphans \
               --validateMappings \
               --gcBias \
