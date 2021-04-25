@@ -229,7 +229,7 @@ task salmon_paired_reads {
      }
 
      runtime {
-         disks: 'local-disk ${diskSpaceGb} SDD'
+         disks: 'local-disk ${diskSpaceGb} SSD'
          cpu: '${runTimeCpu}'
          memory: '${memoryGb} GB'
          docker: '${dockerImg}'

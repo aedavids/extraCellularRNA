@@ -54,7 +54,7 @@ task bamToFastq {
         # In Google Cloud: this is interpreted as "the minimum number of cores to use."
         #
 	cpu: "2"
-	disks: "local-disk ${diskSpaceGb} SDD"
+	disks: "local-disk ${diskSpaceGb} SSD"
         preemptible: '${runtime_preemptible}' 
     }
 }

@@ -1,4 +1,5 @@
 
+# note urls have version information
 import "https://api.firecloud.org/ga4gh/v1/tools/aedavids.ucsc.edu:bamToFastq/versions/1/plain-WDL/descriptor" as bamToFastq
 import "https://api.firecloud.org/ga4gh/v1/tools/aedavids.ucsc.edu:SalmonPairedReadQuantTask/versions/22/plain-WDL/descriptor" as salmonPairedReadQuantTask
 
