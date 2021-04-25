@@ -1,0 +1,1 @@
+{"quantify.bamToFastq.runtime_preemptible":"${}","quantify.inputBam":"${this.bam_file}","quantify.sampleId":"${this.sample_id}","quantify.refIndexTarGz":"gs://fc-secure-519db2bc-049f-43a0-ab75-a2eb9c2cb059/sel.align.gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx.tar.gz","quantify.bamToFastq.diskSpaceGb":"${}","quantify.bamToFastq.memoryGb":"${}"}
