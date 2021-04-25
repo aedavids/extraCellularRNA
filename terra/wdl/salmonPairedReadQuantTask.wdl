@@ -25,9 +25,18 @@ workflow salmon_quant {
     # best practice 2 core min: one for os one for work
     # https://cromwell.readthedocs.io/en/stable/RuntimeAttributes/#cpu
     # In Google Cloud: this is interpreted as "the minimum number of cores to use."
-    #    
-    Int runtime_cpu = 8
+    #
+    # https://salmon.readthedocs.io/en/latest/salmon.html
+    # We find that allocating 8 — 12 threads results in the maximum speed, threads
+    # allocated above this limit will likely spend most of their time idle / sleeping
+    #
+    Int runTimeCpu = 8
+
+    # 64 was min size needed to all GTEx cases
     Int memoryGb = 64
+
+    # reference is about 20 GB
+    # 80 was determined by trial and error
     Int diskSpaceGb = 80
 
     #
@@ -39,7 +48,7 @@ workflow salmon_quant {
     # Take an Int as a value that indicates the maximum number of times Cromwell should request a
     # preemptible machine for this task before defaulting back to a non-preemptible one.
     # default value: 0
-    Int runtime_preemptible = 3
+    Int runTimePreemptible = 3
 
 
     #parameter_meta {
@@ -57,10 +66,10 @@ workflow salmon_quant {
         outDir=outDir,
 
         dockerImg=dockerImg,
-        runtime_cpu=runtime_cpu,
+        runTimeCpu=runTimeCpu,
         memoryGb=memoryGb,
         diskSpaceGb=diskSpaceGb,
-        runtime_preemptible=runtime_preemptible
+        runTimePreemptible=runTimePreemptible
 
     }
 }
@@ -73,10 +82,10 @@ task salmon_paired_reads {
     String outDir
 
     String dockerImg
-    Int runtime_cpu
+    Int runTimeCpu
     Int memoryGb
     Int diskSpaceGb
-    Int runtime_preemptible
+    Int runTimePreemptible
     
     command  <<<
         
@@ -99,10 +108,10 @@ task salmon_paired_reads {
         # put copy of runtime parameters in output. Makes debug easier
         echo "runtime parameters"
         echo "memoryGb   : ${memoryGb}"
-        echo "runtime_cpu: ${runtime_cpu}"
+        echo "runTimeCpu: ${runTimeCpu}"
         echo "diskSpaceGb: ${diskSpaceGb}"
         echo "dockerImg  : ${dockerImg}"
-        echo "runtime_preemptible: ${runtime_preemptible}"
+        echo "runTimePreemptible: ${runTimePreemptible}"
 
 
         set -x # turn shell trace debugging on 
@@ -155,11 +164,11 @@ task salmon_paired_reads {
             # we need one core for OS
             #
             minRunTimeCPU=2
-            if [  "${runtime_cpu}" -lt $minRunTimeCPU ]; then    
-                echo "ERROR  ${runtime_cpu} must be >=  $minRunTimeCPU"
+            if [  "${runTimeCpu}" -lt $minRunTimeCPU ]; then    
+                echo "ERROR  ${runTimeCpu} must be >=  $minRunTimeCPU"
                 exit 1
             fi
-            numThr=$(expr "${runtime_cpu}" - 1)
+            numThr=$(expr "${runTimeCpu}" - 1)
             
             salmon quant \
               -i $refIndexDir \
@@ -220,8 +229,8 @@ task salmon_paired_reads {
      }
 
      runtime {
-         disks: 'local-disk ${diskSpaceGb} HDD'
-         cpu: '${runtime_cpu}'
+         disks: 'local-disk ${diskSpaceGb} SDD'
+         cpu: '${runTimeCpu}'
          memory: '${memoryGb} GB'
          docker: '${dockerImg}'
 
@@ -234,6 +243,6 @@ task salmon_paired_reads {
          # preemptible machine for this task before defaulting back to a non-preemptible one.
          # default value: 0
          # With a value of 1, Cromwell will request a preemptible VM
-         preemptible: '${runtime_preemptible}' 
+         preemptible: '${runTimePreemptible}' 
      }
  }
