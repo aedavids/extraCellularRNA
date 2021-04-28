@@ -11,6 +11,10 @@ workflow salmon_quant {
         email: "aedavids@ucsc.edu"
     }
 
+    call salmon_paired_reads
+}
+
+task salmon_paired_reads {
     String sampleId
     File refIndexTarGz
     File leftReads
@@ -49,43 +53,6 @@ workflow salmon_quant {
     # preemptible machine for this task before defaulting back to a non-preemptible one.
     # default value: 0
     Int runTimePreemptible = 3
-
-
-    #parameter_meta {
-        #    library: 'Salmon library type: https://salmon.readthedocs.io/en/latest/salmon.html#what-s-this-libtype; by default, automatically infer'
-    #}
-
-    # scatter TODO I think terra will automatically spin up a docker for each file
-    # so no need to run scatter
-    call salmon_paired_reads {
-        input:
-        sampleId=sampleId,
-        refIndexTarGz=refIndexTarGz,
-        leftReads=leftReads,
-        rightReads=rightReads,
-        outDir=outDir,
-
-        dockerImg=dockerImg,
-        runTimeCpu=runTimeCpu,
-        memoryGb=memoryGb,
-        diskSpaceGb=diskSpaceGb,
-        runTimePreemptible=runTimePreemptible
-
-    }
-}
-
-task salmon_paired_reads {
-    String sampleId
-    File refIndexTarGz
-    File leftReads
-    File rightReads
-    String outDir
-
-    String dockerImg
-    Int runTimeCpu
-    Int memoryGb
-    Int diskSpaceGb
-    Int runTimePreemptible
     
     command  <<<
         
