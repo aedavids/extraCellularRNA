@@ -25,14 +25,5 @@ workflow quantify {
         refIndexTarGz=refIndexTarGz,
         leftReads=bamToFastq.firstEndFastq,
         rightReads=bamToFastq.secondEndFastq,
-
-        # see salmonPairedReadQuantTask.wd for more information aobut
-        # choosing parameter values
-        outDir="salmon.out",
-        dockerImg='quay.io/biocontainers/salmon:1.4.0--hf69c8f4_0',
-        memoryGb=64,
-        diskSpaceGb=80,
-        runTimeCpu=8,        
-        runTimePreemptible=3
     }
 }
