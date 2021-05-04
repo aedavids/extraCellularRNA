@@ -92,3 +92,17 @@ Use runCromwell.sh it sets the user id so that you can delete an files created b
 + java '-Dbackend.providers.Local.config.runtime-attributes=String? docker String? docker_user="$EUID"' -jar ../../java/bin/cromwell-58.jar run --inputs salmonPairedReadQuantTask.wdl.input.json salmonPairedReadQuantTask.wdl
 [2021-03-26 08:42:04,28] [info] Running with database db.url = jdbc:hsqldb:mem:9e9bff35-6e77-4505-b836-7e4a906e847f;shutdown=false;hsqldb.tx=mvcc
 ```
+
+# Scaling tests
+- [support.terra.bio Scaling-your-workflow-submissions](https://support.terra.bio/hc/en-us/articles/360059028911-Scaling-your-workflow-submissions)
+
+## checking google cloude resource quotes
+- [https://support.terra.bio/hc/en-us/articles/360029071251](https://support.terra.bio/hc/en-us/articles/360029071251)
+
+- [Andy's terra billing acount quotas](https://console.cloud.google.com/iam-admin/quotas?authuser=1&project=test-aedavids-proj&folder=&organizationId=)
+
+- Terra uses us-central-1 by default
+
+
+- use call caching to make robust work flows https://support.terra.bio/hc/en-us/articles/360047664872
+
