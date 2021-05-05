@@ -1,7 +1,5 @@
 # ref:
 # https://github.com/openwdl/wdl/blob/main/versions/1.0/SPEC.md
-# https://aedavids@github.com/aedavids/extraCellularRNA.git
-# bin/runSalmon.pancreas.plasma.ev.long.RNA.sh
 # https://portal.firecloud.org/?return=terra#methods/mxhe/salmon_quant_array/9
 
 # using womtool to validate
@@ -19,7 +17,7 @@ workflow salmon_quant {
     File rightReads
     String outDir = "salmon.out"
 
-    String dockerImg = 'quay.io/biocontainers/salmon:0.14.1--h86b0361_1'
+    String dockerImg = 'quay.io/biocontainers/salmon:1.4.0--hf69c8f4_0'
     #String dockerImg =  'ubuntu:latest'
     Int runtime_cpu = 8
     Int memoryGb = 8
@@ -82,27 +80,23 @@ task salmon_paired_reads {
         # what version of link are we using
         cat /etc/os-release
         
-        # by convention foo.tar would have a root dir name foo. how ever we can not
-        # guarantee conventions was followed
-        # use sed remove the last slash
-        # the not all docker images have GNU tar. works is use zcat
-        refIndexDir=`zcat ${refIndexTarGz} | \
-        tar -tf -  | \
-        head -n 1 | \
-        sed -e 's/\/$//'`
-
         # extract the actual tar file
-        zcat ${refIndexTarGz} | tar -xf -
+        time zcat ${refIndexTarGz} | tar -xf -
+        # not all distributions support -z
+        # tar -xzf ${refIndexTarGz}
+
+        refIndexDir=`ls -t | head -n 1 | sed -e 's/\/$//' `
 
         # make sure the extracted tar file and anything else cromwell copied
         # into our local bucket will always be removed
-        #unlink ${refIndexTarGz}
+        # unlink ${refIndexTarGz}
+        # AEDWIP our image does not contain unlink
         #tmpFiles=`find $refIndexDir`
         #for i in $tmpFiles;
         #do
         #        unlink $i
         #done
-        
+
         # https://salmon.readthedocs.io/en/latest/salmon.html#quantifying-in-mapping-based-mode
         # --libType A : automatically infer the library type
         # --gcBias: model will attempt to correct for biases in how likely a
@@ -113,42 +107,55 @@ task salmon_paired_reads {
 
         # AEDWIP  --recoverOrphans : only be used in conjunction with selective alignment)
         mkdir -p ${outDir}
-        echo AEDWIP salmon quant \
-        -i $refIndexDir \
-        --libType A \
-        -1 "${leftReads}" \
-        -2 "${rightReads}" \
-        -p 8 \
-        --recoverOrphans \
-        --validateMappings \
-        --gcBias \
-        --seqBias \
-        --rangeFactorizationBins 4 \
-        --output ${outDir}
 
-        # should we gzip quant and tar aux_info? cmd_info.json can be helpful
-    }
+        
+        salmon quant \
+          -i $refIndexDir \
+          --libType A \
+          -1 "${rightReads}" \
+          -2 "${leftReads}" \
+          -p 8 \
+          --recoverOrphans \
+          --validateMappings \
+          --gcBias \
+          --seqBias \
+          --rangeFactorizationBins 4 \
+          --output ${outDir}
 
-    output {
-        # File cmd_info_json = '${sampleId}.cmd_info.json'
-        # File quantFile     = '${sampleId}.quant.sf'
+          salmonRet=$?
 
-        #File aux_info     = '${sampleId}.aux_info.tar.gz'
-        #File meta_json    = '${sampleId}.meta_info.json'
-        #File resource_log = 'resource_usage.log'
-        #File salmon_log   = '${sampleId}.salmon_quant.log'
-    }
+        echo "AEDWIP in time salmonRet=$salmonRetXXXX";
 
-    runtime {
-        # disks: 'local-disk ${diskSpaceGb} HDD'
-        # cpu: '${runtime_cpu}'
-        # memory: '${memoryGb} GB'
-        docker: '${dockerImg}'
+         # should we gzip quant and tar aux_info? cmd_info.json can be helpful
 
-        # https://cloud.google.com/kubernetes-engine/docs/how-to/preemptible-vms
-        # instances that last a maximum of 24 hours in general, and provide no availability guarantees.
-        # Preemptible VMs are priced lower than standard Compute Engine
-        # preemptible: '${runtime_preemptible}' 
+        
+        if [ $salmonRet -eq 0 ]; then
+          gzip -c ${outDir}/quant.sf > ${sampleId}.quant.sf.gz;
+          tar -c ${outDir}/aux_info/*.gz > ${sampleId}.aux_info.tar.gz;
+        else
+          echo "Salmon ERROR code $salmonRet";
+        fi
 
-    }
-}
+        
+        # clean up tmp files
+        rm -rf $refIndexDir
+     }
+
+     output {
+         File quantFile     = '${sampleId}.quant.sf.gz'
+         File aux_info     = '${sampleId}.aux_info.tar.gz'
+     }
+
+     runtime {
+         disks: 'local-disk ${diskSpaceGb} HDD'
+         cpu: '${runtime_cpu}'
+         memory: '${memoryGb} GB'
+         docker: '${dockerImg}'
+
+         # https://cloud.google.com/kubernetes-engine/docs/how-to/preemptible-vms
+         # instances that last a maximum of 24 hours in general, and provide no availability guarantees.
+         # Preemptible VMs are priced lower than standard Compute Engine
+         # preemptible: '${runtime_preemptible}' 
+
+     }
+ }
