@@ -148,6 +148,7 @@ task salmon_paired_reads {
               --gcBias \
               --seqBias \
               --rangeFactorizationBins 4 \
+              --writeUnmappedNames \
             --output ${outDir} #\
             #' &
 
