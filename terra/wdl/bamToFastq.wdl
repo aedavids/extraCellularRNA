@@ -8,7 +8,7 @@ workflow bamToFastqTest {
 task bamToFastq {
     File inputBam
     String sampleName
-    Int memoryGb=10
+    Int memoryGb=20
     Int diskSpaceGb=40
 
     #

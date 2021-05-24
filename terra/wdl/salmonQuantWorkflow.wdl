@@ -1,6 +1,6 @@
 
 # note urls have version information
-import "https://api.firecloud.org/ga4gh/v1/tools/aedavids.ucsc.edu:bamToFastq/versions/2/plain-WDL/descriptor" as bamToFastq
+import "https://api.firecloud.org/ga4gh/v1/tools/aedavids.ucsc.edu:bamToFastq/versions/3/plain-WDL/descriptor" as bamToFastq
 import "https://api.firecloud.org/ga4gh/v1/tools/aedavids.ucsc.edu:SalmonPairedReadQuantTask/versions/25/plain-WDL/descriptor" as salmonPairedReadQuantTask
 
 workflow quantify {
