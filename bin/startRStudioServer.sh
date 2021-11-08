@@ -12,7 +12,7 @@
 #   docker rm -f container_id 
 #
 
-#set -x # turn debug on
+set -x # turn debug on
 # set + x # turn debug off
 
 #PORT=`findUnusedPort.sh`
@@ -30,7 +30,8 @@ USER_ID=`id -u`
 #IMG='aedavids/biocworkshops' can not install Desq
 #IMG='bioconductor/bioconductor_docker:devel'
 #IMG='aedavids/biocworkshop2018desq2'
-IMG='aedavids/extra_cellular_rna'
+#IMG='aedavids/extra_cellular_rna'
+IMG='aedavids/extra_cellular_rna_2_01'
 # docker arguments
 # -d  --detach Run container in background and print container ID
 # -rm Automatically remove the container when it exits
@@ -49,13 +50,13 @@ set -x # turn debug on
 
 
 docker run --rm \
-	--detach \
-	--publish 127.0.0.1:${HOST_PORT}:${CONTAINER_PORT}/tcp \
-	-e DISABLE_AUTH=true \
-        -e USER=${USER} \
+       --detach \
+       --publish 127.0.0.1:${HOST_PORT}:${CONTAINER_PORT}/tcp \
+       -e DISABLE_AUTH=true \
+        -e USER=rstudio \
 	-e USERID=${USER_ID} \
 	-e PASSWORD=ggg \
-	-v /private/home/${USER}:/home/${USER} \
+	-v /private/home/${USER}:/home/rstudio \
 	-v /private/groups/kimlab:/home/kimlab \
         ${IMG}
 

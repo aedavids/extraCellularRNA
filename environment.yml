@@ -4,16 +4,22 @@ channels:
   - bioconda
   - defaults
 dependencies:
+  - python=3.7.6
   - numpy
   - matplotlib
-  - python=3.7.6
-  - notebook
   - gseapy
-  - scipy
+  - jupyter_conda
+  - jupyterlab
+  - notebook
+  - scikit-learn
   - trimmomatic
   - sra-tools
+  - scipy
+  - salmon  
   - fastqc
-  - salmon
-  - scikit-learn
   - gsutil
+  - pandas
+  - findspark
+  - multiqc
+  - cromwell
 prefix: /public/home/aedavids/miniconda3/envs/extraCellularRNA

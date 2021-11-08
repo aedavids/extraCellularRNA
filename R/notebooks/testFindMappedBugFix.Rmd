@@ -1,0 +1,217 @@
+---
+title: "hack to test"
+output: html_notebook
+---
+
+```{r}
+library( 'stringr' )
+source("findFiles.R") # assume file in in same directory as current Rmd
+```
+
+
+```{r}
+# indexFilePath <- file.path( '/home/kimlab/genomes.annotations/gencode.32', 
+#                             'gen.32.tx.2.gene.csv')
+# print(indexFilePath)
+#day5FilesList <- findDay5KrasIpscDataFiles( rootDir )
+#findDay7KrasIpscDataFiles
+# checkIndexIsSame
+# isSameIndex
+```
+
+```{r}
+oldFileList <- findDay5KrasIpscDataFiles( rootDir )
+oldFileList
+```
+
+## test find all the files
+
+```{r}
+rootDir <- "/home/kimlab/"
+#refIdx <- 'sel.align.gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx'
+pathFilter <- 'gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx'
+pathFilter <- 'gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx/quant.sf'
+fileList <- findDay5KrasIpscDataFiles( rootDir, pathFilter )
+fileList
+```
+
+parse the file paths into meta data
+
+
+```{r}
+########################################################################
+getCountDataColNames <- function( fileList ) {
+  # arguments
+  #   fileList 
+  #     example of path format "/home/kimlab//kras.ipsc/data/bulk.data/day.5/kras.1/gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx"
+  #   
+  # return a list
+  #   [1] "b_5_k_1" 
+ 
+    
+  tokensListList <- strsplit( fileList, split="/" )
+  # [[1]]
+  #  [1] ""                                         "home"                                     "kimlab"                                  
+  #  [4] ""                                         "kras.ipsc"                                "data"                                    
+  #  [7] "bulk.data"                                "day.5"                                    "ctrl.1"                                  
+  # [10] "gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx"
+  # 
+  # [[2]]
+  #  [1] ""                                         "home"                                     "kimlab"                                  
+  #  [4] ""                                         "kras.ipsc"                                "data"                                    
+  #  [7] "bulk.data"                                "day.5"                                    "ctrl.2"                                  
+  # [10] "gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx"
+  # 
+  # [[3]]
+  #  [1] ""                                         "home"                                     "kimlab"                                  
+  #  [4] ""                                         "kras.ipsc"                                "data"                                    
+  #  [7] "bulk.data"                                "day.5"                                    "ctrl.3"                                  
+  # [10] "gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx"  
+  
+  tokensList <- unlist(tokensListList)
+  # [1] ""                                         "home"                                     "kimlab"                                  
+  #  [4] ""                                         "kras.ipsc"                                "data"                                    
+  #  [7] "bulk.data"                                "day.5"                                    "ctrl.1"                                  
+  # [10] "gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx" ""                                         "home"                                    
+  # [13] "kimlab"                                   ""                                         "kras.ipsc"                               
+  # [16] "data"                                     "bulk.data"                                "day.5"                                   
+  # [19] "ctrl.2"                                   "gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx" ""                                        
+  # [22] "home"                                     "kimlab"                                   ""                                        
+  # [25] "kras.ipsc"                                "data"                                     "bulk.data"                               
+  # [28] "day.5"                                    "ctrl.3"                                   "gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx"  
+  
+  
+  # AEDWIP I forgot why we did not use data.frame 
+  m <- matrix( tokensList, ncol=length(tokensListList[[1]]), byrow=TRUE)
+  #     [,1] [,2]   [,3]     [,4] [,5]        [,6]   [,7]        [,8]    [,9]     [,10]                                     
+  # [1,] ""   "home" "kimlab" ""   "kras.ipsc" "data" "bulk.data" "day.5" "ctrl.1" "gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx"
+  # [2,] ""   "home" "kimlab" ""   "kras.ipsc" "data" "bulk.data" "day.5" "ctrl.2" "gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx"
+  # [3,] ""   "home" "kimlab" ""   "kras.ipsc" "data" "bulk.data" "day.5" "ctrl.3" "gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx"
+
+  sampleType <- 7
+  dayIdx <- 8
+  condition <- 9
+  replicant <- condition + 1
+  
+  #
+  # parse into short tokens
+  #
+  
+  # select the first char
+  m[, sampleType] <-  substring( m[, sampleType], 1, 1)
+  
+  #
+  # clean up day
+  # exo form: gen1c.day.5.exo.input.data
+  # bulk form: day.5
+  #
+  
+  pattern <- 'gen1c.'
+  replaceStr <- ""
+  m[, dayIdx] <- str_replace(m[, dayIdx], pattern, replaceStr)
+  
+  pattern <- '.exo.input.data'
+  replaceStr <- ""
+  m[, dayIdx] <- str_replace(m[, dayIdx], pattern, replaceStr)
+  
+  # r is hacky
+  # https://stackoverflow.com/a/23413408/4586180
+  hackDF <- data.frame("dayNumStr"=m[, dayIdx])
+
+  
+  # select the last char
+  dayNum <- substr(hackDF$dayNumStr,nchar(hackDF$dayNumStr),nchar(hackDF$dayNumStr))
+  m[, dayIdx] <-  dayNum
+  
+  # split condition in condition and replicate
+  hackDF <- data.frame("condition"=m[, condition])
+  # data is something like 'ctrl.3'
+  # select first char
+  m[, condition] <- substr(hackDF$condition,1, 1)
+  # select last char
+  m[, replicant] <- substr(hackDF$condition, nchar(hackDF$condition), nchar(hackDF$condition))
+  
+  m <- m[, c(sampleType, dayIdx, condition, replicant)]
+  #       [,1] [,2] [,3] [,4]
+  # [1,] "b"  "5"  "c"  "1" 
+  # [2,] "b"  "5"  "c"  "2" 
+  # [3,] "b"  "5"  "c"  "3" 
+  
+  retList <- paste(m[,1], m[,2], m[,3], m[,4], sep='_')
+  # [1] "b_5_c_1" "b_5_c_2" "b_5_c_3"
+  return( retList )
+}
+
+
+
+# test
+result <- getCountDataColNames( fileList$bulkDay5CntrlSalmonFiles )
+print(result)
+result <- getCountDataColNames( fileList$exoDay5CntrlSalmonFiles )
+result
+```
+
+fix column names
+```{r}
+########################################################################
+fixColNames <- function(fileList, dsCountsDF) {
+  # broke this out to make debug easier
+  #
+  # change column name to format "b_5_c_1" . if we have a
+  # small number of rows, ie. biotype, it would be easier to work with the data if
+  # it was denormalized. that is to say keep sampleType, treatment, and replicant id
+  # as separate columns. If we are in gene space this would add a lot of redundant data
+  
+  
+  newColNames <- list()
+  for ( dataSetName in names( fileList) ) {
+    #print(dataSetName)
+    l = unlist( fileList[dataSetName] )
+    colStr <- getCountDataColNames( l )
+    newColNames <- c(newColNames, colStr)
+  }
+  
+  print( unlist(newColNames) )
+  colnames(dsCountsDF) <- unlist(newColNames)
+
+  return( dsCountsDF )
+}
+```
+
+
+# integration test
+```{r}
+day5FileList <- findDay5KrasIpscDataFilesGencode_v35_ucsc_rmsk_salmon_v1_3.0( rootDir )
+day7FileList <- findDay7KrasIpscDataFilesGencode_v35_ucsc_rmsk_salmon_v1_3.0( rootDir )
+```
+
+```{r}
+day5DF <- getKrasIPSCDay5ColDataDF( day5FileList )
+day5DF
+day7DF <- getKrasIPSCDay7ColDataDF( day7FileList )
+day7DF
+```
+
+```{r}
+# tx2MappingFile <- 'gencode.v35.ucsc.rmsk.tx.to.gene.csv'
+# tx2MappingDir <- file.path('/home/kimlab/genomes.annotations/gencode.35')
+# indexFilePath  <- file.path(tx2MappingDir, tx2MappingFile)
+# print(indexFilePath)
+# 
+# findFilesFunc <- findDay5KrasIpscDataFilesGencode_v35_ucsc_rmsk_salmon_v1_3.0
+# getColDFFunc <- getKrasIPSCDay5ColDataDF
+# design <- NULL
+# transcriptMapperDF <- getTEGeneMapper
+# 
+# ret <- getDESeqDataSet(rootDir,
+#                             indexFilePath,
+#                             findFilesFunc,
+#                             getColDFFunc,
+#                             design,
+#                             transcriptMapperDF,
+#                             ignoreAfterBar=TRUE,
+#                             txOut=FALSE) 
+```
+
+
+# we have bug, design must 

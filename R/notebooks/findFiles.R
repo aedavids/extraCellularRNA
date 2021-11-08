@@ -30,7 +30,7 @@ checkIndexIsSame <- function( cmdJSONList, refIdxFilePath) {
 # function to find salmon quant.sf files
 #
 ########################################################################
-findConditionQuantFiles <- function (dirPath, condition="ctrl") {
+findConditionQuantFiles <- function (dirPath, condition="ctrl", pathFilter='gencode.salmon.out/quant.sf') {
   #dirPath /home/kimlab/kras.ipsc/data/bulk.data/day.5/
   # condition is typically either 'ctrl' or 'kras'
   # sample file
@@ -41,28 +41,41 @@ findConditionQuantFiles <- function (dirPath, condition="ctrl") {
   conditionDirs = f[ conditionIdxList ]
   
   conditionSalmonFiles <- paste( dirPath, conditionDirs, 
-                                     'gencode.salmon.out/quant.sf', 
-                                     sep="/" )
+                                 pathFilter, 
+                                      sep="/" )
   return( conditionSalmonFiles )
 }
 
 ########################################################################
-findDay5KrasIpscDataFiles <- function(rootDir) {
+findDay5KrasIpscDataFilesGencode_v35_ucsc_rmsk_salmon_v1_3.0 <- function(rootDir) {
+  pathFilter <- 'gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx/quant.sf'
+  ret <- findDay5KrasIpscDataFiles(rootDir, pathFilter)
+  
+  print("findDay5KrasIpscDataFilesGencode_v35_ucsc_rmsk_salmon_v1_3.0")
+  print(ret)
+  
+  return( ret )
+}
+
+########################################################################
+findDay5KrasIpscDataFiles <- function(rootDir, pathFilter='gencode.salmon.out/quant.sf') {
   #
   # arguments
   #   dirpath
   #     example: rootDir <- "/home/kimlab"
   #
+  #   pathFilter='gencode.salmon.out/quant.sf'
   #
   # returns a list of file paths, name of list items will be dataSet name
   #
-  
   dataFilesList = list()
   
   #### find all bulk day 5 control estimated transcript count files
   bulkDataDirPath = file.path( rootDir, 'kras.ipsc', 'data', 'bulk.data', 'day.5' )
-  bulkDay5CntrlSalmonFiles <- findConditionQuantFiles(bulkDataDirPath, condition='ctrl')
-  bulkDay5CntrlSalmonFiles
+  bulkDay5CntrlSalmonFiles <- findConditionQuantFiles(bulkDataDirPath, 
+                                                      condition='ctrl',
+                                                      pathFilter=pathFilter)
+  #bulkDay5CntrlSalmonFiles
   if ( ! all(file.exists(bulkDay5CntrlSalmonFiles)) ) {
     stop(c("ERROR: file not found: ", bulkDay5CntrlSalmonFiles))
   }
@@ -70,24 +83,30 @@ findDay5KrasIpscDataFiles <- function(rootDir) {
   
   #### find all day 5 exo control estimated transcript files
   exoDataDirPath = file.path( rootDir, 'kras.ipsc', 'data', 'exo.data', 'gen1c.day.5.exo.input.data' )
-  exoDay5CntrlSalmonFiles <- findConditionQuantFiles(exoDataDirPath, condition='ctrl')
-  exoDay5CntrlSalmonFiles
+  exoDay5CntrlSalmonFiles <- findConditionQuantFiles(exoDataDirPath, 
+                                                     condition='ctrl',
+                                                     pathFilter=pathFilter)
+  #exoDay5CntrlSalmonFiles
   if ( ! all(file.exists(exoDay5CntrlSalmonFiles)) ) {
     stop(c("ERROR: file not found: ", exoDay5CntrlSalmonFiles))
   }  
   dataFilesList$exoDay5CntrlSalmonFiles <- exoDay5CntrlSalmonFiles
   
   #### find all bulk day 5 kras estimated transcript count files
-  bulkDay5KrasSalmonFiles <- findConditionQuantFiles(bulkDataDirPath, condition='kras')
-  bulkDay5KrasSalmonFiles
+  bulkDay5KrasSalmonFiles <- findConditionQuantFiles(bulkDataDirPath, 
+                                                     condition='kras',
+                                                     pathFilter=pathFilter)
+  #bulkDay5KrasSalmonFiles
   if ( ! all(file.exists(bulkDay5KrasSalmonFiles)) ) {
     stop(c("ERROR: file not found: ", bulkDay5KrasSalmonFiles))
   }
   dataFilesList$bulkDay5KrasSalmonFiles <- bulkDay5KrasSalmonFiles
   
   ### find all day 5 exo kras estimated transcript files
-  exoDay5KrasSalmonFiles <- findConditionQuantFiles(exoDataDirPath, condition='kras')
-  exoDay5KrasSalmonFiles
+  exoDay5KrasSalmonFiles <- findConditionQuantFiles(exoDataDirPath, 
+                                                    condition='kras',
+                                                    pathFilter=pathFilter)
+  #exoDay5KrasSalmonFiles
   if ( ! all(file.exists(exoDay5KrasSalmonFiles)) ) {
     stop(c("ERROR: file not found: ", exoDay5KrasSalmonFiles))
   }
@@ -97,21 +116,34 @@ findDay5KrasIpscDataFiles <- function(rootDir) {
 }
 
 ########################################################################
-findDay7KrasIpscDataFiles <- function(rootDir) {
+findDay7KrasIpscDataFilesGencode_v35_ucsc_rmsk_salmon_v1_3.0 <- function(rootDir) {
+  pathFilter <- 'gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx/quant.sf'
+  ret <- findDay7KrasIpscDataFiles(rootDir, pathFilter)
+  
+  print("findDay7KrasIpscDataFilesGencode_v35_ucsc_rmsk_salmon_v1_3.0")
+  print(ret)
+  
+  return( ret )
+}
+
+########################################################################
+findDay7KrasIpscDataFiles <- function(rootDir, pathFilter='gencode.salmon.out/quant.sf') {
   #
   # arguments
   #   dirpath
   #     example: rootDir <- "/home/kimlab"
   #
+  #   pathFilter='gencode.salmon.out/quant.sf'
   #
-  # returns a list of file paths, name of list items will be dataSet name
-  #
+  # returns a list of file paths, name of list items will be dataSet name  
   
   dataFilesList = list()
   
   #### find all bulk day 7 control estimated transcript count files
   bulkDataDirPath = file.path( rootDir, 'kras.ipsc', 'data', 'bulk.data', 'day.7' )
-  bulkDay7CntrlSalmonFiles <- findConditionQuantFiles(bulkDataDirPath, condition='ctrl')
+  bulkDay7CntrlSalmonFiles <- findConditionQuantFiles(bulkDataDirPath, 
+                                                      condition='ctrl',
+                                                      pathFilter=pathFilter)
   bulkDay7CntrlSalmonFiles
   if ( ! all(file.exists(bulkDay7CntrlSalmonFiles)) ) {
     stop(c("ERROR: file not found: ", bulkDay7CntrlSalmonFiles))
@@ -120,7 +152,9 @@ findDay7KrasIpscDataFiles <- function(rootDir) {
   
   
   #### find all bulk day 7 kras estimated transcript count files
-  bulkDay7KrasSalmonFiles <- findConditionQuantFiles(bulkDataDirPath, condition='kras')
+  bulkDay7KrasSalmonFiles <- findConditionQuantFiles(bulkDataDirPath, 
+                                                     condition='kras',
+                                                     pathFilter=pathFilter)
   bulkDay7KrasSalmonFiles
   if ( ! all(file.exists(bulkDay7KrasSalmonFiles)) ) {
     stop(c("ERROR: file not found: ", bulkDay7KrasSalmonFiles))

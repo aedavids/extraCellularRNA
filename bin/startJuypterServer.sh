@@ -22,7 +22,7 @@ condaBase=`conda info | grep -i 'base environment' | cut -d : -f 2 | cut '-d ' -
 source ${condaBase}/etc/profile.d/conda.sh
 
 conda activate `basename $PWD` 
-export PYTHONPATH="${PYTHONPATH}:`pwd`/src"
+export PYTHONPATH="${PYTHONPATH}:`pwd`/src:`pwd`/../unmappedReadsAnalysis/python"
 
 
 # $@ == $1 $2, ...

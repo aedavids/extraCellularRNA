@@ -1,0 +1,7 @@
+{
+  "quantify.bamToFastq.firstEndFastq": "${this.firstEndFastq}",
+  "quantify.salmon_paired_reads.quantFile": "${this.quantFile}",
+  "quantify.salmon_paired_reads.aux_info": "${this.aux_info}",
+  "quantify.bamToFastq.secondEndFastq": "${this.secondEndFastq}",
+  "quantify.bamToFastq.unpairedFastq": "${this.unpairedFastq}"
+}

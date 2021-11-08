@@ -44,6 +44,67 @@ I noticed that there may be a couple of problems
 
 # settting up a new container
 
+build a docker image using latest bioconder image with required R packages installed
+
+ref: [Docker containers for Bioconductor](https://www.bioconductor.org/help/docker/)
+
+## Step 1) build image from docker file
+
+```
+$ extraCellularRNA/bin
+$ TAG="aedavids/extra_cellular_rna_2_01"
+$ docker build --file ./dockerFile.extra_cellular_RNA --tag $TAG .
+```
+
+## Step 2) rename the old docker image
+
+
+```
+[aedavids@plaza extraCellularRNA]$ docker image ls |head -n 1; docker image ls |grep aedavids
+REPOSITORY                         TAG                                 IMAGE ID            CREATED             SIZE
+aedavids/extra_cellular_rna        latest                              b8c2a26d9690        4 months ago        5.02GB
+aedavids/biocworkshop2018desq2     latest                              e3d760f202cc        6 months ago        5.01GB
+[aedavids@plaza extraCellularRNA]$ 
+```
+
+
+```
+[aedavids@plaza extraCellularRNA]$ docker image tag b8c2a26d9690  aedavids/extra_cellular_rna_broken
+```
+
+```
+[aedavids@plaza extraCellularRNA]$ docker image ls |head -n 1; docker image ls |grep aedavids
+REPOSITORY                           TAG                                 IMAGE ID            CREATED             SIZE
+aedavids/extra_cellular_rna          latest                              b8c2a26d9690        4 months ago        5.02GB
+aedavids/extra_cellular_rna_broken   latest                              b8c2a26d9690        4 months ago        5.02GB
+aedavids/biocworkshop2018desq2       latest                              e3d760f202cc        6 months ago        5.01GB
+```
+
+remove old tag
+```
+[aedavids@plaza extraCellularRNA]$ docker rmi aedavids/extra_cellular_rna
+Untagged: aedavids/extra_cellular_rna:latest
+
+```
+
+
+
+
+
+
+
+
+
+
+***
+# <span style="color:red">DEPRECATED</span> rest of document is obsolete
+- build images by running command in a shell and then committing the images is a bad idea
+- it is hard to know what was installed
+- it is hard to reproduce
+- it is error prone
+
+rstudio server keeps getting jammed up the process bellow works but is slow and not easy to reproduce
+
 ## 1. download the lastest biocondutor image and test
 
 I do not think we need to pull. when we run the container, if not local the pull happens automatically

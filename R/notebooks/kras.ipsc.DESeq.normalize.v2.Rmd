@@ -1,0 +1,377 @@
+---
+title: "kras.ipsc Normalzed counts"
+author: "Andrew Davidson, aedavids@ucsc.edu"
+date: "6/1/21"
+
+output: html_notebook
+---
+Uses DESeq package to get comparable transcript counts
+
+overview: 
+
+  - tximport: read estimated salmon quant.sf (transcripts counts)
+  - DESeqDataSetFromTximport :
+  - estimateSizeFactors :
+  - counts()
+
+
+ref:
+
+- notebooks/pancreas.plasma.ev.long.RNA.DESeq.normalize.Rmd
+- [bioconductor.org vignettes/DESeq2](http://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html)
+- [https://www.bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#theory-behind-deseq2](https://www.bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#theory-behind-deseq2)
+- [bioconductor BiocWorkshops rna-seq-data-analysis-with-deseq2](https://bioconductor.github.io/BiocWorkshops/rna-seq-data-analysis-with-deseq2.html)
+- /public/home/aedavids/extraCellularRNA/R/notebooks/kras.ipsc_exo_vs_bulk.DESeq.Rmd
+- [R class tutorial](https://www.datamentor.io/r-programming/object-class-introduction/)
+- /public/groups/kimlab/kras.ipsc/old.output.data.and.scripts/tximport.and.normalize.R
+
+
+```{r message=FALSE}
+startTime <- Sys.time()
+print( sprintf("BEGIN: %s", Sys.time()) )
+
+library( "DESeq2" )
+library( "readr" )
+library( "tximport" )
+library( 'stringr' )
+```
+
+## load local scripts
+assume scripts file are in the same directory as current Rmd
+```{r}
+source( "deseqCountUtils.R")
+source( "DESeqUtils.R" ) 
+source( "findFiles.R" ) 
+source( "te.R" ) 
+```
+
+## define runtime parameters
+Goal get counts we can use to determine the number of unique genes as part of our
+low mapping rate anlysis. Quick way to do this is to create a count file for day 5
+and another for day 7. This lets us reuse more existing code
+```{r}
+#rootDir <- "/home/kimlab/pancreas.plasma.ev.long.RNA"
+krasDataRoot <- "/home/kimlab/"
+
+parametersList <- list(
+  'debug'=list(
+    #'rootDir' = "/home/aedavids/extraCellularRNA/data/debugTximport/pancreas.plasma.ev.long.RNA",
+    'rootDir' = "/home/rstudio/extraCellularRNA/data/debugTximport/pancreas.plasma.ev.long.RNA",
+    'findFilesFunc' = findPancreasPlasmaEV_longRNAFiles, 
+    'getColDFFunc' = getPancreasPlasmaEV_longRNAColDataDF,    
+    'tx2MappingFile' = 'debugTx2Gene.csv',
+    # 'tx2MappingDir' = file.path('/home/aedavids/extraCellularRNA/data/debugTximport',
+    #                        'genomes.annotations/gencode.v35'),  
+    'tx2MappingDir' = file.path('/home/rstudio/extraCellularRNA/data/debugTximport',
+                           'genomes.annotations/gencode.v35'),      
+    # 'outputRoot' = "/home/aedavids/extraCellularRNA/data/R/output/debug",
+    #'outputRoot' = "/home/aedavids/extraCellularRNA/data/R/debugTximport/output",
+    'outputRoot' = "/home/rstudio/extraCellularRNA/data/R/debugTximport/output",
+    'mapToIdName'='gene',
+    'normalizedFileName'='pancreas.plasma.ev.long.RNA.normalized.deseq',
+    'transcriptMapperDFFunc'=getTEGeneMapper,    
+    
+    # ignoreAfterBar logical, whether to split the tx id on the '|' character to 
+    # facilitate matching with the tx id in tx2gene (default FALSE)
+    #'ignoreAfterBar'=FALSE #bug we do not get gene names in output
+    'ignoreAfterBar'=FALSE,
+    
+    #  txOut     avoid gene-level summarization by setting txOut=TRUE
+    #       if you are trying to normalize transcript and not map them to
+    #       genes, or biotype, setting txOut=TRUE reduces required memory
+    #       this allows use gencode.v35.ucsc.rmsk.tx.to.gene.csv    
+    'txOut'=FALSE,
+    
+  'designStr'="~ diseaseState"
+  ),
+
+
+  'KRAS.IPSC.day.5.gene'=list(
+    'rootDir' = krasDataRoot,
+    'findFilesFunc' = findDay5KrasIpscDataFilesGencode_v35_ucsc_rmsk_salmon_v1_3.0, 
+    # colData is the meta data data frame
+    'getColDFFunc' = getKrasIPSCDay5ColDataDF,        
+    'tx2MappingFile'='gencode.v35.ucsc.rmsk.tx.to.gene.csv',
+    'tx2MappingDir' = file.path('/home/kimlab/genomes.annotations/gencode.35'),
+    'mapToIdName'='gene',
+    'normalizedFileName'='kras.ipsc.day.5.DESeq.normalize.v2',
+    'outputRoot' = "/home/rstudio/extraCellularRNA/data/R/output",
+    #'outputRoot' = "/home/aedavids/extraCellularRNA/data/R/output",
+    #'outputRoot' = "/home/kimlab/aedavids/extraCellularRNA/data/R/output",
+    'transcriptMapperDFFunc'= getTEGeneMapper,
+    # ignoreAfterBar logical, whether to split the tx id on the '|' character to 
+    # facilitate matching with the tx id in tx2gene (default FALSE)
+    #'ignoreAfterBar'=FALSE #bug we do not get gene names in output
+    'ignoreAfterBar'=FALSE,
+    'txOut'=FALSE,
+    
+    # getColDFFunc returns a data frame with columns
+    #   factor sampleType ['bulk', 'exo']
+    #   factor treatment  ['ctrl', 'kras']
+    #   factor day        [5]
+    'designStr'="~ sampleType + treatment"
+    ),
+  
+ 'KRAS.IPSC.day.7.gene'=list(
+    'rootDir' = krasDataRoot,
+    'findFilesFunc' = findDay7KrasIpscDataFilesGencode_v35_ucsc_rmsk_salmon_v1_3.0, 
+    # colData is the meta data data frame
+    'getColDFFunc' = getKrasIPSCDay7ColDataDF,        
+    'tx2MappingFile'='gencode.v35.ucsc.rmsk.tx.to.gene.csv',
+    'tx2MappingDir' = file.path('/home/kimlab/genomes.annotations/gencode.35'),
+    'mapToIdName'='gene',
+    'normalizedFileName'='kras.ipsc.day.7.DESeq.normalize.v2',
+    'outputRoot' = "/home/rstudio/extraCellularRNA/data/R/output",
+    #'outputRoot' = "/home/aedavids/extraCellularRNA/data/R/output",
+    #'outputRoot' = "/home/kimlab/aedavids/extraCellularRNA/data/R/output",
+    'transcriptMapperDFFunc'= getTEGeneMapper,
+    # ignoreAfterBar logical, whether to split the tx id on the '|' character to 
+    # facilitate matching with the tx id in tx2gene (default FALSE)
+    #'ignoreAfterBar'=FALSE #bug we do not get gene names in output
+    'ignoreAfterBar'=FALSE,
+    'txOut'=FALSE,
+    
+    # getColDFFunc returns a data frame with columns
+    #   factor sampleType ['bulk']
+    #   factor treatment  ['ctrl', 'kras']
+    #   factor day        [7]
+    'designStr'="~ treatment"    
+    )  
+)
+```
+
+
+## Helper functions
+```{r}
+########################################################################
+getCountDataColNames <- function( fileList ) {
+  # arguments
+  #   fileList 
+  #     example of path format "/home/kimlab//kras.ipsc/data/bulk.data/day.5/kras.1/gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx"
+  #   
+  # return a list
+  #   [1] "b_5_k_1" 
+ 
+    
+  tokensListList <- strsplit( fileList, split="/" )
+  # [[1]]
+  #  [1] ""                                         "home"                                     "kimlab"                                  
+  #  [4] ""                                         "kras.ipsc"                                "data"                                    
+  #  [7] "bulk.data"                                "day.5"                                    "ctrl.1"                                  
+  # [10] "gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx"
+  # 
+  # [[2]]
+  #  [1] ""                                         "home"                                     "kimlab"                                  
+  #  [4] ""                                         "kras.ipsc"                                "data"                                    
+  #  [7] "bulk.data"                                "day.5"                                    "ctrl.2"                                  
+  # [10] "gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx"
+  # 
+  # [[3]]
+  #  [1] ""                                         "home"                                     "kimlab"                                  
+  #  [4] ""                                         "kras.ipsc"                                "data"                                    
+  #  [7] "bulk.data"                                "day.5"                                    "ctrl.3"                                  
+  # [10] "gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx"  
+  
+  tokensList <- unlist(tokensListList)
+  # [1] ""                                         "home"                                     "kimlab"                                  
+  #  [4] ""                                         "kras.ipsc"                                "data"                                    
+  #  [7] "bulk.data"                                "day.5"                                    "ctrl.1"                                  
+  # [10] "gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx" ""                                         "home"                                    
+  # [13] "kimlab"                                   ""                                         "kras.ipsc"                               
+  # [16] "data"                                     "bulk.data"                                "day.5"                                   
+  # [19] "ctrl.2"                                   "gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx" ""                                        
+  # [22] "home"                                     "kimlab"                                   ""                                        
+  # [25] "kras.ipsc"                                "data"                                     "bulk.data"                               
+  # [28] "day.5"                                    "ctrl.3"                                   "gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx"  
+  
+  
+  # AEDWIP I forgot why we did not use data.frame 
+  m <- matrix( tokensList, ncol=length(tokensListList[[1]]), byrow=TRUE)
+  #     [,1] [,2]   [,3]     [,4] [,5]        [,6]   [,7]        [,8]    [,9]     [,10]                                     
+  # [1,] ""   "home" "kimlab" ""   "kras.ipsc" "data" "bulk.data" "day.5" "ctrl.1" "gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx"
+  # [2,] ""   "home" "kimlab" ""   "kras.ipsc" "data" "bulk.data" "day.5" "ctrl.2" "gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx"
+  # [3,] ""   "home" "kimlab" ""   "kras.ipsc" "data" "bulk.data" "day.5" "ctrl.3" "gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx"
+
+  sampleType <- 7
+  dayIdx <- 8
+  condition <- 9
+  replicant <- condition + 1
+  
+  #
+  # parse into short tokens
+  #
+  
+  # select the first char
+  m[, sampleType] <-  substring( m[, sampleType], 1, 1)
+  
+  #
+  # clean up day
+  # exo form: gen1c.day.5.exo.input.data
+  # bulk form: day.5
+  #
+  
+  pattern <- 'gen1c.'
+  replaceStr <- ""
+  m[, dayIdx] <- str_replace(m[, dayIdx], pattern, replaceStr)
+  
+  pattern <- '.exo.input.data'
+  replaceStr <- ""
+  m[, dayIdx] <- str_replace(m[, dayIdx], pattern, replaceStr)
+  
+  # r is hacky
+  # https://stackoverflow.com/a/23413408/4586180
+  hackDF <- data.frame("dayNumStr"=m[, dayIdx])
+
+  
+  # select the last char
+  dayNum <- substr(hackDF$dayNumStr,nchar(hackDF$dayNumStr),nchar(hackDF$dayNumStr))
+  m[, dayIdx] <-  dayNum
+  
+  # split condition in condition and replicate
+  hackDF <- data.frame("condition"=m[, condition])
+  # data is something like 'ctrl.3'
+  # select first char
+  m[, condition] <- substr(hackDF$condition,1, 1)
+  # select last char
+  m[, replicant] <- substr(hackDF$condition, nchar(hackDF$condition), nchar(hackDF$condition))
+  
+  m <- m[, c(sampleType, dayIdx, condition, replicant)]
+  #       [,1] [,2] [,3] [,4]
+  # [1,] "b"  "5"  "c"  "1" 
+  # [2,] "b"  "5"  "c"  "2" 
+  # [3,] "b"  "5"  "c"  "3" 
+  
+  retList <- paste(m[,1], m[,2], m[,3], m[,4], sep='_')
+  # [1] "b_5_c_1" "b_5_c_2" "b_5_c_3"
+  return( retList )
+}
+
+# 
+# 
+# # test
+# result <- getCountDataColNames( fileList$bulkDay5CntrlSalmonFiles )
+# print(result)
+# result <- getCountDataColNames( fileList$exoDay5CntrlSalmonFiles )
+# result
+```
+
+
+```{r}
+########################################################################
+fixColNames <- function(fileList, dsCountsDF) {
+  # broke this out to make debug easier
+  #
+  # change column name to format "b_5_c_1" . if we have a
+  # small number of rows, ie. biotype, it would be easier to work with the data if
+  # it was denormalized. that is to say keep sampleType, treatment, and replicant id
+  # as separate columns. If we are in gene space this would add a lot of redundant data
+  
+  
+  newColNames <- list()
+  for ( dataSetName in names( fileList) ) {
+    #print(dataSetName)
+    l = unlist( fileList[dataSetName] )
+    colStr <- getCountDataColNames( l )
+    newColNames <- c(newColNames, colStr)
+  }
+  
+  colnames(dsCountsDF) <- unlist(newColNames)
+  return( dsCountsDF )
+}
+```
+
+
+## main
+```{r}
+runNomalization <- function(parametersList, dataSetNamesList) {
+    #parameters <- parametersList$TE.gene
+    for (dataSetName in dataSetNamesList) {
+      parameters <- parametersList[[dataSetName]]
+      error = missingParmeters(dataSetName, parameters )
+      
+      if (error ) {
+        next # ie continue in most languages
+      }
+
+      retList    <- loadAndNormlize(parameters)
+      dsCountsDF <- retList$ddsCountsDF
+      dds        <- retList$dds
+      fileList   <- retList$fileList
+      
+      dsCountsDF <- fixColNames(fileList, dsCountsDF)
+      saveNormalizedDF(dsCountsDF, parameters)
+      
+      retList    <- runDifferentialExpression(dds, parameters)
+      coefList <- retList[ "coefList" ]
+      unShrunkResults <- retList[ "unShrunkResults" ]
+      lfcShrinkResults <- retList[ "lfcShrinkResults" ]
+
+      # save results
+      # warning(paste("\nAEDWIP runNomalization coefList:", coefList))
+      # warning(paste("\nAEDWIP runNomalization coefList[1]:", coefList[1]))
+      # cat(paste("\n ???? [[1]]", coefList[[1]]))
+      # # cat(paste("\n ???? wtf", coefList[2]))
+      # cat(paste("\n ???? [[2]]", coefList[[2]]))
+      # cat(paste("\n ???? 1 1", coefList[1][1]))
+      # cat(paste("\n ???? 1 2", coefList[1][2]))
+      # warning(paste("\nAEDWIP runNomalization coefList[2]:", coefList[2]))
+      
+      # coefList$coefList12]
+      # [1] "Intercept"
+      # coefList$coefList[2]
+      # [1] "diseaseState_PDAC_vs_healthy"
+      
+      nameAEDWIP = paste0(coefList$coefList[2], ".unShrunk")
+      saveResults( unShrunkResults, nameAEDWIP, parameters )
+      nameAEDWIP = paste0(coefList$coefList[2], ".lfcShrink")
+      saveResults( lfcShrinkResults, nameAEDWIP, parameters )
+      
+  }
+}
+```
+
+## Run
+```{r}
+# use trace to set debug break point in package
+# trace("tximport", edit=TRUE)
+# trace("getTETBioTypeMapper", edit=TRUE)
+
+#dataSetNamesList <- list('KRAS.IPSC.day.5.gene', 'KRAS.IPSC.day.7.gene')
+dataSetNamesList <- list('KRAS.IPSC.day.7.gene')
+#dataSetNamesList <- list('ENST', 'HGNC')
+
+runNomalization(parametersList, dataSetNamesList)
+```
+
+## test functions
+```{r}
+# sqnlist <- SALMON_QUANT_SF_NAMES_LIST()#$ENSG
+# mapToList <- c(sqnlist$BIO_TYPE, sqnlist$ENSG, sqnlist$ENST)
+# for (mapToId in mapToList) {
+#   print(      SALMON_QUANT_SF_NAMES_LIST()[mapToId] )
+#   print(names(SALMON_QUANT_SF_NAMES_LIST()[mapToId]))
+# }
+# 
+# endTime <- Sys.time()
+# print( endTime - startTime )
+```
+
+## debug
+```{r}
+# debugSaveResults <- function() {
+#   source("DESeqUtils.R") # assume file in in same directory as current Rmd
+#   name="aedwip"
+#   testSet = 'debug'
+#   parameters = parametersList[[testSet]]
+#   saveResults( results, name, parameters )
+# }
+# 
+# debugSaveResults()
+
+```
+
+# record total run time
+```{r}
+endTime <- Sys.time()
+print( endTime - startTime )
+```

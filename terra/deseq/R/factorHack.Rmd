@@ -1,0 +1,45 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+
+```{r}
+f1 <- factor( c("small", "large", "large", "small", "medium") )
+print(f1)
+f2 <- factor( c( 'a', 'b', 'c',  'a', 'a') )
+print(f2)
+x <- c(10.1, 10.2, 10.3, 10.5, 10.5)
+```
+
+create data frame
+
+```{r}
+df <- data.frame(x, f1, f2)
+df
+```
+
+
+```{r}
+levels( df$f1)
+```
+
+
+```{r}
+variableOfInterest <- "f1"
+print(df[variableOfInterest] )
+print( levels( df[variableOfInterest][,1] ) )
+
+```
+
+
+```{r}
+df[variableOfInterest][,1] <- relevel( df[variableOfInterest][,1], "small")
+df
+```
+```{r}
+levels( df[variableOfInterest][,1] )
+```
+
+

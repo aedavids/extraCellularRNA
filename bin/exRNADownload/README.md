@@ -41,6 +41,10 @@ sshd───bash
 
 sshd───bash───pstree
 ```
+- killing all the childred
+```
+kill -TERM -[pgid]
+```
 
 ## Down load instructions
 - FASTQ files are big. You may want to test using the meta files. They are much smaller

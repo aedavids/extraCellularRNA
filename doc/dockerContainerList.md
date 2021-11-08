@@ -1,5 +1,21 @@
 # keep track of where our containers came from
 
+
+- aedavids/extra_cellular_rna_2_01
+  - 9/26/21
+  - f066b0f29758
+  - extraCellularRNA/bin/dockerFile.extra_cellular_RNA
+  - FROM bioconductor/bioconductor_docker:RELEASE_3_13
+
+
+*** 
+# <span style="color:red">deprecated 9/26/21
+This images where created by starting the container, running install 
+command on the cli, then commiting the new image. 
+
+- This is easy to reproduce
+- makes it hard to know what was installed
+
 - rocker/rstudio:4.0.0-ubuntu18.04
     + aedavids/ggplot2
     

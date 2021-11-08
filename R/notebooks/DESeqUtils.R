@@ -172,6 +172,10 @@ getDESeqDataSet <- function(rootDir,
   # TPM (transcripts-per-million), while the counts are estimated counts 
   # (possibly fractional), and the "length" matrix contains the effective gene lengths
   #
+  # abundance == double, TPM column in salmon quant.sf
+  # counts    == double, numReads Column in salmon quant.sf
+  # length    == intetger , effective length column in salmon quant.sf
+  #
   # argument ignoreAfterBar whether to split the tx id on the '|' character to
   # facilitate matching with the tx id in transcriptMapperDF, ie tx2gene
   #
@@ -262,11 +266,13 @@ loadAndNormlize <- function(parameters) {
   
   # warning("aedwip remove browser load()")
   # browser()
+  
+  design <- as.formula( parameters$'designStr' )
   ddsList <- getDESeqDataSet(rootDir=parameters$rootDir,
                              tx2MappingFilePath,
                              findFilesFunc= parameters$findFilesFunc, 
                              getColDFFunc=parameters$getColDFFunc,
-                             design=~ diseaseState,
+                             design=design,
                              transcriptMapperDF,
                              ignoreAfterBar=ignoreAfterBar,
                              txOut=parameters$txOut)

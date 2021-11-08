@@ -2,7 +2,8 @@
 see /Users/andrewdavidson/googleUCSC/kimLab/docker/gettingStarted/notes.md
 see /Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/dockerContainerList.md
 
-[https://www.docker.com/101-tutorial](https://www.docker.com/101-tutorial)
+- [https://www.docker.com/101-tutorial](https://www.docker.com/101-tutorial)
+- [more complete tutorial](https://takacsmark.com/dockerfile-tutorial-by-example-dockerfile-best-practices-2018/)
 
 todo: pick up at [http://localhost/tutorial/multi-container-apps/](http://localhost/tutorial/multi-container-apps/)
 
@@ -262,3 +263,55 @@ plaza $ rm -i /scratch/aedavids/*
 mustard $ rm -i ~/tmp/*
 ```
 
+
+10. get runtime stats from with the container
+for unknow reason app.terra.bio does not seem to respect our runtime configuration.
+We need to give the container more memory to prevent salmon from crashing. [https://www.datadoghq.com/blog/how-to-collect-docker-metrics/
+](https://www.datadoghq.com/blog/how-to-collect-docker-metrics/
+)
+
+as a test I used extraCellularRNA/bin/startRStudioServer.sh to start a docker container on mustard.
+
+ssh onto mustard then connect to the contain
+```
+$ docker exec -it <container name> /bin/bash
+```
+
+get memory releated stats
+```
+root@be45d0a184be:/# cat /sys/fs/cgroup/memory/memory.kmem.limit_in_bytes 
+9223372036854771712
+
+root@be45d0a184be:/# cat /sys/fs/cgroup/memory/memory.stat 
+cache 139583488
+rss 4206592
+rss_huge 0
+mapped_file 6574080
+swap 0
+pgpgin 368752
+pgpgout 333647
+pgfault 1484463
+pgmajfault 402
+inactive_anon 2228224
+active_anon 1929216
+inactive_file 41877504
+active_file 97697792
+unevictable 0
+hierarchical_memory_limit 9223372036854771712
+hierarchical_memsw_limit 9223372036854771712
+total_cache 139583488
+total_rss 4206592
+total_rss_huge 0
+total_mapped_file 6574080
+total_swap 0
+total_pgpgin 368752
+total_pgpgout 333647
+total_pgfault 1484463
+total_pgmajfault 402
+total_inactive_anon 2228224
+total_active_anon 1929216
+total_inactive_file 41877504
+total_active_file 97697792
+total_unevictable 0
+root@be45d0a184be:/# 
+```

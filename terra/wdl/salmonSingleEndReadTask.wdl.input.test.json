@@ -1,0 +1,12 @@
+{
+  "salmon_quant.salmon_single_end_read_task.runTimePreemptible": "Int (optional, default = 3)",
+  "salmon_quant.salmon_single_end_read_task.runTimeCpu": "Int (optional, default = 8)",
+  "salmon_quant.salmon_single_end_read_task.diskSpaceGb": "Int (optional, default = 80)",
+  "salmon_quant.salmon_single_end_read_task.dockerImg": "String (optional, default = \"quay.io/biocontainers/salmon:1.4.0--hf69c8f4_0\")",
+  "salmon_quant.salmon_single_end_read_task.refIndexTarGz": "File",
+  "salmon_quant.salmon_single_end_read_task.outDir": "String (optional, default = \"salmon.out\")",
+  "salmon_quant.salmon_single_end_read_task.memoryGb": "Int (optional, default = 64)",
+  "salmon_quant.salmon_single_end_read_task.sampleId": "String",
+  "salmon_quant.salmon_single_end_read_task.fastq": "File"
+}
+

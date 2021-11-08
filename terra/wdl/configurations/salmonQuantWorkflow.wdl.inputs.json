@@ -1,0 +1,14 @@
+{
+  "quantify.salmon_paired_reads.outDir": "${}",
+  "quantify.bamToFastq.runtime_preemptible": "${}",
+  "quantify.salmon_paired_reads.runTimePreemptible": "${}",
+  "quantify.salmon_paired_reads.memoryGb": "${}",
+  "quantify.inputBam": "${this.bam_file}",
+  "quantify.sampleId": "${this.sample_id}",
+  "quantify.salmon_paired_reads.runTimeCpu": "${}",
+  "quantify.salmon_paired_reads.dockerImg": "${}",
+  "quantify.refIndexTarGz": "gs://fc-secure-f5aa8a37-78e5-45f6-9c59-c643016f7d97/sel.align.gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx.tar.gz",
+  "quantify.bamToFastq.diskSpaceGb": "${}",
+  "quantify.salmon_paired_reads.diskSpaceGb": "${}",
+  "quantify.bamToFastq.memoryGb": "${}"
+}

@@ -38,6 +38,7 @@ library("tximport")
 source("DESeqUtils.R") # assume file in in same directory as current Rmd
 source("findFiles.R") # assume file in in same directory as current Rmd
 source("te.R") # assume file in in same directory as current Rmd
+source("deseqCountUtils.R")
 ```
 
 ## Find all the salmon estimated transcript count files
@@ -68,7 +69,9 @@ parametersList <- list(
     #       if you are trying to normalize transcript and not map them to
     #       genes, or biotype, setting txOut=TRUE reduces required memory
     #       this allows use gencode.v35.ucsc.rmsk.tx.to.gene.csv    
-    'txOut'=FALSE
+    'txOut'=FALSE,
+    
+    'designStr' = "~ diseaseState"
   ),
   'TE.bioType'=list(
     'rootDir' = "/home/kimlab/pancreas.plasma.ev.long.RNA",
@@ -82,7 +85,8 @@ parametersList <- list(
     'normalizedFileName'='pancreas.plasma.ev.long.RNA.normalized.deseq',
     'transcriptMapperDFFunc'=getTETBioTypeMapper,
     'ignoreAfterBar'=FALSE,
-    'txOut'=FALSE
+    'txOut'=FALSE,
+    'designStr' = "~ diseaseState"    
     ),
 
   'TE.gene'=list(
@@ -100,7 +104,8 @@ parametersList <- list(
     # facilitate matching with the tx id in tx2gene (default FALSE)
     #'ignoreAfterBar'=FALSE #bug we do not get gene names in output
     'ignoreAfterBar'=FALSE,
-    'txOut'=FALSE
+    'txOut'=FALSE,
+    'designStr' = "~ diseaseState"    
     ),
   
  'TE.tx'=list(
@@ -116,7 +121,8 @@ parametersList <- list(
     'transcriptMapperDFFunc'=getTETxMapper,
     #'ignoreAfterBar'=FALSE, # crash
     'ignoreAfterBar'=TRUE,
-    'txOut'=TRUE
+    'txOut'=TRUE,
+    'designStr' = "~ diseaseState"
     ),  
   
   #
@@ -134,7 +140,8 @@ parametersList <- list(
     'normalizedFileName'='pancreas.plasma.ev.long.RNA.normalized.deseq',
     'transcriptMapperDFFunc'=getBiotypeMapper,
     'ignoreAfterBar'=TRUE,
-    'txOut'=FALSE
+    'txOut'=FALSE,
+    'designStr' = "~ diseaseState"
     ),
 
   'ENST'=list(
@@ -158,46 +165,12 @@ parametersList <- list(
     'outputRoot' = "/home/aedavids/extraCellularRNA/data/R/output",
     'transcriptMapperDFFunc'=getHGNCMapper,
     'ignoreAfterBar'=TRUE,
-    'txOut'=FALSE
+    'txOut'=FALSE,
+    'designStr' = "~ diseaseState"
     )
 )
 ```
 
-Make sure parameters are not missing values
-
-```{r}
-missingParmeters <- function( warningLabel, parameterList) {
-  #cat( "AEDWIP ", names(parameterList))
-  error = FALSE
-  keyList = list('rootDir', 'findFilesFunc', 'getColDFFunc', 'tx2MappingFile', 
-                 'tx2MappingDir', 'mapToIdName', 'normalizedFileName', 
-                 'outputRoot', 'transcriptMapperDFFunc',
-                  'ignoreAfterBar', 'txOut')
-  
-  for (key in keyList) {
-    if (! exists(key, parameterList) ) {
-      error = TRUE
-      # warning( paste(warningLabel, key, " is missing") )
-      warning( paste("\n", warningLabel, key," is missing")  )
-    }
-  }
-  
-  # find unexpected parameters. probably spelling error
-  badKeys = setdiff( names(parameterList), keyList )
-  if ( length(badKeys) != 0 ) {
-    warning(paste("\n", warningLabel, "unknown keys", badKeys))
-  }
-  
-  return( error )
-}
-
-# test driver
-testSet = 'debug'
-isMissing = missingParmeters(testSet, parametersList[[testSet]])
-if (isMissing) {
-  warning('\nERROR')
-}
-```
 
 ```{r}
 getCountDataColNames <- function( fileList ) {
@@ -362,4 +335,3 @@ print( endTime - startTime )
 # debugSaveResults()
 
 ```
-

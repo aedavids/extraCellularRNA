@@ -1,0 +1,121 @@
+---
+title: "reverse engineer DESeq"
+output:
+  html_document:
+    df_print: paged
+---
+
+Goal: we want to create a signature matrix from the GTEx gene experssion
+profiles we computed on Terra. We run '1 vs all' differential experssion across
+all the tissue type to find the signatue tissue specific genes
+
+challenge: we have something like 1.5Tb of GEPs DESeq is a monolithic
+application.
+
+can we split our data into small sets and and recombin it or should we port to
+apache spark?
+
+Also DESeq is very complicated, It is hard to understand what is actually going
+let alone what we should be doing. It is hard to understand the math in the
+original paper
+
+# Vignette quick start
+```{r}
+# dds <- DESeqDataSetFromMatrix(countData = cts,
+#                               colData = coldata,
+#                               design= ~ batch + condition)
+# dds <- DESeq(dds)
+# resultsNames(dds) # lists the coefficients
+# res <- results(dds, name="condition_trt_vs_untrt")
+# # or to shrink log fold changes association with condition:
+# res <- lfcShrink(dds, coef="condition_trt_vs_untrt", type="apeglm")
+```
+
+# Roman's comments
+drylab slack channel 9/25/21
+ref: can we partition our data, run DESeq and the combine the resutls
+
+If we’re going to do what we discussed, you’ll need to create a count matrix (rows: genes, cols: samples) and a matching colData matrix (key:value — sample;condition) then load them into DEseq with:
+
+```{r}
+# dds.gxi <- DESeqDataSetFromMatrix(countData = count.matrix.gxi, 
+#                                     colData = colData.gxi, 
+#                                     design = as.formula(~condition))
+```
+
+Then caluclate the norms
+```{r}
+  # dds.gxi <- estimateSizeFactors(dds.gxi)
+  # 
+  # dds.gxi.norm.counts <- as.data.frame(counts(dds.gxi, normalized=T))
+```
+
+
+# What I have been doing
+ref: mac ~//googleUCSC/kimLab/extraCellularRNA/R/notebooks/pancreas.plasma.ev.long.RNA.DESeq.normalize.nb.html
+
+# DESeq() what is the default value for fitType argument?
+
+ref: core.r line 279
+
+```{r}
+whatIsFitTypeDefault <- function( test=c("Wald","LRT"),
+                  fitType=c("parametric","local","mean", "glmGamPoi"),
+                  sfType=c("ratio","poscounts","iterate")
+                  ) {
+  # check arguments
+  test <- match.arg(test, choices=c("Wald","LRT"))
+  fitType <- match.arg(fitType, choices=c("parametric","local","mean","glmGamPoi"))
+  
+  print( sprintf("fitType: %s", fitType))
+}
+
+whatIsFitTypeDefault()
+```
+
+# digging through the documentation 
+
+## DESeq()
+Differential expression analysis based on the Negative Binomial (a.k.a. Gamma-Poisson) distribution
+Description
+
+This function performs a default analysis through the steps:
+1. estimation of size factors: estimateSizeFactors
+2. estimation of dispersion: estimateDispersions
+3. Negative Binomial GLM fitting and Wald statistics: nbinomWaldTest
+
+## step 1) Estimate the size factors for a DESeqDataSet
+
+```{r}
+# dds <- estimateSizeFactors(dds)
+```
+
+dds is a DESeqDataSet object
+
+default type is "ratio". Ratio uses the standard median ratio method introduced in DESeq. The size factor is the median ratio of the sample over a "pseudosample": for each gene, the geometric mean of all samples. 
+
+## step 2) Estimate the dispersions for a DESeqDataSet
+
+```{r}
+# dds <- estimateDispersions(dds)
+```
+
+optional argument 'fitType' default values is 'parametric'. Roman says "if parametric
+fails it will use 'local'"
+
+either "parametric", "local", "mean", or "glmGamPoi" for the type of fitting of dispersions to the mean intensity.
+
+* parametric - fit a dispersion-mean relation of the form:
+  dispersion = asymptDisp + extraPois / mean
+
+* via a robust gamma-family GLM. The coefficients asymptDisp and extraPois are given in the attribute coefficients of the dispersionFunction of the object.
+
+* local - use the locfit package to fit a local regression of log dispersions over log base mean (normal scale means and dispersions are input and output for dispersionFunction). The points are weighted by normalized mean count in the local regression.
+
+* mean - use the mean of gene-wise dispersion estimates.
+
+* glmGamPoi - use the glmGamPoi package to fit the gene-wise dispersion, its trend and calculate the MAP based on the quasi-likelihood framework. The trend is calculated using a local median regression.
+
+### details
+The fitting proceeds as follows: for each gene, an estimate of the dispersion is found which maximizes the Cox Reid-adjusted profile likelihood (the methods of Cox Reid-adjusted profile likelihood maximization for estimation of dispersion in RNA-Seq data were developed by McCarthy, et al.(2012)
+

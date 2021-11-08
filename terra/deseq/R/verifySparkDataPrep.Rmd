@@ -1,0 +1,333 @@
+---
+title: "verify spark notebook 'prepareDataForDESeq2'"
+output: html_notebook
+---
+
+Goal: check extraCellularRNA/juypterNotebooks/spark/prepareDataForDESeq2.ipynb
+parse the salmon quant files and esimtate the scaling factors
+the same way DESeq2 does. Follow the quick start
+
+http://bioconductor.org/packages/release/bioc/vignettes/DESeq2/inst/doc/DESeq2.html#count-matrix-input
+
+## DESeq:DESeq Differential expression analysis based on the Negative Binomial (a.k.a. Gamma-Poisson) distribution 
+
+### Description
+This function performs a default analysis through the steps:
+
+1. estimation of size factors: estimateSizeFactors
+
+2. estimation of dispersion: estimateDispersions
+
+3. Negative Binomial GLM fitting and Wald statistics: nbinomWaldTest
+
+
+
+```{r include = FALSE, message = FALSE, warning=FALSE}
+# TODO add 
+# 1. matrix load test,
+# 2. matrix load test with scaling factors. chnange scaling factors 
+# if code works correctly we should see different results
+# 3. paritioning
+
+# use local copy of deseq2 and tximport source to make debug
+# easier
+#https://support.rstudio.com/hc/en-us/articles/200486488-Developing-Packages-with-RStudio
+# tools -> project options -> package
+# enter path 
+# build -> clean and rebuild
+library(DESeq2)
+
+library("tximport")
+library( "readr" )
+```
+
+
+
+```{r}
+dataDir <- "/home/rstudio/extraCellularRNA/juypterNotebooks/spark/testData/sparkDESeqTest2"
+  
+# created by extraCellularRNA/juypterNotebooks/spark/prepareDataForDESeq2.ipynb
+sparkDataRoot <- "/home/rstudio/extraCellularRNA/juypterNotebooks/spark/testData/sparkDESeqTest2/output"
+```
+
+```{r}
+loadScalingFactors <- function(colDataDF, tsvfile) {
+  # returns a data frame with a 'sizeFactor' column
+  # this should prevent DESeq from calculating the scaling factors
+  
+  cat( sprintf("loading scaling factor file: %s\n", tsvfile) )
+  scaleDF <- read.table( tsvfile, sep="\t" )
+  
+  # merge implements inner join
+  names( scaleDF ) <- c( "sampleName", "sizeFactor")
+  retDF <- merge(x=colDataDF, y=scaleDF, by = "sampleName" )  
+  
+  return( retDF )
+}
+
+loadColData <- function(colDataCSVFile) {
+  # colDFFile <- paste(dataDir, "colData.csv", sep="/")
+  colDF <- read_csv(colDataCSVFile)
+  colDF$sampleType <- as.factor( colDF$sampleType )
+  colDF$treatment <- as.factor( colDF$treatment )
+  
+  return(colDF)
+}
+```
+
+# Happy case
+let DESeq load counts froms sample quant files and calculate scaling factors
+```{r}
+deseqSalmonHappy <- function(dataDir, colDataCSVFile, scalingFactorTSVFile ) {
+  # reads counts from salmon quant files, 
+  # if scalingFactorTSVFile is missing then 
+  #   then DESeq will calculate scaling factors
+  #   else DESeq wil use factors from file
+  
+  
+  # quant files created by
+  #/home/rstudio/extraCellularRNA/juypterNotebooks/spark/testData/sparkDESeqTest2/createTestData.ipynb
+  
+  # create list of salmon files RNA/juypterNotebooks/spark/testData/sparkDESeqTest2"
+  sampleNames <- list( "ctrl_1", "ctrl_2", "ctrl_3", "kras_1", "kras_2", "kras_3" )
+  # dataDir <- "/home/rstudio/extraCellularRNA/juypterNotebooks/spark/testData/sparkDESeqTest2"
+  fileList <- paste0( paste(dataDir, sampleNames, sep="/"), ".quant.sf" )
+  
+  if (! all(file.exists(fileList)) ) {
+    cat(fileList, "\n")
+    stop("missing files")
+  } 
+  
+  # load tx id to gene mapping
+  tx2MappingFilePath <- paste(dataDir, "txId2GeneId.csv", sep="/")
+  transcriptMapperDF <- read_csv(tx2MappingFilePath, col_names=c('tx', 'gene'))
+  
+  txi <- tximport( fileList,
+                type="salmon", 
+                tx2gene=transcriptMapperDF )
+                # ,ignoreAfterBar=TRUE)
+                # txOut=TRUE)
+
+
+
+  # get the meta data for each column of count data.
+  colDF <- loadColData(colDataCSVFile)
+  
+  if ( ! missing(scalingFactorTSVFile) ) {
+    # if we load the scaling factors we should not need to calc them again
+    colDF <- loadScalingFactors(colDF, scalingFactorTSVFile) 
+  } 
+  else {
+    cat("DESeq will calculate scaling factors \n")
+  }
+  
+  'designStr'="~ treatment" # is this correct design?
+  ddsDataSet <- DESeqDataSetFromTximport(txi, colData=colDF, as.formula(designStr))
+  
+  dds <- DESeq(ddsDataSet)
+  res <- results(dds)
+  
+  return( res )
+}
+```
+
+
+
+# figure out how to use precalculated scaling factors
+
+refernce results when we let DESeq load Salmon quant files and
+calculate scaling factors
+```
+> res <- results(dds)
+> res
+log2 fold change (MLE): treatment kras vs ctrl 
+Wald test p-value: treatment kras vs ctrl 
+DataFrame with 8 rows and 6 columns
+        baseMean log2FoldChange     lfcSE         stat    pvalue      padj
+       <numeric>      <numeric> <numeric>    <numeric> <numeric> <numeric>
+gene_1    0.0000             NA        NA           NA        NA        NA
+gene_2   34.7851    1.75223e-06  0.792241  2.21174e-06  0.999998  0.999998
+gene_3   31.6228    5.84964e-01  1.005125  5.81982e-01  0.560579  0.999998
+gene_4   41.1096    1.77308e-06  0.783193  2.26391e-06  0.999998  0.999998
+gene_5   44.2719    1.78361e-06  0.779577  2.28792e-06  0.999998  0.999998
+gene_6   47.4342    1.79409e-06  0.776414  2.31074e-06  0.999998  0.999998
+gene_7   50.5964    1.80436e-06  0.773594  2.33244e-06  0.999998  0.999998
+gene_8  171.3427   -7.98578e-03  0.742488 -1.07554e-02  0.991419  0.999998
+```
+
+# load expected happy case test results
+```{r}
+expectedOutFile <- "/home/rstudio/extraCellularRNA/terra/deseq/R/verifySparkDataPrep.expected.out.csv"
+expectedDF <- as.data.frame( read_csv(expectedOutFile) )
+
+# fix first col name 
+# read_csv assumes the first column is data not the index
+expectedDF <- data.frame(expectedDF[,-1], row.names = expectedDF[,1])
+
+```
+
+# run happy case test. DESeq reads salmon files and computes scaling factors
+In output you should see 'estimating size factors'
+```{r}
+happyCaseTest<- function() {
+  colDataCSVFile <- paste(dataDir, "colData.csv", sep="/")
+  happyRet <- deseqSalmonHappy(dataDir, colDataCSVFile)
+  happyDF <- as.data.frame( happyRet )
+  #write.csv( as.data.frame(happyDF), file=expectedOutFile )
+  
+  # all.equal is really nearly all equal
+  # default tolerance is close to 1.5e-8
+  if ( ! all.equal(happyDF, expectedDF) ) {
+    stop("ERROR deseqSalmonHappy() failed happyDF != expectedDF")
+  }
+}
+
+happyCaseTest()
+```
+
+# test loading scaling factors from a file
+In output you should see using pre-existing size factors
+```{r}
+happyScalingFactorTest <- function() {
+  extScaleFile <- paste(sparkDataRoot, "estimatedScalingFactors.tsv", sep = "/")
+  
+  colDFataFile <- paste(dataDir, "colData.csv", sep="/")
+  loadScalignFacorsRet <- deseqSalmonHappy( dataDir, colDFataFile, extScaleFile )
+  loadScalignFacorsDF <- as.data.frame( loadScalignFacorsRet )
+  
+  # all.equal is really nearly all equal
+  # default tolerance is close to 1.5e-8
+  if ( ! all.equal(loadScalignFacorsDF, expectedDF) ) {
+    stop("ERROR deseqSalmonHappy( extScaleFile ): loadScalignFacorsDF != expectedDF")
+  }
+}
+
+happyScalingFactorTest()
+```
+
+
+# Happy case: 
+load all counts from a single csv files. Let DESeq calculate scaling factors
+In output you should see 'estimating size factors'
+```{r}
+happyMatrixTest <- function(groupByGeneIdCountFile,  
+                            scalingFactorTSVFile) {
+
+  errMsg <- "R SUCKS"
+  
+  groupByGeneCountDF <- read.table(groupByGeneIdCountFile, header=TRUE, sep="\t")
+  geneNameVector <- groupByGeneCountDF$geneId
+  
+  # select all but samples, first column is transcript name
+  geneCountsDF <- groupByGeneCountDF[,-1]
+  geneCountsCountMatrix <- as.matrix(geneCountsDF)
+  
+  rownames( geneCountsCountMatrix ) <- geneNameVector
+  geneCountsCountMatrix
+  
+  colDataFile <- paste(dataDir, "colData.csv", sep="/")
+  colDataDF <- loadColData(colDataFile)
+  
+  #cat( sprintf("\n************** scalingFactorTSVFile: %s\n", scalingFactorTSVFile) )
+  if ( ! missing(scalingFactorTSVFile) ) {
+    # if we load the scaling factors we should not need to calc them again
+    colDataDF <- loadScalingFactors(colDataDF, scalingFactorTSVFile) 
+  } 
+  else {
+    cat("DESeq will calculate scaling factors \n")
+  }
+  
+  #create a DESeqDataSetFromMatrix object
+  ddsDataSet <- DESeqDataSetFromMatrix(countData = geneCountsCountMatrix,
+                                colData = colDataDF,
+                                design= as.formula("~ treatment"))
+  
+  dds <- DESeq(ddsDataSet)
+  happyMatrixRet <- results(dds)
+  happyMatrixRet
+  
+  happyMatrixDF <- as.data.frame( happyMatrixRet )
+  # sort by row name so that rows aer in the same order as expectedDF
+  happyMatrixDF <- happyMatrixDF[sort( rownames(happyMatrixDF) ) , ]
+  
+  
+  return( happyMatrixDF )
+}
+
+runHappyMatrixText <- function(sparkDataRoot, expectedDF) {
+  partFile <- "txidGroupedByGeneidCounts/part-00000-7e98b782-78d7-4d6d-9c5e-43fa76f321ef-c000.csv"
+  groupByGeneIdCountFile <- paste(sparkDataRoot, partFile, sep = "/")
+  errMsg <- "ERROR happyMatrixTest() failed happyMatrixDF != expectedDF"
+  happyMatrixDF <- happyMatrixTest(groupByGeneIdCountFile)
+  if ( ! all.equal(happyMatrixDF, expectedDF) ) {
+    stop(errorMsg)
+  }
+}
+
+runHappyMatrixText(sparkDataRoot, expectedDF)
+```
+
+
+# test happy matrix loading scaling factors from a file
+In output you should see using pre-existing size factors
+```{r}
+happyMatrixScalingTest <- function() {
+  partFile <- "txidGroupedByGeneidCounts/part-00000-7e98b782-78d7-4d6d-9c5e-43fa76f321ef-c000.csv"
+  groupByGeneIdCountFile <- paste(sparkDataRoot, partFile, sep = "/")
+  errMsg <- "ERROR happyMatrixTest() failed happyMatrixDF != expectedDF"
+  
+  extScaleFile <- paste(sparkDataRoot, "estimatedScalingFactors.tsv", sep = "/")
+  happyMatrixTest(groupByGeneIdCountFile, extScaleFile )
+}
+
+runHappyMatrixScalingText <- function(expectedDF) {
+  happyMatrixDF <- happyMatrixScalingTest()
+  if ( ! all.equal(happyMatrixDF, expectedDF) ) {
+    stop(errorMsg)
+  }
+}
+
+runHappyMatrixScalingText(expectedDF)
+```
+
+
+# matrix partition test
+```{r}
+partFiles <- c(
+  # 3 file DESeq error
+  # Error in estimateDispersionsFit(object, fitType = fitType, quiet = quiet) : 
+  # all gene-wise dispersion estimates are within 2 orders of magnitude
+  # 'part-00000-5a8d8a4e-eded-49bb-816e-552f21cb3ef3-c000.csv',
+  # 'part-00001-5a8d8a4e-eded-49bb-816e-552f21cb3ef3-c000.csv',
+  # 'part-00002-5a8d8a4e-eded-49bb-816e-552f21cb3ef3-c000.csv'
+  
+  # 'part-00000-468e5d3d-b7d5-446f-a93c-5ded73f6d9f9-c000.csv',
+  # 'part-00001-468e5d3d-b7d5-446f-a93c-5ded73f6d9f9-c000.csv'
+  
+  'part-00000-d06823ab-b0fb-49c2-a6f4-b6fb9e428dc9-c000.csv',
+  'part-00001-d06823ab-b0fb-49c2-a6f4-b6fb9e428dc9-c000.csv',
+  'part-00002-d06823ab-b0fb-49c2-a6f4-b6fb9e428dc9-c000.csv'
+)
+
+deseqPartsList <- list()
+extScaleFile <- paste(sparkDataRoot, "estimatedScalingFactors.tsv", sep = "/")
+for (i in 1:length(partFiles) ) {
+  partFile <- partFiles[i]
+  groupByGeneIdCountPartFile <- paste(sparkDataRoot, 
+                                      'txidGroupedByGeneidCountsParts',
+                                      partFile, sep="/")
+  cat(groupByGeneIdCountPartFile, "\n")
+  deseqPartDF <- happyMatrixTest(groupByGeneIdCountPartFile, extScaleFile )
+  deseqPartsList <- append(deseqPartsList, deseqPartDF)
+}
+
+# partFile <- "txidGroupedByGeneidCounts/part-00000-7e98b782-78d7-4d6d-9c5e-43fa76f321ef-c000.csv"
+#   groupByGeneIdCountFile <- paste(sparkDataRoot, partFile, sep = "/")
+#   errMsg <- "ERROR happyMatrixTest() failed happyMatrixDF != expectedDF"
+#   
+#   extScaleFile <- paste(sparkDataRoot, "estimatedScalingFactors.tsv", sep = "/")
+#   happyMatrixTest(groupByGeneIdCountFile, extScaleFile )
+  
+#txidGroupedByGeneidCountsParts
+```
+

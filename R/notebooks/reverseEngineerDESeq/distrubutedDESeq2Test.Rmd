@@ -1,0 +1,267 @@
+---
+title: "Distributed DESeq2 Test"
+output: html_notebook
+---
+
+# can DESeq be run in parts?
+We have 1.5 Tb of GTEx salmon quant.sf files from over 17,000 sample. DESeq runs
+on a single machine. Can we partiion the sample and run them seperately then 
+recombine the part? i.e. the combind parts should be identical to result
+creating running every thing on one machine
+
+## General approach
+1. get the normalized counts 
+  normalization sums across all gene rows, and all sample columns
+2. partion the original count matrix, and normalized counts
+3. run DESeq on each part 
+4. combin the parts
+
+To test we will create a simple example by hand
+
+Notes accessor functions are of the form
+
+counts(dds) # get
+counts(dds) < -value # set
+
+```{r include=FALSE}
+# produce a lot of output we do not want to see
+library("DESeq2")
+```
+
+
+## step 1 create sample data
+
+```{r}
+nGenes = 8 
+numCtrlSamples = 2
+numTreatmentSamples = 2
+nSamples = numCtrlSamples + numTreatmentSamples
+nClasses = 2
+
+# create the control samples
+c1 <- seq(from=10, to=80, by=10)
+c2 <- c1 + 2
+
+# create the treatment samples
+t1 <- c1
+
+# over express 1 first and 3rd gene
+overExprGenesList <- c( 1, 3 )
+t1[ overExprGenesList ] <- c1[ overExprGenesList ] * 2**3
+
+t2 <- t1 + 2
+
+countMatrix <- matrix( c(c1, c2, t1, t2), ncol=nSamples)
+countMatrix
+```
+
+
+## Step 2, run through the vignette quick start example
+
+```{r}
+
+# create the column meta data
+sampleType <- c( rep('control', numCtrlSamples), rep('treatment', numTreatmentSamples) )
+sampleType <- factor( sampleType )
+
+colData <- data.frame( sampleType )
+
+# check levels. by default R choose alphabetic order
+# we need to make sure the control level is first or use the contrast argument
+# in DESeq package. You can also use factor relevel()
+levels(colData$sampleType)
+cat(colData$sampleType)
+cat("\n")
+# create a DESeqDataSetFromMatrix object
+dds <- DESeqDataSetFromMatrix(countData = countMatrix,
+                              colData = colData,
+                              design= ~ + sampleType)
+```
+
+```{r}
+counts(dds)
+```
+
+```{r}
+design( dds )
+```
+
+## We can not run the DESeq(dds) with the default values. 
+
+we get an error msg
+
+"all gene-wise dispersion estimates are within 2 orders of magnitude
+from the minimum value, and so the standard curve fitting techniques will not work."
+
+The error msg include a work around
+
+TODO: use rnbinom() to generate our test data
+
+ref:
+
+* [What is the R rnbinom negative binomial dispersion parameter?](https://stats.stackexchange.com/questions/243899/what-is-the-r-rnbinom-negative-binomial-dispersion-parameter)
+* [NegBinomial {stats}](https://stat.ethz.ch/R-manual/R-devel/library/stats/html/NegBinomial.html)
+* [rnegbin {MASS}](https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/rnegbin.html)
+
+## work around step 1) Estimate the size factors for a DESeqDataSet
+
+default type is "ratio". Ratio uses the standard median ratio method introduced in DESeq. The size factor is the median ratio of the sample over a "pseudosample": for each gene, the geometric mean of all samples. 
+
+```{r}
+dds <- estimateSizeFactors(dds)
+sizeFactors( dds )
+
+cat("\n now that we have size factors we can get normalized counts\n")
+counts(dds, normalized=TRUE) # get()
+``` 
+
+## work around step 2) Estimate the dispersions for a DESeqDataSet work around
+
+```{r}
+dds <- estimateDispersionsGeneEst(dds)
+print( mcols(dds) )
+
+dispersions(dds) <- mcols(dds)$dispGeneEst # set
+cat("\n gene dispersions\n") 
+dispersions(dds)
+```
+
+## work around step 3) Negative Binomial GLM fitting and Wald statistics: nbinomWaldTest
+
+```{r}
+dds <- nbinomWaldTest(dds)
+print( mcols(dds) )
+```
+
+get the resuls
+```{r}
+# get a list of result coefficients
+resultsNames( dds ) 
+```
+
+## save our expected results
+```{r}
+# results takes a name argument. by default we sampleType treatment vs control 
+# see the documentation there are lots of arguments
+expectedDESeqResults <- results(dds)
+expectedDESeqResults
+```
+
+------ 
+***
+****
+
+# Can we parition out data and get the same results?
+
+
+
+## step 1 create DESeqDataSet for each partition
+
+```{r}
+p1Matrix = countMatrix[1:4 ,  ]
+p2Matrix = countMatrix[5:8 ,  ]
+```
+
+create the meta data. This will be the same for all partitions. Each row must
+include all the sample. We will create the partition by subseting the genes
+
+```{r}
+# create the column meta data
+# it is important that 
+pSampleType <- c( rep('control', numCtrlSamples), rep('treatment', numTreatmentSamples) )
+pSampleType <- factor( pSampleType )
+
+pColData <- data.frame( pSampleType )
+
+# check levels. by default R choose alphabetic order
+# we need to make sure the control level is first or use the contrast argument
+# in DESeq package. You can also use factor relevel()
+levels(pColData$pSampleType)
+cat(pColData$pSampleType)
+```
+
+```{r}
+# p1SampleType <- c( rep('control', numCtrlSamples) )
+# p1SampleType <- factor( p1SampleType )
+# 
+# p1ColData <- data.frame( p1SampleType )
+p1dds <- DESeqDataSetFromMatrix(countData = p1Matrix,
+                              colData = pColData,
+                              design= ~ + pSampleType)
+
+counts( p1dds )
+```
+
+```{r}
+# p2SampleType <- c( rep('treatment', numTreatmentSamples) )
+# p2SampleType <- factor( p2SampleType )
+# 
+# p2ColData <- data.frame( p2SampleType )
+p2dds <- DESeqDataSetFromMatrix(countData = p2Matrix,
+                              colData = pColData,
+                              design= ~ + pSampleType)
+
+counts( p2dds )
+```
+
+## step 2) set the size factor calculated using full count matrix
+
+```{r}
+sizeFactors( p1dds ) <- sizeFactors( dds )
+sizeFactors( p2dds ) <- sizeFactors( dds )
+sizeFactors( p2dds ) # get
+```
+
+## step 3) work around step Estimate the dispersions for a DESeqDataSet work around
+
+TODO hand craft better data
+
+```{r}
+p1dds <- estimateDispersionsGeneEst(p1dds)
+print( mcols(p1dds) )
+
+dispersions(p1dds) <- mcols(p1dds)$dispGeneEst # set
+cat("\n gene dispersions\n") 
+dispersions(p1dds)
+```
+
+```{r}
+p2dds <- estimateDispersionsGeneEst(p2dds)
+print( mcols(p2dds) )
+dispersions(p2dds) <- mcols(p2dds)$dispGeneEst # set
+cat("\n gene dispersions\n") 
+dispersions(p2dds) 
+```
+
+## work around step 4) Negative Binomial GLM fitting and Wald statistics: nbinomWaldTest
+
+```{r}
+p1dds <- nbinomWaldTest( p1dds )
+print( mcols(p1dds) )
+```
+
+```{r}
+p2dds <- nbinomWaldTest( p2dds )
+print( mcols(p2dds) )
+```
+
+## step 4 calculate the results
+```{r}
+# get a list of result coefficients
+resultsNames( p1dds ) 
+
+# results takes a name argument. by default we sampleType treatment vs control 
+# see the documentation there are lots of arguments
+p1ExpectedDESeqResults <- results(p1dds)
+p1ExpectedDESeqResults
+```
+
+```{r}
+# get a list of result coefficients
+resultsNames( p2dds ) 
+
+# results takes a name argument. by default we sampleType treatment vs control 
+# see the documentation there are lots of arguments
+p2ExpectedDESeqResults <- results(p2dds)
+p2ExpectedDESeqResults
+```
