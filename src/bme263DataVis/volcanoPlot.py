@@ -1,7 +1,7 @@
 #!/usr/local/bin/python3
 # encoding: utf-8
 '''
-bme263DataVis.volcanoPlot.py -- shortdesc create a volcano plot
+volcanoPlot.py -- shortdesc create a volcano plot
 
 It defines classes_and_methods
 
@@ -26,6 +26,7 @@ __all__ = []
 __version__ = 0.1
 __date__ = '2020-05-26'
 __updated__ = '2020-05-26'
+__user_name__ = 'Andrew E. Davidson'
 
 
 ###############################################################################
@@ -213,7 +214,7 @@ def main( inComandLineArgsList=None ):
     '''
     process command line arguments load data and  call createPlot()
     '''
-    cli = VolcanoPlotCommandLine( __version__, __date__, __updated__ )
+    cli = VolcanoPlotCommandLine( __user_name__, __version__, __date__, __updated__ )
     if inComandLineArgsList is None:
         cli.parse()
     else:

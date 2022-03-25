@@ -1,0 +1,55 @@
+# aedavids@ucsc.edu 9/26/21
+# ref: https://www.bioconductor.org/help/docker
+#
+# how to create an image
+# myTag="aedavids/myTag"
+# buildContextDir="path to dir with files we want to copy into the image"
+# docker build --file ./dockerFile.1vsAll --tag $myTag $buildContexDir
+#
+# https://www.tutorialspoint.com/docker/docker_file.htm
+# https://www.tutorialspoint.com/docker/building_docker_files.htm
+# https://docs.docker.com/engine/reference/builder/#format
+# https://docs.docker.com/develop/develop-images/dockerfile_best-practices/
+
+
+# this bioconductor root will automatically start RServer
+FROM bioconductor/bioconductor_docker:RELEASE_3_13
+MAINTAINER aedavids@ucsc.edu
+
+# uninstall rstudio-server.
+# it takes a long time to start
+# we are running batch jobs, rstudio-server uses a lot of
+# resources. Potentially rstudio-server opens up a security hole
+RUN sudo apt-get remove -y rstudio-server
+
+# add LaTeX to build the vignettes
+# Update apt-get
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends apt-utils \
+	&& apt-get install -y --no-install-recommends \
+	texlive \
+	texlive-latex-extra \
+	texlive-fonts-extra \
+	texlive-bibtex-extra \
+	texlive-science \
+	texi2html \
+	texinfo \
+	&& apt-get clean \
+	&& rm -rf /var/lib/apt/lists/*
+
+
+# install required R packages
+RUN R -e ' BiocManager::install("DESeq2") '
+RUN R -e ' BiocManager::install("apeglm") '
+RUN R -e ' BiocManager::install("tximport") '
+
+RUN R -e ' install.packages("tidyr") '
+RUN R -e ' install.packages("readr") '
+RUN R -e ' install.packages("dplyr") '
+RUN R -e ' install.packages("rjson") '
+RUN R -e ' install.packages("rmarkdown") '
+RUN R -e ' install.packages("argparse") '
+
+# install the R script we want our wdl task to run
+COPY ./DESeqScript.R /home/rstudio/
+RUN chmod a+x /home/rstudio/DESeqScript.R

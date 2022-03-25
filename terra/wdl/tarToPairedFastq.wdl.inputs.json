@@ -1,0 +1,7 @@
+{
+  "tarToFastqTest.tarToFastqTask.tarFile": "../test/data/testFastq.tar",
+  "tarToFastqTest.tarToFastqTask.diskSpaceGb": 40,
+  "tarToFastqTest.tarToFastqTask.sampleName": "testSampleXYZ",
+  "tarToFastqTest.tarToFastqTask.memoryGb": 32
+}
+

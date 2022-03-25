@@ -66,7 +66,11 @@ task bamToFastq {
         # https://cromwell.readthedocs.io/en/stable/RuntimeAttributes/#preemptible
         # Take an Int as a value that indicates the maximum number of times Cromwell should request a
         # preemptible machine for this task before defaulting back to a non-preemptible one.
-        # default value: 0    
+        # default value: 0
+        #
+        # SamToFastQ does not support threading
+        # not value in adding cpus
+        # https://gatk.broadinstitute.org/hc/en-us/articles/360036485372-SamToFastq-Picard-
         Int runtime_preemptible = 3
 
     #}
@@ -82,8 +86,6 @@ task bamToFastq {
         echo
         echo pwd: `pwd`
 
-        echo
-        echo "runtime_preemptible: ${runtime_preemptible}"
         echo
         
         # use cpuinfo to debug preemptiple/cpu/threading quotas and performance
@@ -218,6 +220,8 @@ task bamToFastq {
         #
 	cpu: "2"
 	disks: "local-disk ${diskSpaceGb} SSD"
+
+        # SamToFastq does not support threading
         preemptible: '${runtime_preemptible}'
 
         #

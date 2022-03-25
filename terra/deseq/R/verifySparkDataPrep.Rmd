@@ -1,6 +1,10 @@
 ---
 title: "verify spark notebook 'prepareDataForDESeq2'"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
 ---
 
 Goal: check extraCellularRNA/juypterNotebooks/spark/prepareDataForDESeq2.ipynb
@@ -20,15 +24,11 @@ This function performs a default analysis through the steps:
 
 3. Negative Binomial GLM fitting and Wald statistics: nbinomWaldTest
 
+TODO: this is a lame way to write unit test. figure out how to write proper
+unit test in R
 
 
 ```{r include = FALSE, message = FALSE, warning=FALSE}
-# TODO add 
-# 1. matrix load test,
-# 2. matrix load test with scaling factors. chnange scaling factors 
-# if code works correctly we should see different results
-# 3. paritioning
-
 # use local copy of deseq2 and tximport source to make debug
 # easier
 #https://support.rstudio.com/hc/en-us/articles/200486488-Developing-Packages-with-RStudio
@@ -39,24 +39,25 @@ library(DESeq2)
 
 library("tximport")
 library( "readr" )
+library(plyr)
 ```
 
 
 
 ```{r}
-dataDir <- "/home/rstudio/extraCellularRNA/juypterNotebooks/spark/testData/sparkDESeqTest2"
-  
-# created by extraCellularRNA/juypterNotebooks/spark/prepareDataForDESeq2.ipynb
-sparkDataRoot <- "/home/rstudio/extraCellularRNA/juypterNotebooks/spark/testData/sparkDESeqTest2/output"
+print(getwd())
+salmonMockOutput <- "./data/verifySparkDataPrepTest/salmonMockOutput"
+sparkMockOutput <- "./data/verifySparkDataPrepTest/sparkMockOutput"
+sparkOutput     <- "./data/verifySparkDataPrepTest/sparkOutput"
 ```
 
 ```{r}
-loadScalingFactors <- function(colDataDF, tsvfile) {
+loadScalingFactors <- function(colDataDF, tsvfile, sep="\t", header=FALSE) {
   # returns a data frame with a 'sizeFactor' column
   # this should prevent DESeq from calculating the scaling factors
   
   cat( sprintf("loading scaling factor file: %s\n", tsvfile) )
-  scaleDF <- read.table( tsvfile, sep="\t" )
+  scaleDF <- read.table( tsvfile, sep=sep, header=header )
   
   # merge implements inner join
   names( scaleDF ) <- c( "sampleName", "sizeFactor")
@@ -84,13 +85,7 @@ deseqSalmonHappy <- function(dataDir, colDataCSVFile, scalingFactorTSVFile ) {
   #   then DESeq will calculate scaling factors
   #   else DESeq wil use factors from file
   
-  
-  # quant files created by
-  #/home/rstudio/extraCellularRNA/juypterNotebooks/spark/testData/sparkDESeqTest2/createTestData.ipynb
-  
-  # create list of salmon files RNA/juypterNotebooks/spark/testData/sparkDESeqTest2"
   sampleNames <- list( "ctrl_1", "ctrl_2", "ctrl_3", "kras_1", "kras_2", "kras_3" )
-  # dataDir <- "/home/rstudio/extraCellularRNA/juypterNotebooks/spark/testData/sparkDESeqTest2"
   fileList <- paste0( paste(dataDir, sampleNames, sep="/"), ".quant.sf" )
   
   if (! all(file.exists(fileList)) ) {
@@ -108,8 +103,6 @@ deseqSalmonHappy <- function(dataDir, colDataCSVFile, scalingFactorTSVFile ) {
                 # ,ignoreAfterBar=TRUE)
                 # txOut=TRUE)
 
-
-
   # get the meta data for each column of count data.
   colDF <- loadColData(colDataCSVFile)
   
@@ -121,7 +114,7 @@ deseqSalmonHappy <- function(dataDir, colDataCSVFile, scalingFactorTSVFile ) {
     cat("DESeq will calculate scaling factors \n")
   }
   
-  'designStr'="~ treatment" # is this correct design?
+  designStr <- "~ treatment"
   ddsDataSet <- DESeqDataSetFromTximport(txi, colData=colDF, as.formula(designStr))
   
   dds <- DESeq(ddsDataSet)
@@ -157,21 +150,20 @@ gene_8  171.3427   -7.98578e-03  0.742488 -1.07554e-02  0.991419  0.999998
 
 # load expected happy case test results
 ```{r}
-expectedOutFile <- "/home/rstudio/extraCellularRNA/terra/deseq/R/verifySparkDataPrep.expected.out.csv"
-expectedDF <- as.data.frame( read_csv(expectedOutFile) )
+expectedMockOutFile <- "./data/verifySparkDataPrepTest/verifySparkMockDataPrep.expected.out.csv"
+expectedMockDF <- as.data.frame( read_csv(expectedMockOutFile) )
 
 # fix first col name 
 # read_csv assumes the first column is data not the index
-expectedDF <- data.frame(expectedDF[,-1], row.names = expectedDF[,1])
-
+expectedMockDF <- data.frame(expectedMockDF[,-1], row.names = expectedMockDF[,1])
 ```
 
 # run happy case test. DESeq reads salmon files and computes scaling factors
 In output you should see 'estimating size factors'
 ```{r}
-happyCaseTest<- function() {
-  colDataCSVFile <- paste(dataDir, "colData.csv", sep="/")
-  happyRet <- deseqSalmonHappy(dataDir, colDataCSVFile)
+happyCaseTest<- function(salmonOut, expectedDF) {
+  colDataCSVFile <- paste(salmonOut, "colData.csv", sep="/")
+  happyRet <- deseqSalmonHappy(salmonOut, colDataCSVFile)
   happyDF <- as.data.frame( happyRet )
   #write.csv( as.data.frame(happyDF), file=expectedOutFile )
   
@@ -182,17 +174,17 @@ happyCaseTest<- function() {
   }
 }
 
-happyCaseTest()
+happyCaseTest(salmonMockOutput, expectedMockDF)
 ```
 
 # test loading scaling factors from a file
 In output you should see using pre-existing size factors
 ```{r}
-happyScalingFactorTest <- function() {
-  extScaleFile <- paste(sparkDataRoot, "estimatedScalingFactors.tsv", sep = "/")
+happyMockScalingFactorTest <- function(salmonOutput, sparkOutput, expectedDF) {
+  extScaleFile <- paste(sparkOutput, "estimatedScalingFactors.tsv",  sep = "/")
   
-  colDFataFile <- paste(dataDir, "colData.csv", sep="/")
-  loadScalignFacorsRet <- deseqSalmonHappy( dataDir, colDFataFile, extScaleFile )
+  colDFataFile <- paste(salmonOutput, "colData.csv", sep="/")
+  loadScalignFacorsRet <- deseqSalmonHappy( salmonOutput, colDFataFile, extScaleFile )
   loadScalignFacorsDF <- as.data.frame( loadScalignFacorsRet )
   
   # all.equal is really nearly all equal
@@ -202,20 +194,29 @@ happyScalingFactorTest <- function() {
   }
 }
 
-happyScalingFactorTest()
+happyMockScalingFactorTest(salmonMockOutput, sparkMockOutput, expectedMockDF)
 ```
 
 
-# Happy case: 
+# Matrix tests
+
+Happy case: 
 load all counts from a single csv files. Let DESeq calculate scaling factors
 In output you should see 'estimating size factors'
 ```{r}
-happyMatrixTest <- function(groupByGeneIdCountFile,  
-                            scalingFactorTSVFile) {
-
-  errMsg <- "R SUCKS"
+happyMatrixTest <- function(groupByGeneIdCountFile, 
+                            colDataCSVFile, 
+                            scalingFactorCSVFile,
+                            header=FALSE,
+                            returnResultNotDataframe=FALSE) {
   
-  groupByGeneCountDF <- read.table(groupByGeneIdCountFile, header=TRUE, sep="\t")
+  message( sprintf("groupByGeneIdCountFile: \n%s\n", groupByGeneIdCountFile) )
+  message( sprintf("colDataCSVFile: \n%s\n", colDataCSVFile) )
+
+  errMsg <- "R is frustrating"
+  
+  groupByGeneCountDF <- read.table(groupByGeneIdCountFile, header=TRUE, sep=",")
+  message(sprintf("groupByGeneCountDF ncols:%s nrows:%s", ncol(groupByGeneCountDF), nrow(groupByGeneCountDF)))
   geneNameVector <- groupByGeneCountDF$geneId
   
   # select all but samples, first column is transcript name
@@ -225,17 +226,20 @@ happyMatrixTest <- function(groupByGeneIdCountFile,
   rownames( geneCountsCountMatrix ) <- geneNameVector
   geneCountsCountMatrix
   
-  colDataFile <- paste(dataDir, "colData.csv", sep="/")
-  colDataDF <- loadColData(colDataFile)
+  colDataDF <- loadColData(colDataCSVFile)
   
-  #cat( sprintf("\n************** scalingFactorTSVFile: %s\n", scalingFactorTSVFile) )
-  if ( ! missing(scalingFactorTSVFile) ) {
+  if ( ! missing(scalingFactorCSVFile) ) {
     # if we load the scaling factors we should not need to calc them again
-    colDataDF <- loadScalingFactors(colDataDF, scalingFactorTSVFile) 
+    colDataDF <- loadScalingFactors(colDataDF, 
+                                    scalingFactorCSVFile, 
+                                    sep=",", header=header) 
   } 
   else {
     cat("DESeq will calculate scaling factors \n")
   }
+  
+  message( ncol(geneCountsCountMatrix) )
+  message( nrow(colDataDF) )
   
   #create a DESeqDataSetFromMatrix object
   ddsDataSet <- DESeqDataSetFromMatrix(countData = geneCountsCountMatrix,
@@ -246,88 +250,522 @@ happyMatrixTest <- function(groupByGeneIdCountFile,
   happyMatrixRet <- results(dds)
   happyMatrixRet
   
+  cat("mcols(happyMatrixRet\n")
+  mc <- mcols(happyMatrixRet)
+
+  print( mc, max=100 )
+  cat("\n")
+  print( mc$description , max=100)
+  cat("\n")
+
   happyMatrixDF <- as.data.frame( happyMatrixRet )
   # sort by row name so that rows aer in the same order as expectedDF
   happyMatrixDF <- happyMatrixDF[sort( rownames(happyMatrixDF) ) , ]
   
+  ret = happyMatrixDF
+  if (returnResultNotDataframe) {
+    ret = happyMatrixRet
+  }
   
-  return( happyMatrixDF )
+  return( ret )
 }
+```
 
-runHappyMatrixText <- function(sparkDataRoot, expectedDF) {
-  partFile <- "txidGroupedByGeneidCounts/part-00000-7e98b782-78d7-4d6d-9c5e-43fa76f321ef-c000.csv"
-  groupByGeneIdCountFile <- paste(sparkDataRoot, partFile, sep = "/")
-  errMsg <- "ERROR happyMatrixTest() failed happyMatrixDF != expectedDF"
-  happyMatrixDF <- happyMatrixTest(groupByGeneIdCountFile)
-  if ( ! all.equal(happyMatrixDF, expectedDF) ) {
+R the happy matrix test. passing a single part file containins the entire count
+matrix
+```{r}
+runHappyMockMatrixTest <- function() {
+  
+  pf <- 'part-00000-948833af-9ae1-4383-ac99-fc8aa8831415-c000.csv'
+  groupByGeneIdCountFile <- paste(sparkMockOutput, 'mockCounts', pf, sep="/")
+  colDataFile <- paste(salmonMockOutput, "colData.csv", sep="/")
+  happyMatrixDF <- happyMatrixTest(groupByGeneIdCountFile, colDataFile)
+  if ( ! all.equal(happyMatrixDF, expectedMockDF) ) {
     stop(errorMsg)
   }
+  
+  return( happyMatrixDF ) 
 }
 
-runHappyMatrixText(sparkDataRoot, expectedDF)
+runHappyMockMatrixTest()
 ```
 
 
 # test happy matrix loading scaling factors from a file
 In output you should see using pre-existing size factors
 ```{r}
-happyMatrixScalingTest <- function() {
-  partFile <- "txidGroupedByGeneidCounts/part-00000-7e98b782-78d7-4d6d-9c5e-43fa76f321ef-c000.csv"
-  groupByGeneIdCountFile <- paste(sparkDataRoot, partFile, sep = "/")
-  errMsg <- "ERROR happyMatrixTest() failed happyMatrixDF != expectedDF"
-  
-  extScaleFile <- paste(sparkDataRoot, "estimatedScalingFactors.tsv", sep = "/")
-  happyMatrixTest(groupByGeneIdCountFile, extScaleFile )
+happyMatrixScalingTest <- function(groupByGeneIdCountFile, colDataFile, extScaleFile) {
+  happyMatrixDF = happyMatrixTest(groupByGeneIdCountFile, colDataFile,
+                  extScaleFile, header=TRUE )
+
+  return(happyMatrixDF)
 }
 
-runHappyMatrixScalingText <- function(expectedDF) {
-  happyMatrixDF <- happyMatrixScalingTest()
+runHappyMatrixMockScalingText <- function(salmonMockOutput, sparkMockOutput, expectedDF) {
+ 
+  pf <- 'part-00000-948833af-9ae1-4383-ac99-fc8aa8831415-c000.csv'
+  groupByGeneIdCountFile <- paste(sparkMockOutput, 'mockCounts', pf, sep="/")
+  colDataFile <- paste(salmonMockOutput, "colData.csv", sep="/")
+  
+  pf <- 'part-00000-5474c725-06be-4588-bba8-5ed47dc3ddeb-c000.csv'
+  extScaleFile <- paste(sparkMockOutput,"mockEstimatedScalingFactors", pf , sep='/')
+  
+  happyMatrixDF <- happyMatrixScalingTest(groupByGeneIdCountFile, colDataFile, extScaleFile)
   if ( ! all.equal(happyMatrixDF, expectedDF) ) {
     stop(errorMsg)
   }
 }
 
-runHappyMatrixScalingText(expectedDF)
+runHappyMatrixMockScalingText(salmonMockOutput, sparkMockOutput, expectedMockDF)
 ```
 
 
 # matrix partition test
+run using complete biologic samples. DESeq can not calculate estimated scaling
+factors with out using a work around on the partitioned mock data files
+
+
+## step 1 create the expected output file
+run DESeq on the single part file with scaling factors and save results
 ```{r}
-partFiles <- c(
-  # 3 file DESeq error
-  # Error in estimateDispersionsFit(object, fitType = fitType, quiet = quiet) : 
-  # all gene-wise dispersion estimates are within 2 orders of magnitude
-  # 'part-00000-5a8d8a4e-eded-49bb-816e-552f21cb3ef3-c000.csv',
-  # 'part-00001-5a8d8a4e-eded-49bb-816e-552f21cb3ef3-c000.csv',
-  # 'part-00002-5a8d8a4e-eded-49bb-816e-552f21cb3ef3-c000.csv'
+  loadExpectedPartResults <- function() {
+  expectedOutFile <- "./data/verifySparkDataPrepTest/verifySparkDataPrep.expected.out.csv"
   
-  # 'part-00000-468e5d3d-b7d5-446f-a93c-5ded73f6d9f9-c000.csv',
-  # 'part-00001-468e5d3d-b7d5-446f-a93c-5ded73f6d9f9-c000.csv'
+  saveExpectedResults <- function() {
+    message( sprintf("getwd():%s", getwd() ))
+    pf <- 'part-00000-c89a1de9-df14-45ec-9e69-42db93ccb459-c000.csv'
+    groupByGeneIdCountFile <- paste(sparkOutput, 'counts', pf, sep="/")
+    colDataFile <- paste(salmonMockOutput, "colData.csv", sep="/")
+    
+    pf <- 'part-00000-03611542-45ba-4701-a4cc-0c73adf46d58-c000.csv'
+    extScaleFile <- paste(sparkOutput,"estimatedScalingFactors", pf , sep='/')
+    
+    happyMatrixDF <- happyMatrixScalingTest(groupByGeneIdCountFile, colDataFile, extScaleFile)
+    happyMatrixDF <- as.data.frame( happyMatrixDF )
+    message( sprintf("save expected parts results\n %s\ n", expectedOutFile) )
+    write.csv( as.data.frame(happyMatrixDF), file=expectedOutFile )  
+    
+    return(happyMatrixDF )
+  }
   
-  'part-00000-d06823ab-b0fb-49c2-a6f4-b6fb9e428dc9-c000.csv',
-  'part-00001-d06823ab-b0fb-49c2-a6f4-b6fb9e428dc9-c000.csv',
-  'part-00002-d06823ab-b0fb-49c2-a6f4-b6fb9e428dc9-c000.csv'
-)
-
-deseqPartsList <- list()
-extScaleFile <- paste(sparkDataRoot, "estimatedScalingFactors.tsv", sep = "/")
-for (i in 1:length(partFiles) ) {
-  partFile <- partFiles[i]
-  groupByGeneIdCountPartFile <- paste(sparkDataRoot, 
-                                      'txidGroupedByGeneidCountsParts',
-                                      partFile, sep="/")
-  cat(groupByGeneIdCountPartFile, "\n")
-  deseqPartDF <- happyMatrixTest(groupByGeneIdCountPartFile, extScaleFile )
-  deseqPartsList <- append(deseqPartsList, deseqPartDF)
+  #
+  # expectedDF = saveExpectedResults()
+  #
+  
+  # load expected results
+  expectedDF <- as.data.frame( read_csv(expectedOutFile) )
+  # 
+  # fix first col name
+  # read_csv assumes the first column is data not the index
+  expectedDF <- data.frame(expectedDF[,-1], row.names = expectedDF[,1])
+  
+  return( expectedDF )
 }
-
-# partFile <- "txidGroupedByGeneidCounts/part-00000-7e98b782-78d7-4d6d-9c5e-43fa76f321ef-c000.csv"
-#   groupByGeneIdCountFile <- paste(sparkDataRoot, partFile, sep = "/")
-#   errMsg <- "ERROR happyMatrixTest() failed happyMatrixDF != expectedDF"
-#   
-#   extScaleFile <- paste(sparkDataRoot, "estimatedScalingFactors.tsv", sep = "/")
-#   happyMatrixTest(groupByGeneIdCountFile, extScaleFile )
-  
-#txidGroupedByGeneidCountsParts
 ```
 
+# run test on part files
+```{r}
+
+saveTmp <- function(df, partName) {
+  # useful for debugging
+  message("AEDWIP do not save tmp")
+  tmp <- as.data.frame( df )
+  outfile <- paste0(sparkOutput, "/tmp/", partName, ".csv" )
+  message(sprintf("AEDWIP saving tmp:%s", outfile))
+  write.csv( as.data.frame(tmp), file=outfile )
+}
+
+runDESeqOnParts <- function() {
+  partFiles <- c(
+    'part-00000-a1508fe7-8a02-4ba3-84d0-f4a60b79dc80-c000.csv',
+    'part-00001-a1508fe7-8a02-4ba3-84d0-f4a60b79dc80-c000.csv',
+    'part-00002-a1508fe7-8a02-4ba3-84d0-f4a60b79dc80-c000.csv'
+  )
+  
+  pf <- 'part-00000-03611542-45ba-4701-a4cc-0c73adf46d58-c000.csv'
+  extScaleFile <- paste(sparkOutput,"estimatedScalingFactors", pf , sep='/')
+  
+  colDataFile <- paste(salmonMockOutput, "colData.csv", sep="/")
+  
+  deseqPartsList <- list()
+  for (i in 1:length(partFiles) ) {
+    partFile <- partFiles[i]
+    groupByGeneIdCountPartFile <- paste(sparkOutput, 
+                                        'countMultipleParts',
+                                        partFile, sep="/")
+    message( groupByGeneIdCountPartFile )
+    deseqPartDF <- happyMatrixScalingTest(groupByGeneIdCountPartFile, colDataFile, extScaleFile)
+    
+    # AEDWIP 11/16 added following line to match expected data save
+    # do we still need to use list(df) in append?
+    #deseqPartDF <- as.data.frame( deseqPartDF )
+  
+    # saveTmp(deseqPartDF, partFile)
+    
+    # we have to use list else each column in dataframe will be added as a
+    # separate item
+    deseqPartsList <- append( deseqPartsList, list(deseqPartDF) )
+  }
+  
+  return( deseqPartsList)
+}
+```
+
+
+```{r}
+# we know that our padj col will be different.
+# fix this latter
+
+cleanDFImpl <- function( df, selectColumns ) {
+  retDF <- df[selectColumns]
+
+  # make sure they are sorted by gene name
+  retDF$sortOrder <- row.names( retDF )
+  retDF <- retDF[ order(retDF$sortOrder) , ]
+  
+  #
+  # NA are not comparable
+  # > NA == NA
+  # [1] NA
+  #
+  retDF[is.na(retDF)] <- 9999999.0  
+  
+  return( retDF )
+}
+
+cleanDataFrames <- function( expectedDF, deseqPartsList) {
+  # we know that our padj col will be different.
+  # fix this latter
+  selectColumns <- names(expectedDF)[1:5]
+  
+  # eDF <- expectedDF[selectColumns]
+  # 
+  # # make sure they are sorted by gene name
+  # eDF$sortOrder <- row.names( eDF )
+  # sordedExpectedDF <- eDF[ order(eDF$sortOrder) , ]
+  # 
+  # #
+  # # NA are not comparable
+  # # > NA == NA
+  # # [1] NA
+  # #
+  # sordedExpectedDF[is.na(sordedExpectedDF)] <- 9999999.0
+  # 
+  # # create a copy really just rename
+  # cleanExpectedDF <- data.frame( sordedExpectedDF)
+  #
+  
+  cleanExpectedDF <- cleanDFImpl(expectedDF, selectColumns)
+  
+  # select the columns of interest and add the row names as a column
+  # else  rbind will loose the gene names
+  #
+  cleanDeseqPartsList <- list()
+  for (i in 1:length(deseqPartsList)) {
+    df <- deseqPartsList[[i]] #[selectColumns]
+    # tdf$sortOrder <- row.names(tdf[i])
+    # 
+    # # NA are not comparable
+    # tdf[is.na(tdf)] <- 9999999.0
+    
+    df <- cleanDFImpl(df, selectColumns)
+    
+    cleanDeseqPartsList <- append( cleanDeseqPartsList, list(df) ) 
+  }
+  
+  # combine all the partition results
+  combinedDF <- ldply(cleanDeseqPartsList, rbind)
+  message(sprintf("AEDWIP is is.data.frame(combinedDF): %s", is.data.frame(combinedDF) ))
+  
+  cleanResultsDF <- combinedDF[ order(combinedDF$sortOrder) , ]
+  
+  retList <- list(
+    'cleanExpectedDF' = cleanExpectedDF,
+    'cleanResultsDF' = cleanResultsDF,
+    'cleanDeseqPartsList' = cleanDeseqPartsList
+  )
+  
+  return( retList )
+}
+
+
+```
+
+
+# Check each column separately This allows to set different tolerances 
+```{r}
+
+checkResult <- function( cleanResultsDF,  cleanExpectedDF, stopIfFail=TRUE) {
+  if ( ! isTRUE( all.equal(cleanResultsDF$sortOrder, cleanExpectedDF$sortOrder) ) ) {
+    errMsg <- "ERROR: parts failed sortOrder are different"
+    message(errMsg)
+    
+    if (stopIfFail) {
+      stop(errMsg)
+    }
+  }
+  
+  # default value 1.5e-8
+  if ( ! isTRUE( all.equal(cleanResultsDF$baseMean, cleanExpectedDF$baseMean) ) ) {
+    errMsg <- "ERROR: parts failed baseMeans are different"
+    message(errMsg)
+    
+    if (stopIfFail) {
+      stop(errMsg)
+    }
+  }
+  
+  # default value 1.5e-8 , tolerance=1.5e-4
+  if ( ! isTRUE( all.equal(cleanResultsDF$log2FoldChange, cleanExpectedDF$log2FoldChange, tolerance=1.5e-4)  ) ) {
+    errMsg <- "ERROR: parts failed log2FoldChange are different"
+    message(errMsg)
+    
+    if (stopIfFail) {
+      stop(errMsg)
+    }
+  }
+  
+  # default value 1.5e-8 , tolerance=1.5e-3
+  if ( ! isTRUE( all.equal(cleanResultsDF$pvalue, cleanExpectedDF$pvalue, tolerance=1.5e-3) ) ) {
+    errMsg <- "ERROR: parts failed pvalue are different"
+    message(errMsg)
+    
+    if (stopIfFail) {
+      stop(errMsg)
+    }
+  }
+  
+  # default value 1.5e-8 , tolerance=1.5e-2
+  if ( ! isTRUE( all.equal(cleanResultsDF$stat, cleanExpectedDF$stat, tolerance=1.5e-2) ) ) {
+    errMsg <- "ERROR: parts failed stat are different"
+    message(errMsg)
+    
+    if (stopIfFail) {
+      stop(errMsg)
+    }
+  }
+  
+  # default value 1.5e-8 , tolerance=1.5e-2
+  if ( ! isTRUE( all.equal(cleanResultsDF$lfcSE, cleanExpectedDF$lfcSE, tolerance=1.5e-2) ) ) {
+    errMsg <-"ERROR: parts failed lfcSE are different"
+    message(errMsg)
+    
+    if (stopIfFail) {
+      stop(errMsg)
+    }
+  }
+}
+```
+# make sure all the data is in a consistent state
+```{r}
+
+expectedDF <- loadExpectedPartResults()
+
+deseqPartsList <- runDESeqOnParts()
+
+retList <- cleanDataFrames(expectedDF, deseqPartsList)
+cleanExpectedDF <- retList$cleanExpectedDF
+cleanResultsDF <- retList$cleanResultsDF
+cleanDeseqPartsList <- retList$cleanDeseqPartsList
+```
+
+```{r}
+checkResult( cleanResultsDF, cleanExpectedDF, stopIfFail=True)
+```
+
+
+
+
+```{r}
+#aedwip
+step <- 100
+numRowsToCheck <- 1000 #nrow(cleanExpectedDF
+for(i in seq(from=1, to=numRowsToCheck, by=step) ){
+  start = i
+  end = i+step -1
+  message( sprintf("\nstart: %s end: %s", start, end) )
+  checkResult( cleanResultsDF[start:end ,], cleanExpectedDF[start:end ,], stopIfFail=FALSE)
+}
+```
+
+```{r}
+badStart <- 801
+badEnd <- 900
+
+badCleanResultsDF <- cleanResultsDF[badStart:badEnd , ]
+badCleanExpectedDF <- cleanExpectedDF[badStart:badEnd , ]
+
+notEqual <- badCleanResultsDF$log2FoldChange != badCleanExpectedDF$log2FoldChange
+print(badCleanResultsDF$log2FoldChange[notEqual ])
+print("")
+print(badCleanExpectedDF$log2FoldChange[notEqual ])
+```
+
+
+how can we get a better idea if code works correct
+```{r}
+
+#aediwp t this does nowork
+#
+# what if we select values of possible interest?
+#
+#resOrdered <- res[order(res$pvalue),]
+
+threshold <- 0.1
+#orderdCleanResultsDF  <- cleanResultsDF[ order(cleanResultsDF$pvalue) , ]
+#topCleanResultsDF     <- orderdCleanResultsDF[ orderdCleanResultsDF$pvalue <= threshold , ]
+topCleanResultsDF     <- cleanResultsDF[ cleanResultsDF$pvalue <= threshold , ]
+  
+#orderedCleanExpectedDF <- cleanExpectedDF[ order(cleanExpectedDF$pvalue) , ]
+#topCleanExpectedDF     <- orderedCleanExpectedDF[ orderedCleanExpectedDF$pvalue <= threshold , ]
+topCleanExpectedDF     <- cleanExpectedDF[ cleanExpectedDF$pvalue <= threshold , ]
+
+# if ( ! isTRUE( all.equal(topCleanResultsDF, topCleanExpectedDF,  tolerance=1.5e-4) ) ) {
+#   stop("parts failed lfcSE are different")
+# }
+
+# checkResult( topCleanResultsDF, topCleanExpectedDF, stopIfFail=FALSE)
+# 
+# sum( cleanResultsDF$sortOrder != cleanExpectedDF$sortOrder)
+# 
+# sum( topCleanResultsDF$sortOrder != topCleanExpectedDF$sortOrder)
+
+step <- 100
+for(i in seq(from=1, to=nrow(topCleanExpectedDF), by=step)){
+  start = i
+  end = i+step -1
+  message( sprintf("\nstart: %s end: %s", start, end) )
+  checkResult( topCleanResultsDF[start:end ,], topCleanExpectedDF[start:end ,], stopIfFail=FALSE)
+}
+
+# topCleanResults has more value ???
+hack <- topCleanResultsDF[topCleanResultsDF$sortOrder == topCleanExpectedDF$sortOrder ,  ]
+foo <- all.equal( hack[1:100,]$sortOrder, 
+                  topCleanExpectedDF[1:100 ,]$sortOrder,  
+                  stopIfFail=FALSE )
+foo
+```
+
+```{r}
+
+```
+
+
+
+
+ hacks we only care about signifigant lfc
+```{r}
+# # default display percision
+# > options('digits')
+# $digits
+# [1] 7
+
+ #d <- subset( cleanResultsDF, !(log2FoldChange %in% cleanExpectedDF$log2FoldChange) )
+
+# subset of df2 variable y2 that are not in y1 of df1
+#subset(df2,!(y2% in% df1$y1))
+
+#  subset of df2 variable y2 that are not in x1 of df1
+#subset(df2,!(y2 %in% df1$x1))
+
+# < 1.0e-3 T=47639 F=27138 11/16 change ???
+# < 1e-3 T=74766, F=11
+# < 1e-6 T=63277, F=63277
+# < 1.5e-4 T=73897, F=880
+howManyLogical <- (cleanResultsDF$log2FoldChange - cleanExpectedDF$log2FoldChange) < 1e-3
+count( howManyLogical )
+```
+
+# Figure out how to write a self describing results file using salmon
+
+```{r}
+selfDescribingResults <- function(salmonOut, expectedDF) {
+  colDataCSVFile <- paste(salmonOut, "colData.csv", sep="/")
+   happyRet <- deseqSalmonHappy(salmonOut, colDataCSVFile)
+   print(happyRet)
+  
+  return( happyRet )
+}
+
+result <- selfDescribingResults(salmonMockOutput, expectedMockDF)
+
+outfile <- "./output/selfDescribingResultsDESeqTestResult.csv"
+print( sprintf("saving: %s", outfile) )
+
+descriptionList <- result@elementMetadata@listData[["description"]]
+cat( sprintf("%s \n", descriptionList[[1]]), file=outfile)
+for (i in 2:length(descriptionList)) {
+  print(i)
+  txt <- sprintf( "%s \n", descriptionList[[i]] ) 
+  print(txt)
+  cat( txt, file=outfile, append=TRUE)
+}
+
+txt <- sprintf( "design: %s \n", format(design(dds)))
+cat( txt, file = outfile, append = TRUE)
+
+result<- cbind( rownames(result), result )
+colnames(result)[1] <- "name"
+write.table( result, 
+           append=TRUE,
+           file=outfile,
+           sep=",",
+           row.names = FALSE)
+```
+
+# Make sure matrix based input is saved correct without self describing results
+```{r}
+df <- runHappyMockMatrixTest()
+outfile <- "./output/MatrixResultsDESeqTestResult.csv"
+
+# the Rownames are the gene names
+# add them as a proper column so that we can
+# write a CSV file suche that the number of header cols == number or data row cols
+df <- cbind( rownames(df), df )
+colnames(df)[1] <- "name"
+
+print( sprintf("saving: %s", outfile) )
+write.table( df, 
+           file=outfile,
+           sep=",",
+           row.names=FALSE)
+```
+
+# Figure out how to write a self describing results file using matrix counts
+
+```{r}
+pf <- 'part-00000-948833af-9ae1-4383-ac99-fc8aa8831415-c000.csv'
+groupByGeneIdCountFile <- paste(sparkMockOutput, 'mockCounts', pf, sep="/")
+colDataFile <- paste(salmonMockOutput, "colData.csv", sep="/")
+happyMatrixResult<- happyMatrixTest(groupByGeneIdCountFile, colDataFile, returnResultNotDataframe=TRUE)
+  
+  
+outfile <- "./output/selfDescribingMatrixResultsDESeqTestResult.csv"
+
+# the Rownames are the gene names
+# add them as a proper column so that we can
+# write a CSV file suche that the number of header cols == number or data row cols
+happyMatrixResult <- cbind( rownames(happyMatrixResult), happyMatrixResult )
+colnames(happyMatrixResult)[1] <- "name"
+
+print( sprintf("saving: %s", outfile) )
+
+#We need to get the result object runHappyMockMatrixTest returns dataframe
+descriptionList <- happyMatrixResult@elementMetadata@listData[["description"]]
+cat( sprintf("%s \n", descriptionList[[1]]), file=outfile)
+for (i in 2:length(descriptionList)) {
+  print(i)
+  txt <- sprintf( "%s \n", descriptionList[[i]] ) 
+  print(txt)
+  cat( txt, file=outfile, append=TRUE)
+}
+
+# we do not have the dds 
+# txt <- sprintf( "design: %s \n", format(design(dds)))
+# cat( txt, file = outfile, append = TRUE)
+write.table( happyMatrixResult, 
+           file=outfile,
+           sep=",",
+           row.names=FALSE,
+           append = TRUE)
+```

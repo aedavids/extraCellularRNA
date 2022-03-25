@@ -84,8 +84,9 @@ you can use the gcp console or
 ```
 CLUSTER_NAME=my-cluster
 PROJECT_ID=dataprocspark-328421
+REGION=us-central1
 
-gcloud dataproc clusters describe terra-access-test1 --region=us-central1 --project=${PROJECT_ID} | grep jupyter
+gcloud dataproc clusters describe ${CLUSTER_NAME} --region=${REGION} --project=${PROJECT_ID} | grep jupyter
 ```
 
 ## start pyspark notebook

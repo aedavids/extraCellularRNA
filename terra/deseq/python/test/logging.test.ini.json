@@ -1,0 +1,31 @@
+{
+	"aedwip comment 0": "https://docs.python.org/3/library/logging.html",
+	"AEDWIP COMMENT1": " https://docs.python.org/3/howto/logging-cookbook.html#",
+	"AEDWIP COMMENT2": "https://fangpenlin.com/posts/2012/08/26/good-logging-practice-in-python/",
+	"AEDWIP COMMENT3": "https://docs.python.org/3/library/logging.config.html#logging-config-api",
+	
+	"version": 1,
+	"disable_existing_loggers": false,
+	
+	"formatters": {
+		"simple": {
+			"formatExample": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+			"format": "[%(levelname)s %(filename)s:%(lineno)s - %(funcName) s()] %(message)s"
+		}
+	},
+	
+	"handlers": {
+		"console": {
+			"class": "logging.StreamHandler",
+			"level": "DEBUG",
+			"formatter": "simple",
+			"stream": "ext://sys.stdout"
+		}
+	},
+
+   "root": {
+        "level": "INFO",
+        "handlers": ["console"]
+    }
+}
+

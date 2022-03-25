@@ -1,0 +1,7 @@
+sampleName,source
+ctrl_1,/private/groups/kimlab/kras.ipsc/data/bulk.data/day.5/ctrl.1/gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx/quant.sf
+ctrl_2,/private/groups/kimlab/kras.ipsc/data/bulk.data/day.5/ctrl.2/gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx/quant.sf
+ctrl_3,/private/groups/kimlab/kras.ipsc/data/bulk.data/day.5/ctrl.3/gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx/quant.sf
+kras_1,/private/groups/kimlab/kras.ipsc/data/bulk.data/day.5/kras.1/gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx/quant.sf
+kras_2,/private/groups/kimlab/kras.ipsc/data/bulk.data/day.5/kras.2/gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx/quant.sf
+kras_3,/private/groups/kimlab/kras.ipsc/data/bulk.data/day.5/kras.3/gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx/quant.sf

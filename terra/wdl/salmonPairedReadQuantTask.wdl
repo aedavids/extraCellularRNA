@@ -1,4 +1,4 @@
-# ref:
+# Ref:
 # https://github.com/openwdl/wdl/blob/main/versions/1.0/SPEC.md
 # https://portal.firecloud.org/?return=terra#methods/mxhe/salmon_quant_array/9
 
@@ -17,8 +17,8 @@ workflow salmon_quant {
 task salmon_paired_reads {
     String sampleId
     File refIndexTarGz
-    File leftReads
-    File rightReads
+    File firstFastq
+    File secondFastq
     String outDir = "salmon.out"
 
     # https://cromwell.readthedocs.io/en/stable/RuntimeAttributes/
@@ -141,8 +141,8 @@ task salmon_paired_reads {
             salmon quant \
               -i $refIndexDir \
               --libType A \
-              -1 "${rightReads}" \
-              -2 "${leftReads}" \
+              -1 "${firstFastq}" \
+              -2 "${secondFastq}" \
               -p $numThr \
               --recoverOrphans \
               --validateMappings \

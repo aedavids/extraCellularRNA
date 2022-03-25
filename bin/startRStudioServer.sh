@@ -31,7 +31,9 @@ USER_ID=`id -u`
 #IMG='bioconductor/bioconductor_docker:devel'
 #IMG='aedavids/biocworkshop2018desq2'
 #IMG='aedavids/extra_cellular_rna'
-IMG='aedavids/extra_cellular_rna_2_01'
+IMG='aedavids/extra_cellular_rna_2_01' # starts rstudio-server
+#IMG='aedavids/edu_ucsc_kim_lab-1vsall_1.0' # production version, support for DESeq, rstudio-server was removed
+
 # docker arguments
 # -d  --detach Run container in background and print container ID
 # -rm Automatically remove the container when it exits
@@ -58,6 +60,7 @@ docker run --rm \
 	-e PASSWORD=ggg \
 	-v /private/home/${USER}:/home/rstudio \
 	-v /private/groups/kimlab:/home/kimlab \
+        -v /scratch/aedavids:/scratch/aedavids \
         ${IMG}
 
 #set -x # turn debug on

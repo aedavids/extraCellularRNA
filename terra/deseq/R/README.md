@@ -3,7 +3,13 @@
 The files in this directory are used to test and develop a docker container capable of running DESeq2 from count matrix data.
 
 ## 1) setting up the test enviroment on mustard
-1. bin/startRServer.sh
+0. if you need to create a 1vsAll docker image
+   follow directions in extraCellularRNA/terra/deseq/bin/dockerFile.1vsAll
+
+1. edit bin/startRServer.sh, configure image and execute
+   * IMG='aedavids/extra_cellular_rna_2_01' # starts rstudio-server
+   * IMG='aedavids/test-1vs-all-2' # starts rstudio has 1vsall code 
+   * IMG='aedavids/test-1vs-all-3-no-rstudio-server' # production candate
 2. connect to the container
    ```
    docker exec -it eager_mirzakhani /bin/bash
@@ -18,14 +24,22 @@ on the docker container
    ```
    # su rstudio
    $ cd /home/rstudio/extraCellularRNA/terra/deseq/R
-   $ export PATH=".:${PATH}
+   $ export PATH=".:${PATH}"
    ```
-
-in rstudio you will need to install the argparse project
 
 use runner.sh to driver execute testDESeqScript.R. This hack test script use the mock datafiles.
 Note it uses a hack to get the mock data to run. It is not a production quality script.
 It is useful for quickly debugging R and DESeq issues
+
+```
+$ runner.sh
+# lots of stuff to console. My guess is this is stuff from messages, [R] writes this to stderr
+
+# our print and cat statements wind up in 
+$ ls -lt
+total 2556
+-rw-rw-r-- 1 rstudio rstudio   3391 Jan 25 02:59  DESeqScript.out
+```
 
 you can test the results of a run as follows
 
@@ -33,7 +47,13 @@ you can test the results of a run as follows
 diff testDESeqScript.expected.out testDESeqScript.out
 ```
 
-## 3) testing production script using reall data
+## 2) Running GTEx train 1 vs all tests on mustard
+It is faster to debug our R scripts on a mustard rather than using WDL/cromwell or terra. The batch script is the list of command mentioned above. Strange. If you use top you will 1vsAllRunner.batch.sh and its child script 1vsAllRunner.sh
+```
+$ docker exec --detach --user rstudio friendly_davinci /home/rstudio/extraCellularRNA/terra/deseq/R/1vsAllRunner.batch.sh
+```
+
+## 4) testing production script using real data
 The production test data Was constructued using following on mustard
 
 ```

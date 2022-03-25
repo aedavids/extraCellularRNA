@@ -12,6 +12,13 @@ configFile=$2
 set -x
 
 source $configFile
+status=$?
+if [ $status -ne 0 ]
+then
+    echo "ERROR unable to source ${configFile}"
+    exit 1
+fi
+
 gcloud dataproc clusters delete $clusterName \
        --project=${PROJECT_ID} \
        --region=${REGION}

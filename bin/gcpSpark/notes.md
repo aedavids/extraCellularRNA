@@ -1,5 +1,5 @@
 
--[play list](- https://www.youtube.com/playlist?list=PLeOtIjHQdqvFtYzoFL-DCYx_Sw-5iBJQ4)
+- [Sushil Kumar 'apache spark on dataproc Google cloud series' play list]( https://www.youtube.com/playlist?list=PLeOtIjHQdqvFtYzoFL-DCYx_Sw-5iBJQ4)
 
 
 ## first module intro : how to set up GCP
@@ -35,7 +35,7 @@ To set the active account, run:
     $ gcloud config set account `ACCOUNT`
 ```
 
-## second module: creating clusters, submitting jobs, ..
+## 2.1 second module: creating clusters, submitting jobs, ..
 
 create a cluster using the gcp consol  data proc create form. very trivial cluster. no auto scaling. did not enable component gateway, or select any options like jupyter
 
@@ -55,7 +55,7 @@ gcloud dataproc clusters create my-frist-cluster \
 
 cluster details -> web interfacess provides script for creating an ssh tunnel
 
-### submitting job via cloud console
+### 2.2 submitting job via cloud console
 
 create a bucket to store results
 ```
@@ -152,7 +152,7 @@ submit. results from output window
 
 data is on cluster. If we delete cluster we will loose data. will deal with this latter
 
-### Submitting Job from cli
+### 2.3 Submitting Job from cli
 https://cloud.google.com/dataproc/docs/guides/submit-job
 
 ```
@@ -165,7 +165,7 @@ error: the hive table already exists. Need to modify the script
 write.mode("overwrite")
 ```
 
-### Alternative way to submit jobs <span style="color:red"> (this is a bad idea)</span>
+### 2.4 Alternative way to submit jobs <span style="color:red"> (this is a bad idea)</span>
 use standard spark-submit. Note google cloud will have an info about the job. 
 
 ssh to master
@@ -175,7 +175,7 @@ spark-submit --master yarn --deploy-mode client gs://my-driver.py
 
 There are other problem with this method
 
-### deleting clusters
+### 2.5 deleting clusters
 we have a script for this
 
 In our example we write to a hive table. By default they are stored on cluster. If we delete cluster we loose data and hive meta data
@@ -202,86 +202,141 @@ create mySql instance
 - put in same region as cluster
 
 ## Module 4: performance
-- how to size executors
-- how to use preemptive vm
-- local SSD
-- using auto scaling
 
+### 4.1 resource and performance optiomization
 
+### 4.2  use trainient per job clusterms
+- better fit, more cost effective
 
-
-
-## foo
-&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-- https://www.youtube.com/channel/UC86J53XZybiEoYDQolBIZnw
-
-
-
-- https://www.youtube.com/watch?v=HrGxUxcqXI8
-
-## second module: creating clusters, submitting jobs, ..
-
-2.1 - Create the first Dataproc Cluster | Apache Spark on Dataproc | Google Cloud Series
-
-- ?? what does --bucket do?
-I think when we did hte interactive jupyter server demo we set --bucket. this gave us access to notebooks we saved
-
-## hacking. On the gcp dataproc create form I selected various options to see how they effect the gcloud dataproc create script
-
-- what does --scopes do ?
-Enables the cloud-platform scope for this cluster
-Allow API access to all Google Cloud services in the same project.
-
-```
-gcloud dataproc clusters create my-cluster 
-    --enable-component-gateway 
-    --bucket aedavids-ucsc-edu-spark-tutorial2 
-    --region us-central1 --zone us-central1-b 
-    --master-machine-type n1-standard-2 --master-boot-disk-size 500 --num-workers 2 --worker-machine-type n1-standard-2 --worker-boot-disk-size 500 
-    --image-version 2.0-ubuntu18 
-    --optional-components JUPYTER 
-    --scopes 'https://www.googleapis.com/auth/cloud-platform' 
-    --project dataprocspark-328421
-```
-
-- we did not select 'project access' left un checked
-```
-gcloud dataproc clusters create my-cluster 
-    --enable-component-gateway 
-    --bucket aedavids-ucsc-edu-spark-tutorial2 
-    --region us-central1 --zone us-central1-b 
-    --master-machine-type n1-standard-2 --master-boot-disk-size 500 --num-workers 2 --worker-machine-type n1-standard-2 --worker-boot-disk-size 500 
-    --image-version 2.0-ubuntu18 
-    --optional-components JUPYTER 
-    --project dataprocspark-328421
-```
+### 4.3 sizing the executor
+- YARN by design only able to use 80% of memory
+- tune number of work for level of parallization (ie number of executors)
+- example 1
+  + cluster with 10 works, (each mchine 16 vcores and 64 GB memory )
+  + total resource = 160 vcores and 640 GB
+  + 80% of memory == 500 GB of memory
+  + each worker == 50 GB and 16 vcores
+  + 50 GB / 16 vCores == 3.125 GB / vCore. To make math easy examples assumes 3 not 3.125
+  + if we creat executors with 4 vcores and 12 GB we can configure executors in 2 ways
+    * 1) 11 GB for executor mem and 4 vCores with 1 GB for over head 
+    * 2) 10 GB for executor mem and 4 vcores with 2 GB for over head
+  + we packed 4 executor in a work node
+    * 4 executors * 10 works == 40 executors
+    * 160 total vcores
+    * can run upto 160 parallel tasks
+  + <span style="color:red">if max parralization of job is only 100 our cluster can not use all the resource reduce the number of workers</span>
+- example 2
+  + high memory machine (16 vcores and 128 GB memroy for each machine) 
+  + 10 workers == total reasource 160 vcore and 1.2 TB memroy
+  + 80% of memory is about 1 TB GB for all 10 workers
+  + total vcores = 160
+  + each worker == 100 GB and 16 vcores
+  + 6 GB / 1 vcore
+  + if we configure 24 GB and 4 vcore per executor 2 choices
+    * 22 GB and 4 core with 2 gb for over head or 20 gb adn 4 vcores with 4gb for over head
     
-# enabled Personal Cluster Authentication
-allows interactive we access
+- example 3 counter example
+  + 16 vcores per work
+  + create exector with 5 workers 
+    * we can only use at most 15 vcores 
+    * <span style="color:red">we waste 1 vcore per worker! if we have 10 works in cluster we waste 10 vcores</span>
 
-```
-gcloud dataproc clusters create my-cluster 
-    --enable-component-gateway 
-    --bucket aedavids-ucsc-edu-spark-tutorial2 
-    --region us-central1 --zone us-central1-b 
-    --master-machine-type n1-standard-2 --master-boot-disk-size 500 
-    --num-workers 2 
-    --worker-machine-type n1-standard-2 --worker-boot-disk-size 500 
-    --image-version 2.0-ubuntu18 
-    --properties dataproc:dataproc.personal-auth.user=aedavids@ucsc.edu 
-    --optional-components JUPYTER 
-    --project dataprocspark-328421
-```
+- example 4 counter example
+  + 50 gb per worker
+  + if we use more than 12 gb for each executor we will not be able to fit 4 executor, some vcodes will not be used 
+  
+### 4.4 preemptibile secondary workers
+- what are preemptible VMs
+  + like regular VM but can be taken away at any time
+  + will be taken away after 24 hrs of use
+  + much cheaper. 
+  
+- compute only works
+- same machine type as primary workers
+- do not host HDFS. 
+  + not an issue for us we only use gcp storage
+- spark is resilient, if preemptition event occures spark will reschedule task
+- caveats
+  + do not use more than 50% of your total works as preemptible
+  + may experience high number of task failures due to preemption
+  + need to make cluste more tolerable to failures
+    * set parameters
+      ^ yarn:yarn.resouremanager.am.max-attempts=10
+      ^ spark:spark.task.maxFailures=10
+      ^ spark:spark.stage.maxConsecurtiveAttemps=10
+
+- tip
+  - get a baseline wiht primary works only
+  - add preemptible secondary works on top
+  - finish jobs well with in SLA with total lower cost
+  
+### 4.5 local SSD for resecue
+- by default works on have boot disk
+- spark uses to write shuffle files
+- add local SSD they are fast and cheap
+- if you are using secondary workers make sure you add sdd to them
+
+### 4.6 using auto scaling
+- based on amount of pending memory vs aviable memory
+- configure scaleUp or scaleDown formula value between 0 and 1 
+- frequency control (how often dataproc check scaling policy)
+- scaleUpMinWorkderFraction and scaleDownMinWorkFraction
+- select autoscaling policies -> create -> spark with dynamic allocation
+  * this policy is good 
+  * policies are region specific
+  * DO NOT SCALE PRIMARY works that use HDFS !!!
+  
+- use autoscaling when storge is externalized. 
+  + i.e. not HDFS
+  + many jobs running on a single cluster
+  + single job wit variable resource requirements
+  
+- never use autoscaling
+  - if you use HDFS or spark streaming (2018)
+  - for implementing idle cluster
+    - just use tranisent clusters
+    
+- if you use auto scaling make your cluster more fault tolerent
+    * set parameters
+      ^ yarn:yarn.resouremanager.am.max-attempts=10
+      ^ spark:spark.task.maxFailures=10
+      ^ spark:spark.stage.maxConsecutiveAttempts=10
 
 
-## third module: compute storage isolation
-using buckets, meta-store
 
 
-## 4th performance and cost issue
-
-
-## 5 moduel
+## 5 moduel TODO watch
 - initialization
 - runnign jupyter
 - integration with airflow
+  - <span style="color:red">airflow is an apache workflow that runs across different platforms. it spark could be a task </span>
+  
+### 5.1 Juypter on Dataproc
+- create cluster
+- select 'enable component gateway'
+- select Jupyter notebook component
+- by default juypter notebook will be stored in staging bucket
+  - to change where notebook is stored add property
+    dataproc jupyter.notebook.gcs.dir myBucket/notebooks
+- finish cluster create
+- go to cluster page
+- select tab web interface
+- you will see link for jupyter and juypter lab
+- go to vm instance tab
+  - get public ip address of master
+  
+#### finding URL from CLI
+```
+gcloud dataproc clusters describe ${CLUSTER_NAME} --region=${REGION} --project=${PROJECT_ID} | grep jupyter
+clusterName: jupyter-test1
+      Jupyter: https://i32ejq3punf7toyrbo3hm7qe3u-dot-us-central1.dataproc.googleusercontent.com/jupyter/
+      JupyterLab: https://i32ejq3punf7toyrbo3hm7qe3u-dot-us-central1.dataproc.googleusercontent.com/jupyter/lab/
+    - jupyter-test1-m
+      dataproc:jupyter.notebook.gcs.dir: anvil-gtex-v8-hg38-edu-ucsc-kim-lab-spark/notebooks
+      hdfs:dfs.namenode.lifeline.rpc-address: jupyter-test1-m:8050
+      hdfs:dfs.namenode.servicerpc-address: jupyter-test1-m:8051
+    - jupyter-test1-w-0
+    - jupyter-test1-w-1
+  goog-dataproc-cluster-name: jupyter-test1
+``
+

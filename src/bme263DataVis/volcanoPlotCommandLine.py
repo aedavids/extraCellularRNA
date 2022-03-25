@@ -7,6 +7,7 @@ Created on Jun 17, 2020
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
 
+
 ###############################################################################
 class VolcanoPlotCommandLine( object ):
     '''
@@ -14,7 +15,7 @@ class VolcanoPlotCommandLine( object ):
     '''
 
     ###############################################################################
-    def __init__( self, version, date, update):
+    def __init__( self, author, version, date, update ):
         '''
         Implement a parser to interpret the command line argv string using argparse.
 
@@ -22,18 +23,19 @@ class VolcanoPlotCommandLine( object ):
             inOpst: a list of cli arguments. pass None if you want to use the the
                     true CLI arguments. pass a list if you want to use from a juypter notebook
         '''
+        self.author = author
         self.program_version = version
-        self.program_build_date = str(update)    
-        self.date = date      
-        
+        self.program_build_date = str( update )
+        self.date = date
+
         self.program_version_message = '%%(prog)s %s (%s)' % ( self.program_version, self.program_build_date )
         self.program_shortdesc = __import__( '__main__' ).__doc__.split( "\n" )[1]
-        
+
     ###############################################################################
-    def _getLicence(self):
+    def _getLicence( self ):
         return '''%s
 
-      Created by user_name on %s.
+      Created by %s on %s.
       Copyright 2020 organization_name. All rights reserved.
 
       Licensed under the Apache License 2.0
@@ -43,7 +45,7 @@ class VolcanoPlotCommandLine( object ):
       or conditions of any kind, either express or implied.
 
     USAGE
-    ''' % ( self.program_shortdesc, str( self.date ) )
+    ''' % ( self.program_shortdesc, self.author, str(self.date ) )
 
     ###############################################################################
     def _build( self ):

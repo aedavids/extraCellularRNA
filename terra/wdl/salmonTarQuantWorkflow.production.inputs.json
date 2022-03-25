@@ -1,0 +1,13 @@
+{
+  "quantify.inputTarfile": "${this.mRNASeq_fastq_path}",
+  "quantify.refIndexTarGz": "gs://fc-secure-f5aa8a37-78e5-45f6-9c59-c643016f7d97/sel.align.gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx.tar.gz",
+  "quantify.salmon_paired_reads.diskSpaceGb": "${}",
+  "quantify.salmon_paired_reads.dockerImg": "${}",
+  "quantify.salmon_paired_reads.memoryGb": "${}",
+  "quantify.salmon_paired_reads.outDir": "${}",
+  "quantify.salmon_paired_reads.runTimeCpu": "${}",
+  "quantify.salmon_paired_reads.runTimePreemptible": "${}",
+  "quantify.sampleId": "${this.sample_id}",
+  "quantify.tarToFastqTask.diskSpaceGb": "${}",
+  "quantify.tarToFastqTask.memoryGb": "${}"
+}

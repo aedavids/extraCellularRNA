@@ -30,5 +30,7 @@ R CMD DESeqScript.R \
   --referenceLevel ctrl \
   --outFile  masterDESeq2_kras_vs_control_results.tsv \
   --numCores 2 \
-  --estimateSizeFactorsOutfile kras_vs_control_estimatedSizeFactors.tsv
+  --estimateSizeFactorsOutfile kras_vs_control_estimatedSizeFactors.tsv \
+  --oneVsAll
+
 

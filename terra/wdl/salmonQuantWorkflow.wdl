@@ -1,7 +1,7 @@
 
 # note urls have version information
-import "https://api.firecloud.org/ga4gh/v1/tools/aedavids.ucsc.edu:bamToFastq/versions/14/plain-WDL/descriptor" as bamToFastq
-import "https://api.firecloud.org/ga4gh/v1/tools/aedavids.ucsc.edu:SalmonPairedReadQuantTask/versions/26/plain-WDL/descriptor" as salmonPairedReadQuantTask
+import "https://api.firecloud.org/ga4gh/v1/tools/aedavids.ucsc.edu:bamToFastq/versions/16/plain-WDL/descriptor" as bamToFastq
+import "https://api.firecloud.org/ga4gh/v1/tools/aedavids.ucsc.edu:SalmonPairedReadQuantTask/versions/27/plain-WDL/descriptor" as salmonPairedReadQuantTask
 
 workflow quantify {
     meta {
@@ -23,8 +23,8 @@ workflow quantify {
         input:
         sampleId=sampleId,
         refIndexTarGz=refIndexTarGz,
-        leftReads=bamToFastq.firstEndFastq,
-        rightReads=bamToFastq.secondEndFastq,
+        firstFastq=bamToFastq.firstEndFastq,
+        secondFastq=bamToFastq.secondEndFastq,
     }
 
      output {

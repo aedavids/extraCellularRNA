@@ -1,0 +1,7 @@
+sampleName,source
+ctrl_1,test/data/ctrl_1.quant.sf
+ctrl_2,test/data/ctrl_2.quant.sf
+ctrl_3,test/data/ctrl_3.quant.sf
+kras_1,test/data/kras_1.quant.sf
+kras_2,test/data/kras_2.quant.sf
+kras_3,test/data/kras_3.quant.sf

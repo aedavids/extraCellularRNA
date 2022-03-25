@@ -1,0 +1,21 @@
+{
+  "id": "autoScalePolicy-bucketStorage",
+  "name": "projects/dataprocspark-328421/regions/us-central1/autoscalingPolicies/autoScalePolicy-bucketStorage",
+  "basicAlgorithm": {
+    "yarnConfig": {
+      "scaleUpFactor": 0.05,
+      "scaleDownFactor": 1,
+      "gracefulDecommissionTimeout": "3600s"
+    },
+    "cooldownPeriod": "120s"
+  },
+  "workerConfig": {
+    "minInstances": 8,
+    "maxInstances": 8,
+    "weight": 1
+  },
+  "secondaryWorkerConfig": {
+    "maxInstances": 10,
+    "weight": 1
+  }
+}

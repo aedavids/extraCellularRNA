@@ -1,0 +1,4 @@
+{
+  "quantify.aux_info3": "${this.aux_infoPaired}",
+  "quantify.quantFile3": "${this.quantFilePaired}"
+}
