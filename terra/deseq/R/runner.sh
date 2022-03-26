@@ -40,7 +40,7 @@ R CMD ../DESeqScript.R \
   --countMatrix ../masterCount.tsv/part-00000-d4d920b0-54d0-42bc-bc02-fa9cd1cde034-c000.csv \
   --colData ../masterColData.tsv \
   --design '~ treatment' \
-  --referenceLevel ctrl \
+  --referenceLevel kras \
   --outFile  "masterDESeq2_kras_vs_control_results.tsv" \
   --numCores 2 \
   --estimateSizeFactorsOutfile "kras_vs_control_estimatedSizeFactors.tsv" \

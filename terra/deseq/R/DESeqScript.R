@@ -12,6 +12,46 @@ startTime <- Sys.time()
 library("argparse")
 library("DESeq2")
 library("BiocParallel")
+
+saveResults <- function(outFile, dds, DESeqResults ) {
+  # write self describing meta data to header section of output file
+  descriptionList <- DESeqResults@elementMetadata@listData[["description"]]
+  cat( sprintf("%s \n", descriptionList[[1]]), file=outFile)
+  for (i in 2:length(descriptionList)) {
+      txt <- sprintf( "%s \n", descriptionList[[i]] ) 
+      cat( txt, file=outFile, append=TRUE)
+  }
+
+  txt <- sprintf( "design: %s \n", format(design(dds)))
+  cat( txt, file = outFile, append = TRUE)
+
+  # create a column named 'name' with the gene name
+  # else the output from write table will header line will not have
+  # the same number of columns as the data rows
+
+  cat("debug rownames(DESeqResults) \n")
+  # cat( rownames(DESeqResults) )
+  # cat(" \n")
+
+  DESeqResults<- cbind( rownames(DESeqResults), DESeqResults )
+  cat("debug  rownames after cbind( rownames(DESeqResults), DESeqResults )\n")
+  # cat( rownames(DESeqResults) )
+
+  colnames(DESeqResults)[1] <- "name"
+  cat("debug  rownames setting first col to 'name'\n")
+  #cat( rownames(DESeqResults) )
+
+  cat("debug before write.table head(DESeqResults)\n")
+  print( head(DESeqResults) )
+
+  cat("debug callign write.table\n")
+  write.table( DESeqResults,
+               file = outFile,
+               sep=delimator,
+               row.names=FALSE,
+               append=TRUE)
+}
+
 #
 # parse cli
 # https://cran.r-project.org/web/packages/argparse/vignettes/argparse.html
@@ -136,7 +176,7 @@ if (oneVsAll) {
 
 
   cat("\none vs. all levels\n")
-  print( levels(colDataDF[variableOfInterest] ) )
+  print( levels(colDataDF[variableOfInterest][,1] ) )
   print("str(colDataDF)")
   print(str(colDataDF))
   print("colDataDF")
@@ -235,44 +275,48 @@ DESeqResults <- DESeqResults[order(DESeqResults$padj),]
 
 print( head(DESeqResults) )
 
-# write self describing meta data to header section of output file
-descriptionList <- DESeqResults@elementMetadata@listData[["description"]]
-cat( sprintf("%s \n", descriptionList[[1]]), file=outFile)
-for (i in 2:length(descriptionList)) {
-  txt <- sprintf( "%s \n", descriptionList[[i]] ) 
-  cat( txt, file=outFile, append=TRUE)
-}
 
-txt <- sprintf( "design: %s \n", format(design(dds)))
-cat( txt, file = outFile, append = TRUE)
 
-# create a column named 'name' with the gene name
-# else the output from write table will header line will not have
-# the same number of columns as the data rows
+# # write self describing meta data to header section of output file
+# descriptionList <- DESeqResults@elementMetadata@listData[["description"]]
+# cat( sprintf("%s \n", descriptionList[[1]]), file=outFile)
+# for (i in 2:length(descriptionList)) {
+#   txt <- sprintf( "%s \n", descriptionList[[i]] ) 
+#   cat( txt, file=outFile, append=TRUE)
+# }
 
-cat("debug rownames(DESeqResults) \n")
-# cat( rownames(DESeqResults) )
-# cat(" \n")
+# txt <- sprintf( "design: %s \n", format(design(dds)))
+# cat( txt, file = outFile, append = TRUE)
 
-DESeqResults<- cbind( rownames(DESeqResults), DESeqResults )
-cat("debug  rownames after cbind( rownames(DESeqResults), DESeqResults )\n")
-# cat( rownames(DESeqResults) )
+# # create a column named 'name' with the gene name
+# # else the output from write table will header line will not have
+# # the same number of columns as the data rows
 
-colnames(DESeqResults)[1] <- "name"
-cat("debug  rownames setting first col to 'name'\n")
-#cat( rownames(DESeqResults) )
+# cat("debug rownames(DESeqResults) \n")
+# # cat( rownames(DESeqResults) )
+# # cat(" \n")
 
-cat("debug before write.table head(DESeqResults)\n")
-print( head(DESeqResults) )
+# DESeqResults<- cbind( rownames(DESeqResults), DESeqResults )
+# cat("debug  rownames after cbind( rownames(DESeqResults), DESeqResults )\n")
+# # cat( rownames(DESeqResults) )
 
-cat("debug callign write.table\n")
-write.table( DESeqResults,
-           file = outFile,
-           sep=delimator,
-           row.names=FALSE,
-           append=TRUE)
+# colnames(DESeqResults)[1] <- "name"
+# cat("debug  rownames setting first col to 'name'\n")
+# #cat( rownames(DESeqResults) )
 
-cat("DESeqScript.R completed sucessfully\n")
+# cat("debug before write.table head(DESeqResults)\n")
+# print( head(DESeqResults) )
+
+# cat("debug callign write.table\n")
+# write.table( DESeqResults,
+#            file = outFile,
+#            sep=delimator,
+#            row.names=FALSE,
+#            append=TRUE)
+
+saveResults( outFile, dds, DESeqResults )
+
+Cat("DESeqScript.R completed sucessfully\n")
 
 # turn output capture off
 sink()
