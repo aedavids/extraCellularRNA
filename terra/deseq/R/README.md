@@ -31,6 +31,10 @@ use runner.sh to driver execute testDESeqScript.R. This hack test script use the
 Note it uses a hack to get the mock data to run. It is not a production quality script.
 It is useful for quickly debugging R and DESeq issues
 
+the test data is in extraCellularRNA/terra/deseq/R. The output will be written to runner.sh.out.
+
+Will use mock data files masterCount.tsv  masterColData.tsv 
+
 ```
 $ runner.sh
 # lots of stuff to console. My guess is this is stuff from messages, [R] writes this to stderr
@@ -39,26 +43,6 @@ $ runner.sh
 $ ls -lt
 total 2556
 -rw-rw-r-- 1 rstudio rstudio   3391 Jan 25 02:59  DESeqScript.out
-```
-
-you can test the results of a run as follows
-
-```
-diff testDESeqScript.expected.out testDESeqScript.out
-```
-
-## 2) Running GTEx train 1 vs all tests on mustard
-It is faster to debug our R scripts on a mustard rather than using WDL/cromwell or terra. The batch script is the list of command mentioned above. Strange. If you use top you will 1vsAllRunner.batch.sh and its child script 1vsAllRunner.sh
-```
-$ docker exec --detach --user rstudio friendly_davinci /home/rstudio/extraCellularRNA/terra/deseq/R/1vsAllRunner.batch.sh
-```
-
-## 4) testing production script using real data
-The production test data Was constructued using following on mustard
-
-```
-extraCellularRNA/juypterNotebooks/spark/createTestDESeq2_MasterDataSets.ipynb
-extraCellularRNA/terra/deseq/R/createTestColData.Rmd
 ```
 
 The data can be found at
@@ -77,6 +61,30 @@ total 32M
 -rw-r--r-- 1 aedavids prismuser 32M Oct 20 18:41 part-00000-d4d920b0-54d0-42bc-bc02-fa9cd1cde034-c000.csv
 -rw-r--r-- 1 aedavids prismuser   0 Oct 20 18:41 _SUCCESS
 ```
+
+you can test the results of a run as follows
+
+```
+diff testDESeqScript.expected.out testDESeqScript.out
+```
+
+
+
+## 2) Running GTEx train 1 vs all tests on mustard
+It is faster to debug our R scripts on a mustard rather than using WDL/cromwell or terra. The batch script is the list of command mentioned above. Strange. If you use top you will 1vsAllRunner.batch.sh and its child script 1vsAllRunner.sh
+```
+$ docker exec --detach --user rstudio friendly_davinci \
+    /home/rstudio/extraCellularRNA/terra/deseq/R/1vsAllRunner.batch.sh
+```
+
+## 4) testing production script using real data
+The production test data Was constructued using following on mustard
+
+```
+extraCellularRNA/juypterNotebooks/spark/createTestDESeq2_MasterDataSets.ipynb
+extraCellularRNA/terra/deseq/R/createTestColData.Rmd
+```
+
 
 
 
