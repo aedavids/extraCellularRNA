@@ -131,12 +131,17 @@ if (oneVsAll) {
   #levels( colDataDF[variableOfInterest] )[ levels(colDataDF[variableOfInterest] ) != referenceLevel ] <- notLevel
   # https://stackoverflow.com/questions/19730806/access-data-frame-column-using-variable
   levels( colDataDF[, variableOfInterest] )[ levels(colDataDF[, variableOfInterest] ) != referenceLevel ] = notLevel
+
+  colDataDF[variableOfInterest][,1] <- relevel(colDataDF[variableOfInterest][,1], notLevel)
+
+
   cat("\none vs. all levels\n")
   print( levels(colDataDF[variableOfInterest] ) )
-  # print("str(colDataDF)")
-  # print(str(colDataDF))
-  # print("colDataDF")
-  # print(colDataDF)
+  print("str(colDataDF)")
+  print(str(colDataDF))
+  print("colDataDF")
+  print(colDataDF)
+  print("####### end 1 vs. all debug ##########")
 }
 
 cat("\nhead(colData) \n")
@@ -224,6 +229,10 @@ cat("\nsave our expected results\n")
 # results takes a name argument. by default we sampleType treatment vs control
 # see the documentation there are lots of arguments
 DESeqResults <- results(dds, parallel=TRUE)
+
+# sort by adjusted p-value
+DESeqResults <- DESeqResults[order(DESeqResults$padj),]
+
 print( head(DESeqResults) )
 
 # write self describing meta data to header section of output file
