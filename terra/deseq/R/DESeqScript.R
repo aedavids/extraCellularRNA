@@ -178,10 +178,11 @@ if (oneVsAll) {
   cat("\none vs. all levels\n")
   print( levels(colDataDF[variableOfInterest][,1] ) )
   print("str(colDataDF)")
-  print(str(colDataDF))
-  print("colDataDF")
-  print(colDataDF)
-  print("####### end 1 vs. all debug ##########")
+  # print(str(colDataDF))
+  # print("colDataDF")
+  # print(colDataDF)
+  # print("####### end 1 vs. all debug ##########")
+
 }
 
 cat("\nhead(colData) \n")
@@ -272,49 +273,25 @@ DESeqResults <- results(dds, parallel=TRUE)
 
 # sort by adjusted p-value
 DESeqResults <- DESeqResults[order(DESeqResults$padj),]
-
 print( head(DESeqResults) )
-
-
-
-# # write self describing meta data to header section of output file
-# descriptionList <- DESeqResults@elementMetadata@listData[["description"]]
-# cat( sprintf("%s \n", descriptionList[[1]]), file=outFile)
-# for (i in 2:length(descriptionList)) {
-#   txt <- sprintf( "%s \n", descriptionList[[i]] ) 
-#   cat( txt, file=outFile, append=TRUE)
-# }
-
-# txt <- sprintf( "design: %s \n", format(design(dds)))
-# cat( txt, file = outFile, append = TRUE)
-
-# # create a column named 'name' with the gene name
-# # else the output from write table will header line will not have
-# # the same number of columns as the data rows
-
-# cat("debug rownames(DESeqResults) \n")
-# # cat( rownames(DESeqResults) )
-# # cat(" \n")
-
-# DESeqResults<- cbind( rownames(DESeqResults), DESeqResults )
-# cat("debug  rownames after cbind( rownames(DESeqResults), DESeqResults )\n")
-# # cat( rownames(DESeqResults) )
-
-# colnames(DESeqResults)[1] <- "name"
-# cat("debug  rownames setting first col to 'name'\n")
-# #cat( rownames(DESeqResults) )
-
-# cat("debug before write.table head(DESeqResults)\n")
-# print( head(DESeqResults) )
-
-# cat("debug callign write.table\n")
-# write.table( DESeqResults,
-#            file = outFile,
-#            sep=delimator,
-#            row.names=FALSE,
-#            append=TRUE)
-
 saveResults( outFile, dds, DESeqResults )
+
+
+#
+# calculate the log fold change shrinkage
+#
+
+# by default the log2 fold change and Wald test p value will be for the last
+# variable in the design formula, and if this is a factor, the comparison will
+# be the last level of this variable over the reference level 
+
+coefList <- resultsNames(dds) # lists the coefficients
+lastVariable = coefList[-1]
+
+DESeqResult_lfcShrink <- lfcShrink(dds, coef=lastVariable, type="apeglm")
+lfsShrinkOutFile <- paste(sep="", outfile, ".lfcShrink")
+saveResults( lfsShrinkOutFile , dds, DESeqResult_lfcShrink )
+
 
 Cat("DESeqScript.R completed sucessfully\n")
 
