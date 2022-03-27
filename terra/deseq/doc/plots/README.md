@@ -6,7 +6,7 @@ quick hacks to create plots for lab research presenation on mond 3/28
    ```
    scp mustard:/scratch/aedavids/GTExData/data/deseq/kimlab/genomes.annotations/gencode.35/gencode.v35.ucsc.rmsk.te.gene.names.txt .
    
-   scp mustard:/scratch/aedavids/GTExData/1vsAllRunner.sh/Validate_Lung_vs_all_results.csv .
+   scp mustard:/scratch/aedavids/GTExData/1vsAllRunner.sh.out/Validate_Lung_vs_all_results.csv .
    ```
    
 2. start extraCellularRNA conda environment
@@ -17,12 +17,20 @@ quick hacks to create plots for lab research presenation on mond 3/28
    export PYTHONPATH="${PYTHONPATH}:`pwd`/src"
    ```
    
-4. run plots
+4. run plots easy way to run many plots by just chaning refLevel and n variables
    ```
-   python plots/volcanoPlots.py -t "Validate Lung vs. not Lung n=119" \
-       -i ../doc/plots/data/Validate_Lung_vs_all_results.csv \
-       -o ../doc/plots/volcanoPlots/Validate_Lung_vs_all_results.png \
-       -n 8 \
-       -g ../doc/plots/data/gencode.v35.ucsc.rmsk.te.gene.names.txt
+   refLevel=Thyroid; 
+   n=130; 
+   dataRoot=../doc/plots/data; 
+   inputFile="${dataRoot}/Validate_${refLevel}_vs_all_results.csv"; 
+   outputFile="${dataRoot}/../volcanoPlots/Validate_${refLevel}_vs_all_results.png"; 
+   title="Validate ${refLevel} vs. not ${refLevel} n=$n";
+    
+    python plots/volcanoPlots.py \
+        -n $n \
+        -i $inputFile \
+        -o $outputFile \
+        -g ../doc/plots/data/gencode.v35.ucsc.rmsk.te.gene.names.txt \
+        -t "$title"
    ```
 

@@ -123,7 +123,7 @@ class VolcanoPlot( object ):
                           s=scatterMarkersize,
                           facecolor=colorByValues,
                           linewidth=0,
-                          alpha=0.3 )
+                          alpha=0.8 ) # alpha=0.3
 
         else:
             # plot is faster than scatter how ever does not allow points to be
