@@ -14,6 +14,12 @@ library("DESeq2")
 library("BiocParallel")
 
 saveResults <- function(outFile, dds, DESeqResults ) {
+  cat("\n*********DEBUG begin saveResults()")
+  txt <- sprintf("debug begin outFile: %s\n", outFile)
+  cat(txt)
+  head(DESeqResults)
+  cat( sprintf("\n after head\n") )
+  
   # write self describing meta data to header section of output file
   descriptionList <- DESeqResults@elementMetadata@listData[["description"]]
   cat( sprintf("%s \n", descriptionList[[1]]), file=outFile)
@@ -29,17 +35,17 @@ saveResults <- function(outFile, dds, DESeqResults ) {
   # else the output from write table will header line will not have
   # the same number of columns as the data rows
 
-  cat("debug rownames(DESeqResults) \n")
-  # cat( rownames(DESeqResults) )
-  # cat(" \n")
+  cat("debug head(rownames(DESeqResults)) \n")
+  cat( head(rownames(DESeqResults)) )
+  cat(" \n")
 
   DESeqResults<- cbind( rownames(DESeqResults), DESeqResults )
   cat("debug  rownames after cbind( rownames(DESeqResults), DESeqResults )\n")
-  # cat( rownames(DESeqResults) )
+  cat( head(rownames(DESeqResults)) )
 
   colnames(DESeqResults)[1] <- "name"
-  cat("debug  rownames setting first col to 'name'\n")
-  #cat( rownames(DESeqResults) )
+  #AEDWIP cat("debug  rownames setting first col to 'name'\n")
+  #AEDWIP cat( rownames(DESeqResults) )
 
   cat("debug before write.table head(DESeqResults)\n")
   print( head(DESeqResults) )
@@ -50,6 +56,9 @@ saveResults <- function(outFile, dds, DESeqResults ) {
                sep=delimator,
                row.names=FALSE,
                append=TRUE)
+
+  cat( paste("wrote file: ", outFile, "\n") )
+  cat("\n*********DEBUG end saveResults()")
 }
 
 #
@@ -280,27 +289,46 @@ saveResults( outFile, dds, DESeqResults )
 #
 # calculate the log fold change shrinkage
 #
+cat("\n")
+print("DEBUG ***** starting lfcShrink()")
 
 # by default the log2 fold change and Wald test p value will be for the last
 # variable in the design formula, and if this is a factor, the comparison will
 # be the last level of this variable over the reference level 
 
 coefList <- resultsNames(dds) # lists the coefficients
-lastVariable = coefList[-1]
+lastVariable = tail(coefList, 1)
 
-DESeqResult_lfcShrink <- lfcShrink(dds, coef=lastVariable, type="apeglm")
-lfsShrinkOutFile <- paste(sep="", outfile, ".lfcShrink")
+cat("\nDEBUG ***** lastVariable ")
+print(class(coefList))
+print(coefList)
+print(lastVariable)
+
+
+tryCatch(
+    {
+        DESeqResult_lfcShrink <- lfcShrink(dds, coef=lastVariable, type="apeglm")
+    },
+    message = function(m){
+                    message("ERROR calling lfcShrink()")
+                    message(m)
+    }
+)
+
+#print( "head(DESeqResult_lfcShrink)" )
+#head(DESeqResult_lfcShrink)
+lfsShrinkOutFile <- paste(sep="", outFile, ".lfcShrink")
 saveResults( lfsShrinkOutFile , dds, DESeqResult_lfcShrink )
 
 
-Cat("DESeqScript.R completed sucessfully\n")
-
-# turn output capture off
-sink()
+cat("DESeqScript.R completed sucessfully\n")
 
 endTime <- Sys.time()
 cat("\nrun time")
 print( endTime - startTime )
+
+# turn output capture off
+sink()
 
 # exit session do not save
 q(save="no")
