@@ -51,12 +51,15 @@ class VolcanoPlotCommandLine( object ):
     def _build( self ):
         self.parser = ArgumentParser( description=self._getLicence(), formatter_class=RawDescriptionHelpFormatter )
                 
+        self.parser.add_argument( '-g', '--geneNamesFile',  default=None, metavar="",
+                                              action='store', help='genes to color file. One gene name per line.' )
+                
         self.parser.add_argument( '-n', '--numHeaderLines', default=0, metavar="", type=int,
-                                            action='store', help="number of header lines in input file"
-                                   )
+                                            action='store', help="number of header lines in input file")
         
         self.parser.add_argument( '-t', '--title', default=None, metavar="",
                                               action='store', help='plot title' )
+        
         self.parser.add_argument( '-v', '--version', action='version', version=self.program_version_message )
         
 

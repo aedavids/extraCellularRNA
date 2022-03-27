@@ -92,7 +92,13 @@ class DESeqSelect(object):
                 baseMeanList.append( baseMean )
                 xList.append( log2Fold )
                 yList.append( adjP )
-                geneNames.append(tokens[self.GENE_NAME_IDX])
+                # example gene name "GLCE"
+                gn = tokens[self.GENE_NAME_IDX].strip()
+                if gn.startswith('"'):
+                    gn = gn[1:]
+                if gn[-1] == '"':
+                    gn = gn[:-1]
+                geneNames.append( gn )
 
         baseMeanNp = np.array( baseMeanList )
         xNP = np.array( xList )

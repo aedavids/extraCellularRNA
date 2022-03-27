@@ -155,23 +155,24 @@ class _VolcanoPlotData :
     '''
 
     def __init__( self ) :
-        self.abundantX = []
+        # self.abundantX = []
         self.x = []
+        self.isTE = []
 
-        self.abundantY = []
+        # self.abundantY = []
         self.y = []
-        self.abundant = []
+        # self.abundant = []
 
-        self.abundantBaseMean = []
-        self.baseMean = []
-
-        # the xtick values for color gradient
-        self.minAbundanceValue = 0
-        self.maxAbundanceValue = 0
+        # self.abundantBaseMean = []
+        # self.baseMean = []
+        #
+        # # the xtick values for color gradient
+        # self.minAbundanceValue = 0
+        # self.maxAbundanceValue = 0
 
 
 ########################################################################
-def loadData( inputFile, numHeaderLines ):
+def loadData( inputFile, numHeaderLines, teGeneNamesSet=None ):
     '''
     returns a _VolcanoPlotData object
     '''
@@ -189,23 +190,30 @@ def loadData( inputFile, numHeaderLines ):
     print( "AEDWIP mean:{} std:{} threshold:{}".format( mean, std, threshold ) )
 
     for i in range( len( baseMeanNP ) ):
-        bm = baseMeanNP[i]
+        # bm = baseMeanNP[i]
+        geneName = geneNamesNP[i]
         x = xlog2FoldChangeNP[i]
         y = yNeglog10pValueNP[i]
-        if bm >= threshold:
-            ret.abundantX.append( x )
-            ret.abundantY.append( y )
-            ret.abundantBaseMean.append( bm )
+        # if bm >= threshold:
+        #     ret.abundantX.append( x )
+        #     ret.abundantY.append( y )
+        #     ret.abundantBaseMean.append( bm )
+        # else:
+        #     ret.x.append( x )
+        #     ret.y.append( y )
+        #     ret.baseMean.append( bm )
+        ret.x.append( x )
+        ret.y.append( y ) 
+        if geneName in teGeneNamesSet:
+            ret.isTE.append(True)  
         else:
-            ret.x.append( x )
-            ret.y.append( y )
-            ret.baseMean.append( bm )
+            ret.isTE.append(False)        
 
 #     print( "AEDWIP mean:{} std:{} minCut:{}".format( mean, std, mean + 2 * std ) )
 
     # find the range of tick mark values for the color gradient panel
-    ret.minAbundanceValue = int( np.floor( threshold ) )
-    ret.maxAbundanceValue = int( np.ceil( np.max( baseMeanNP ) ) )
+    # ret.minAbundanceValue = int( np.floor( threshold ) )
+    # ret.maxAbundanceValue = int( np.ceil( np.max( baseMeanNP ) ) )
 
     return ret
 
@@ -224,46 +232,65 @@ def main( inComandLineArgsList=None ):
     mplu = MatPlotLibUtilities()
     mplu.loadStyle()
 
-    volcanoPlotData = loadData( cli.args.inputFile, cli.args.numHeaderLines )
-
+    print("DEBUG cli.args.geneNamesFile:{}".format(cli.args.geneNamesFile))
+    
+    # read list of TE gene names. These are point we want to color
+    teGeneNamesSet = None
+    if cli.args.geneNamesFile:
+        teGeneNamesSet = set()        
+        with open(cli.args.geneNamesFile) as f:
+            for line in f:
+                geneName = f.readline().strip()
+                teGeneNamesSet.add(geneName)
+            
+    # print(teGeneNamesSet)
+    
+    # print("\n\n******* '(GAAGGCA)n' in teGeneNamesSet: {}".format("(GAAGGCA)n" in teGeneNamesSet))
+           
+    volcanoPlotData = loadData( cli.args.inputFile, cli.args.numHeaderLines, teGeneNamesSet )
+ 
     # set up figure
     # standard paper size is 8.5 inches x 11 inches
-    pageWidthInInches = 4
+    pageWidthInInches = 3 #4
     pageHeightInInches = 3
     fig = plt.figure( figsize=( pageWidthInInches, pageHeightInInches ) )
 
-    # create color map
+    # # create color map
     panelHeightInInches = 2
     bottomRelativeSize = 0.2
-    leftRelativeSize = 0.9
-    colorBarPanel = mplu.createPanel( fig,
-                        3 / 16, panelHeightInInches,
-                        leftRelativeSize, bottomRelativeSize )
-
-    # set up the base mean color gradient legend
-    label = "base mean"
-    numSteps = 10  # 20  # 4  # 1000 # 4 #50 #20
+    # leftRelativeSize = 0.9
+    # colorBarPanel = mplu.createPanel( fig,
+    #                     3 / 16, panelHeightInInches,
+    #                     leftRelativeSize, bottomRelativeSize )
+    #
+    # # set up the base mean color gradient legend
+    # label = "base mean"
+    # numSteps = 10  # 20  # 4  # 1000 # 4 #50 #20
     volcanoPlot = VolcanoPlot( mplu )
     
 #         # python issue, we can not pass a generator because
 #         #  it is not indexable
-    yellow = tuple( ( c / 255 for c in [255, 255, 84] ) )
+    # yellow = tuple( ( c / 255 for c in [255, 255, 84] ) )
     red = tuple( ( c / 255 for c in [255, 0, 0] ) )    
-    colorMapTuple = volcanoPlot.createColorMapLedgend( colorBarPanel,
-                                                        yellow, red,
-                                                        volcanoPlotData.minAbundanceValue,
-                                                        volcanoPlotData.maxAbundanceValue,
-                                                        numSteps, label )
+    # colorMapTuple = volcanoPlot.createColorMapLedgend( colorBarPanel,
+    #                                                     yellow, red,
+    #                                                     volcanoPlotData.minAbundanceValue,
+    #                                                     volcanoPlotData.maxAbundanceValue,
+    #                                                     numSteps, label )
 
     # create the color list data
-    RList, GList, BList = colorMapTuple
-    colorByValues = mplu.getColors( volcanoPlotData.abundantBaseMean,
-                                   RList, GList, BList )
+    # RList, GList, BList = colorMapTuple
+    # colorByValues = mplu.getColors( volcanoPlotData.abundantBaseMean,
+    #                                RList, GList, BList )
 
     black = ( 0, 0, 0 )
-    allColors = [black] * len( volcanoPlotData.x ) + colorByValues
+    # allColors = [black] * len( volcanoPlotData.x ) + colorByValues
+    allColors = [black] * len( volcanoPlotData.x )
+    for i in range(len(volcanoPlotData.x)):
+        if volcanoPlotData.isTE[i] :
+            allColors[i] = red
 
-#     colorByValues = mplu.getColors( dataList, RList, GList, BList )
+    # colorByValues = mplu.getColors( dataList, RList, GList, BList )
 
     # plot the main volcano plot
     panelWidthInInches = 2
@@ -273,9 +300,10 @@ def main( inComandLineArgsList=None ):
                         leftRelativeSize, bottomRelativeSize )
 
     # put colored points at end of the list to avoid over plotting by black points
-    allX = volcanoPlotData.x + volcanoPlotData.abundantX
-    allY = volcanoPlotData.y + volcanoPlotData.abundantY
-    volcanoPlot.plot( volcanoPanel, allX, allY, allColors )
+    # allX = volcanoPlotData.x + volcanoPlotData.abundantX
+    # allY = volcanoPlotData.y + volcanoPlotData.abundantY
+    # volcanoPlot.plot( volcanoPanel, allX, allY, allColors )    
+    volcanoPlot.plot( volcanoPanel, volcanoPlotData.x, volcanoPlotData.y, allColors )
 
     title = cli.args.title
     if title:
