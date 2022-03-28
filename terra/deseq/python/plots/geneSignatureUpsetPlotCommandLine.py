@@ -53,6 +53,9 @@ class GeneSignatureUpsetPlotCommandLine( VolcanoPlotCommandLine ):
         self.parser.add_argument( '-n', '--numHeaderLines', default=0, metavar="", type=int,
                                             action='store', help="number of header lines in input file")
         
+        self.parser.add_argument( '-t', '--title', default=None, metavar="",
+                                              action='store', help='plot title' )        
+        
         # # https://stackoverflow.com/a/60796254/4586180
         # self.parser.add_argument('-i', '--inputFiles', action='store', nargs="+", 
         #                          help="one or more results files create by DESeq")

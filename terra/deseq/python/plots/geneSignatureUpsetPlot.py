@@ -62,6 +62,10 @@ def main( inComandLineArgsList=None ):
     print("\nThyroid intersection with Lung")
     print( geneSets["Thyroid"].intersection(geneSets['Lung']) )    
     
+    title = cli.args.title
+    if title:
+        fig.suptitle( title, fontsize=8 )  # arial is not installed on courtyard, default font is huge
+
     outputFile = cli.args.outputFile
     fig.savefig(outputFile, dpi=300, bbox_inches='tight')
     print("saved plot: {}".format(outputFile))

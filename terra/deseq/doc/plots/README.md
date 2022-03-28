@@ -46,5 +46,10 @@ shows intersection between tissue signature profiles
 2. lskdkls
    ```
    cd extraCellularRNA/terra/deseq/python
-   python plots/geneSignatureUpsetPlot.py -n 8 -o ../doc/plots/upsetPlots  -i ../doc/plots/data/sig* 
+   python plots/geneSignatureUpsetPlot.py \
+       -t "my title" \
+       -n 8  \
+       -i ../doc/plots/data/signatureGenes*.csv \
+       -o ../doc/plots/upsetPlots/signatureGenes.png
+   ```
    
