@@ -16,8 +16,6 @@ It defines classes_and_methods
 @deffield    updated: Updated
 '''
 
-import sys
-import os
 
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
@@ -70,5 +68,5 @@ class GeneSignatureUpsetPlotCommandLine( VolcanoPlotCommandLine ):
         # self.requiredArg.add_argument( '-i', '--inputFile', required=True, default=None, metavar="",
         #                                       action='store', help='input file name' )
         self.requiredArg.add_argument( '-o', '--outputFile', required=True, default=None, metavar="",
-                                             action='store', help='output file name. suffix determins output format' )
+                                             action='store', help='output file name. suffix determines output format' )
 
