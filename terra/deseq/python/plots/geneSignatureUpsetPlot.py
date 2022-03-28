@@ -10,9 +10,11 @@ __date__ = '2022-03-26'
 __updated__ = '2022-03-26'
 __user_name__ = 'Andrew E. Davidson'
 
-import pandas as pd
 from plots.DESeqSelect import DESeqSelect
 from plots.geneSignatureUpsetPlotCommandLine import GeneSignatureUpsetPlotCommandLine
+from matplotlib import pyplot as plt
+import upsetplot as up
+from utils.upsetPlotData import UpSetPlotData
 
 ########################################################################
 def main( inComandLineArgsList=None ):
@@ -30,6 +32,7 @@ def main( inComandLineArgsList=None ):
     numHeaderLines = cli.args.numHeaderLines
     files = cli.args.inputFiles
     
+    geneSets = {}
     for file in files:
         print("\nprocessing file: {}".format(file))
         tokens = file.split("/")
@@ -42,6 +45,21 @@ def main( inComandLineArgsList=None ):
         print(tissueId)
         dataLoader = DESeqSelect( file )
         geneNamesNP, baseMeanNP, xlog2FoldChangeNP, yNeglog10pValueNP = dataLoader.readVolcanoPlotData(numHeaderLines)
+        geneSets[tissueId] = set( geneNamesNP )
+        
+    upData = UpSetPlotData( geneSets )
+    
+    figureWidthInInches = 8
+    figureHeightInInches = 3
+    fig = plt.figure(figsize=(figureWidthInInches,figureHeightInInches))
+    subPlotDict = up.plot(upData.plotData, fig)
+    # [INFO] subPlotDict keys:dict_keys(['matrix', 'shading', 'totals', 'intersections'])
+
+    
+    
+    outputFile = cli.args.outputFile
+    fig.savefig(outputFile, dpi=300, bbox_inches='tight')
+    print("saved plot: {}".format(outputFile))
 
 ########################################################################
 if __name__ == '__main__':
