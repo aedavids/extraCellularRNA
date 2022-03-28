@@ -34,3 +34,17 @@ quick hacks to create plots for lab research presenation on mond 3/28
         -t "$title"
    ```
 
+# Upset Plots
+shows intersection between tissue signature profiles
+
+1. start extraCellularRNA conda environment and add upset plot package
+   ```
+   cd ~andrewdavidson/googleUCSC/kimLab/unmappedReadsAnalysis/python
+   export PYTHONPATH="${PYTHONPATH}:`pwd`"
+   ```
+   
+2. lskdkls
+   ```
+   cd extraCellularRNA/terra/deseq/python
+   python plots/geneSignatureUpsetPlot.py -n 8 -o ../doc/plots/upsetPlots  -i ../doc/plots/data/sig* 
+   
