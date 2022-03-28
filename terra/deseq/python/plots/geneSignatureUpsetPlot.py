@@ -55,7 +55,12 @@ def main( inComandLineArgsList=None ):
     subPlotDict = up.plot(upData.plotData, fig)
     # [INFO] subPlotDict keys:dict_keys(['matrix', 'shading', 'totals', 'intersections'])
 
+    # quick hack looked at plot , print names of intersecting genes
+    print("\nThyroid intersection with Kidney_Cortex")
+    print( geneSets["Thyroid"].intersection(geneSets['Kidney_Cortex']) )
     
+    print("\nThyroid intersection with Lung")
+    print( geneSets["Thyroid"].intersection(geneSets['Lung']) )    
     
     outputFile = cli.args.outputFile
     fig.savefig(outputFile, dpi=300, bbox_inches='tight')
