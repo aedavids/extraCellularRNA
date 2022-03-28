@@ -38,20 +38,16 @@ def main( inComandLineArgsList=None ):
     xLabel = columnNames[0]
     yLabel = columnNames[1]
     dataDF = dataDF.sort_values(yLabel)
-    # print(dataDF)
     
     # xLabel will be something like lung, kidney, brain
     xTickLabels = dataDF.loc[:, xLabel].to_list()
-    # print(xLabels)
     x = np.arange(len(xTickLabels))  + 1# the label locations
 
     
     # y values are the number of sample in each tissue type, i.e. int
     y = dataDF.loc[:,yLabel].to_list()
     print("y[0]:{}".format(y[0]))
-    
-    # print(y)
-    
+        
     #
     # plot set up
     #
@@ -73,24 +69,20 @@ def main( inComandLineArgsList=None ):
     #
     # config labels and axis
     #
-    print(x)
-    print(len(x))
-    print(len(xTickLabels))
-    print(len(y))
+    
+    # 
     # xMin = np.floor(np.min( x ))
     # xMax = np.ceil( np.max(x) ) 
-    # barChartPanel.set_xlim( xMin, xMax )    
+    # this mess up ax.bar() barChartPanel.set_xlim( xMin, xMax )    
     barChartPanel.set_xlabel( xLabel )
     barChartPanel.set_xticks(x) # , xLabels
     barChartPanel.set_xticklabels(xTickLabels, rotation = 90, fontsize=4)
-    # for l in xLabels:
-    #     print(l)
 
     barChartPanel.set_ylabel( yLabel)
     # make sure all points are plotted
     # yMin = np.floor( np.min( y ) )
     # yMax = np.ceil( np.max( y ) )
-    # barChartPanel.set_ylim( yMin, yMax )
+    # this messes up ax.barChartPanel.set_ylim( yMin, yMax )
     
     #
     #
@@ -104,23 +96,6 @@ def main( inComandLineArgsList=None ):
     if title:
         barChartPanel.set_title(title)
         
-    #barChartPanel.set_xticks(x, labels)
-
-# x = np.arange(len(labels))  # the label locations
-# width = 0.35  # the width of the bars
-#
-# fig, ax = plt.subplots()
-# rects1 = ax.bar(x - width/2, men_means, width, label='Men')
-# rects2 = ax.bar(x + width/2, women_means, width, label='Women')
-#
-# # Add some text for labels, title and custom x-axis tick labels, etc.
-# ax.set_ylabel('Scores')
-# ax.set_title('Scores by group and gender')
-# ax.set_xticks(x, labels)
-# ax.legend()
-#
-# ax.bar_label(rects1, padding=3)
-# ax.bar_label(rects2, padding=3)
 
     outputFile = cli.args.outputFile
     fig.savefig(outputFile, dpi=300, bbox_inches='tight')
