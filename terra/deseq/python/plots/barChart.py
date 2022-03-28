@@ -38,11 +38,11 @@ def main( inComandLineArgsList=None ):
     xLabel = columnNames[0]
     yLabel = columnNames[1]
     dataDF = dataDF.sort_values(yLabel)
-    print(dataDF)
+    # print(dataDF)
     
     # xLabel will be something like lung, kidney, brain
     xLabels = dataDF.loc[:, xLabel].to_list()
-    print(xLabels)
+    # print(xLabels)
     x = np.arange(len(xLabels))  # the label locations
 
     
@@ -71,9 +71,12 @@ def main( inComandLineArgsList=None ):
     #
     # config labels and axis
     #
+    xMin = 0
+    xMax = np.ceil( len(x) )
+    barChartPanel.set_xlim( xMin, xMax )    
     barChartPanel.set_xlabel( xLabel )
     barChartPanel.set_xticks(x) # , xLabels
-    barChartPanel.set_xticklabels(xLabels, rotation = 45, fontsize=4)
+    barChartPanel.set_xticklabels(xLabels, rotation = 90, fontsize=4)
 
     barChartPanel.set_ylabel( yLabel)
     # make sure all points are plotted
