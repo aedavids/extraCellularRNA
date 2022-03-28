@@ -41,13 +41,15 @@ def main( inComandLineArgsList=None ):
     # print(dataDF)
     
     # xLabel will be something like lung, kidney, brain
-    xLabels = dataDF.loc[:, xLabel].to_list()
+    xTickLabels = dataDF.loc[:, xLabel].to_list()
     # print(xLabels)
-    x = np.arange(len(xLabels))  # the label locations
+    x = np.arange(len(xTickLabels))  + 1# the label locations
 
     
     # y values are the number of sample in each tissue type, i.e. int
     y = dataDF.loc[:,yLabel].to_list()
+    print("y[0]:{}".format(y[0]))
+    
     # print(y)
     
     #
@@ -71,24 +73,32 @@ def main( inComandLineArgsList=None ):
     #
     # config labels and axis
     #
-    xMin = 0
-    xMax = np.ceil( len(x) )
-    barChartPanel.set_xlim( xMin, xMax )    
+    print(x)
+    print(len(x))
+    print(len(xTickLabels))
+    print(len(y))
+    # xMin = np.floor(np.min( x ))
+    # xMax = np.ceil( np.max(x) ) 
+    # barChartPanel.set_xlim( xMin, xMax )    
     barChartPanel.set_xlabel( xLabel )
     barChartPanel.set_xticks(x) # , xLabels
-    barChartPanel.set_xticklabels(xLabels, rotation = 90, fontsize=4)
+    barChartPanel.set_xticklabels(xTickLabels, rotation = 90, fontsize=4)
+    # for l in xLabels:
+    #     print(l)
 
     barChartPanel.set_ylabel( yLabel)
     # make sure all points are plotted
-    yMin = np.floor( np.min( y ) )
-    yMax = np.ceil( np.max( y ) )
-    barChartPanel.set_ylim( yMin, yMax )
+    # yMin = np.floor( np.min( y ) )
+    # yMax = np.ceil( np.max( y ) )
+    # barChartPanel.set_ylim( yMin, yMax )
     
     #
     #
     # 
-    numBars = len(y)
-    barChartPanel.bar(x, y, tick_label=xLabels)
+    width = 0.5 # default is width=0.8
+    barChartPanel.bar(x, y, width=width) #, tick_label=xTickLabels
+    # for i in range(len(x)):
+    #     print("x:{} xTickLabels:{} y:{}".format(x[i], xTickLabels[i], y[i]))
             
     title = cli.args.title 
     if title:
