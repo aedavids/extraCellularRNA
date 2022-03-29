@@ -43,7 +43,7 @@ shows intersection between tissue signature profiles
    export PYTHONPATH="${PYTHONPATH}:`pwd`"
    ```
    
-2. lskdkls
+2. create plots
    ```
    cd extraCellularRNA/terra/deseq/python
    python plots/geneSignatureUpsetPlot.py \
@@ -53,3 +53,11 @@ shows intersection between tissue signature profiles
        -o ../doc/plots/upsetPlots/signatureGenes.png
    ```
    
+# bar charts
+
+```
+python plots/barChart.py -t "validate set"  \
+    -i ../doc/plots/data/validateTissueIds.csv \
+    -o ../doc/plots/barCharts/validateTissueTypes.png
+```
+

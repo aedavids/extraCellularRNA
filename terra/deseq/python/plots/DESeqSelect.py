@@ -29,6 +29,7 @@ class DESeqSelect(object):
     GENE_NAME_IDX = 0
     BASE_MEAN_IDX = 1
     LOG_IDX = 2
+    STAT_IDX = 5
     P_ADJ_IDX = 6
 
     ################################################################################
@@ -41,7 +42,7 @@ class DESeqSelect(object):
     ################################################################################ 
     def readVolcanoPlotData(self, numHeaderLines):   
         '''
-        aruguments:
+        arguments:
             numHeaderLines: number of lines to skip before before data begins
             
         returns: (geneNames, x, y)
@@ -150,3 +151,32 @@ class DESeqSelect(object):
         
         return outputFile
         
+    ################################################################################    
+    def loadDESeqResultsAsStrings(self, numHeaderLines):
+        '''
+        we use upsetPlot of find sets of signature genes that have over lapping genes
+        Use deseqResults to load data that can be use to print of the DESeq stats for 
+        genes in the intersection. We can use this information to hand tune our 
+        signature Genes
+        arguments:
+            numHeaderLines: number of lines to skip before before data begins
+            
+        returns: set
+                key = geneNames
+                value = list of values: the corresponding data for the 
+                        gene in a DESeq result file. Values are Strings 
+                        representations of real numbers
+        '''
+        retSet = {}
+        
+        with open(self.inputPath) as fd:
+            for i in range(numHeaderLines):
+                hdr = fd.readline()
+               
+            for line in fd:
+                tokens = line.strip().split(',')
+                key = tokens[0]
+                value = tokens[1:]
+                retSet[key] = value
+        
+        return retSet       

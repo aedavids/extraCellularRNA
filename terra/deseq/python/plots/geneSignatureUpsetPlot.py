@@ -10,11 +10,14 @@ __date__ = '2022-03-26'
 __updated__ = '2022-03-26'
 __user_name__ = 'Andrew E. Davidson'
 
+import pandas as pd
 from plots.DESeqSelect import DESeqSelect
 from plots.geneSignatureUpsetPlotCommandLine import GeneSignatureUpsetPlotCommandLine
 from matplotlib import pyplot as plt
 import upsetplot as up
 from utils.upsetPlotData import UpSetPlotData
+
+
 
 ########################################################################
 def main( inComandLineArgsList=None ):
@@ -32,7 +35,8 @@ def main( inComandLineArgsList=None ):
     numHeaderLines = cli.args.numHeaderLines
     files = cli.args.inputFiles
     
-    geneSets = {}
+    masterDataSet = {} # we want to be able to save the tissueIds, intersecting genes along with deseq values
+    geneSets = {} # the data we want to plot
     for file in files:
         print("\nprocessing file: {}".format(file))
         tokens = file.split("/")
@@ -46,6 +50,13 @@ def main( inComandLineArgsList=None ):
         dataLoader = DESeqSelect( file )
         geneNamesNP, baseMeanNP, xlog2FoldChangeNP, yNeglog10pValueNP = dataLoader.readVolcanoPlotData(numHeaderLines)
         geneSets[tissueId] = set( geneNamesNP )
+        
+        # hold on to deseq results Data so that we can analyze signature gene sets with overlapping genes
+        masterDataSet[tissueId] = {
+            "inputFile":file,
+            # key is geneName
+            "deseqResultSet": dataLoader.loadDESeqResultsAsStrings(numHeaderLines)
+            }
         
     upData = UpSetPlotData( geneSets )
     
@@ -69,6 +80,39 @@ def main( inComandLineArgsList=None ):
     outputFile = cli.args.outputFile
     fig.savefig(outputFile, dpi=300, bbox_inches='tight')
     print("saved plot: {}".format(outputFile))
+    
+    #
+    # output sets that share genes and the genes in their intersection
+    #
+    print("\n\n\n $$$$$$$$$$$$$$$$ intersections:")
+    intersectionDF = None
+    for setName, intersectionSet in upData.intersectionDict.items():
+        tokens = setName.split(",")
+        if len(tokens) > 1 :
+            genesList = list(intersectionSet)
+            # print("\n{}\n\t{}".format(setName, genesList))
+            for geneName in genesList:
+                for tissueId in tokens:
+                    deseqResult = masterDataSet[tissueId]['deseqResultSet']
+                    stats = deseqResult[geneName]
+                    # print("tissueId:{} gene:{} {}".format(tissueId, geneName, stats))
+                    df = pd.DataFrame({
+                            "tissueId":[tissueId]
+                            ,"gene": [geneName]
+                             ,"baseMean": [stats[0]]
+                             ,"log2FoldChange": [stats[1]]
+                             ,"lfcSE": [stats[2]]
+                             ,"stat": [stats[3]]
+                            ,"pvalue": [stats[4]]
+                            ,"padj": [stats[5]]
+                            })
+                    if intersectionDF is not None :
+                        intersectionDF = pd.concat( [intersectionDF, df] )
+                    else:
+                        intersectionDF = df
+                        
+    print( intersectionDF )
+                                                                 
 
 ########################################################################
 if __name__ == '__main__':
