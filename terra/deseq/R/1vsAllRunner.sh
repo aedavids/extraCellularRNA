@@ -18,10 +18,10 @@ rootDir="/scratch/aedavids/GTExData"
 outdir="${rootDir}/1vsAllRunner.sh.out"
 mkdir -p "${outdir}"
 
-#refLevel="Lung"         # 119 samples
+refLevel="Lung"         # 119 samples
 #refLevel="Pancreas"     # 61
-refLevel="Thyroid"       # 130 samples
-refLevel="Kidney_Cortex" # 8 sample
+#refLevel="Thyroid"       # 130 samples
+#refLevel="Kidney_Cortex" # 8 sample
 dataSet="Validate"
 
 outPrefix="${outdir}/${dataSet}_${refLevel}_vs_all"

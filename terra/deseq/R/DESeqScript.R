@@ -321,6 +321,9 @@ print(lastVariable)
 
 DESeqResult_lfcShrink <- lfcShrink(dds, coef=lastVariable, type="apeglm")
 
+# sort by adjusted p-value
+DESeqResult_lfcShrink <- DESeqResult_lfcShrink[order(DESeqResult_lfcShrink$padj),]
+
 #print( "head(DESeqResult_lfcShrink)" )
 #head(DESeqResult_lfcShrink)
 lfsShrinkOutFile <- paste(sep="", outFile, ".lfcShrink")
