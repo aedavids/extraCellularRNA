@@ -31,6 +31,10 @@ task one_vs_all {
     # We find that allocating 8 — 12 threads results in the maximum speed, threads
     # allocated above this limit will likely spend most of their time idle / sleeping
     #
+
+    # random guess
+    # are all cpu's fully utilized?
+    # do we get a speed up? is it cost effective?
     Int runTimeCpu = 8
 
     # random guess
@@ -66,6 +70,7 @@ task one_vs_all {
     echo "colData        : ${colData}"
     echo "design         : ${design}"
     echo "referenceLevel : ${referenceLevel}"
+    echo "isCSV          : ${isCSV}"    
         
     # put copy of runtime parameters in output. Makes debug easier
     echo "runtime parameters"
