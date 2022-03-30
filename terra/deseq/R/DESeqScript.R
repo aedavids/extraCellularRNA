@@ -122,8 +122,23 @@ outFile <- args$outFile
 numCores <-args$numCores
 estimateSizeFactorsOutfile <- args$estimateSizeFactorsOutfile
 oneVsAll <- args$oneVsAll
+isCSV <- args$isCSV
+#
+# DEBUG arguments
+# allows us to run script in RStudio
+#
+# getwd()
+# countMatrixFile <- "data/1vsAllTest/unitTestGroupByGenesCountMatrix.csv"
+# colDataFile <- "data/1vsAllTest/unitTestColData.csv" 
+# design <- '~ sex + tissue_id'
+# referenceLevel <- 'Lung'
+# outFile <- 'unitTestDESeqResultOutfile'
+# numCores <- 2
+# estimateSizeFactorsOutfile <- 'unitTestEstimateSizeFactorsOutfile'
+# oneVsAll <- TRUE
+# isCSV <- TRUE
 
-if (args$isCSV) {
+if (isCSV) {
   delimator <- ","
 } else {
   delimator <- "\t"
@@ -304,16 +319,7 @@ print(class(coefList))
 print(coefList)
 print(lastVariable)
 
-
-tryCatch(
-    {
-        DESeqResult_lfcShrink <- lfcShrink(dds, coef=lastVariable, type="apeglm")
-    },
-    message = function(m){
-                    message("ERROR calling lfcShrink()")
-                    message(m)
-    }
-)
+DESeqResult_lfcShrink <- lfcShrink(dds, coef=lastVariable, type="apeglm")
 
 #print( "head(DESeqResult_lfcShrink)" )
 #head(DESeqResult_lfcShrink)

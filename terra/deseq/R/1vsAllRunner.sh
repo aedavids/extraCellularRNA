@@ -17,10 +17,13 @@ RSCRIPT="DESeqScript.R"
 rootDir="/scratch/aedavids/GTExData"
 outdir="${rootDir}/1vsAllRunner.sh.out"
 mkdir -p "${outdir}"
-#refLevel="Lung"
-#refLevel="Pancreas"
-refLevel="Thyroid"
+
+#refLevel="Lung"         # 119 samples
+#refLevel="Pancreas"     # 61
+refLevel="Thyroid"       # 130 samples
+refLevel="Kidney_Cortex" # 8 sample
 dataSet="Validate"
+
 outPrefix="${outdir}/${dataSet}_${refLevel}_vs_all"
 #cm="${rootDir}/cleanCountsGroupedByGene/part-00000-1de2d5ed-05bd-4bbc-8cbf-ac2a3f8b98b2-c000.csv "
 cm="${rootDir}/data/deseq/GTEx${dataSet}GroupByGenesCountMatrix.csv"
@@ -33,7 +36,9 @@ R CMD $RSCRIPT \
   --numCores 6 \
   --estimateSizeFactorsOutfile "${outPrefix}_estimatedSizeFactors.csv" \
   --oneVsAll \
-  --isCSV 2>&1 > ${scriptName}.out
+  --isCSV 2>&1 > "${outdir}/${scriptName}.${refLevel}.out"
+
+
 
 
 
