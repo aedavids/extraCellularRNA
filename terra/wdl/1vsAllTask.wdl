@@ -17,6 +17,7 @@ task one_vs_all {
     String design
     String referenceLevel
     Boolean? isCSV
+    Boolean? isDebug
 
     # https://cromwell.readthedocs.io/en/stable/RuntimeAttributes/
     # String dockerImg = 'aedwip quay.io/biocontainers/salmon:1.4.0--hf69c8f4_0'
@@ -70,7 +71,8 @@ task one_vs_all {
     echo "colData        : ${colData}"
     echo "design         : ${design}"
     echo "referenceLevel : ${referenceLevel}"
-    echo "isCSV          : ${isCSV}"    
+    echo "isCSV          : ${isCSV}"
+    echo "isDebug        : ${isDebug}"
         
     # put copy of runtime parameters in output. Makes debug easier
     echo "runtime parameters"
@@ -97,10 +99,10 @@ task one_vs_all {
     # we need to know in advance what the output file name will
     # be
     # outFile="${referenceLevel}_vs_all.results.csv"
-    outFile="${referenceLevel}_vs_all.results"
+    outFile="${referenceLevel}_vs_all.results.csv"
     if [ "$isCSVTrue" != "true" ]; then
         unset isCSVFLag
-        # outFile="${referenceLevel}_vs_all.results.tsv"
+        outFile="${referenceLevel}_vs_all.results"
     fi
         
     #
@@ -108,7 +110,14 @@ task one_vs_all {
     # do not create more threads 'BiocParallel child processes
     # than we have cores for. We need one core for OS
     #
-    minRunTimeCPU=2
+    minRunTimeCPU=2 # production value
+    isDebugTrue=${default="false" isDebug}
+    if [ "$isDebugTrue" = "true" ]; then
+        # we onl get 1 cpu when we run cromwell locally
+        minRunTimeCPU=1 
+    fi
+
+
     if [  "${runTimeCpu}" -lt $minRunTimeCPU ]; then    
         echo "ERROR  ${runTimeCpu} must be >=  $minRunTimeCPU"
         exit 1
@@ -160,6 +169,7 @@ task one_vs_all {
         design: "indicates how to model the samples. example '~ age + sex + tissue_id' "
         referenceLevel: "tissue type present in the 'tissue_id' column in the colData table"
         isCSV: "boolean. default is true. if false files must be in TSV format"
+        isDebug: "boolean. default is false. set to true to test using cromwell on local machine"
     }
 
     meta {
