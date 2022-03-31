@@ -2,6 +2,30 @@
 
 The files in this directory are used to test and develop a docker container capable of running DESeq2 from count matrix data.
 
+## 0) Debugging DESeqScript.R
+a. configure startRStudioServer.sh to run IMG='aedavids/extra_cellular_rna_2_01'
+b. open DESeqScript.R in RStudio
+c. uncomment the following lines
+```
+#
+# DEBUG arguments
+# allows us to run script in RStudio
+#
+# getwd()
+# countMatrixFile <- "data/1vsAllTest/unitTestGroupByGenesCountMatrix.csv"
+# colDataFile <- "data/1vsAllTest/unitTestColData.csv"
+# design <- '~ sex + tissue_id'
+# referenceLevel <- 'Lung'
+# outFile <- 'unitTestDESeqResultOutfile'
+# numCores <- 2
+# estimateSizeFactorsOutfile <- 'unitTestEstimateSizeFactorsOutfile'
+# oneVsAll <- TRUE
+# isCSV <- TRUE
+```
+
+d. manual execute the lines in DESeqScript.R . <span style="color:red">DO NOT EXECUTE THE CLI PARSE LINES</span>
+
+
 ## 1) setting up the test enviroment on mustard
 0. if you need to create a 1vsAll docker image
    follow directions in extraCellularRNA/terra/deseq/bin/dockerFile.1vsAll
@@ -85,6 +109,5 @@ extraCellularRNA/juypterNotebooks/spark/createTestDESeq2_MasterDataSets.ipynb
 extraCellularRNA/terra/deseq/R/createTestColData.Rmd
 ```
 
-
-
-
+## 5) testing docker container and WDL using cromwell
+it will be much faster to debug localling than on terra. See extraCellularRNA/terra/wdl/README.md
