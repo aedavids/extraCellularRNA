@@ -89,17 +89,14 @@ shows intersection between tissue signature profiles
 5. create plots
    ```
    cd extraCellularRNA/terra/deseq/python
-   python plots/geneSignatureUpsetPlot.py \
-       -t "my title" \
-       -n 8  \
-       -i ../doc/plots/data/signatureGenes*.csv \
-       -o ../doc/plots/upsetPlots/signatureGenes.png
        
    python plots/geneSignatureUpsetPlot.py \
-       -t "Validation Set: n=25 Signature Genes, padj < 0.001, lf2c > 2, sorted by baseMean" \
+       -t "Validation Set: n=25 Signature Genes, padj < 0.001, lf2c > 2, sorted by baseMean"\
        -d ../doc/plots/data/1vsAllRunner.sh.out/design_~+sex+tissueId/dataSets.csv \
-       -o ../doc/plots/foo.upsetPlots/signatureGenes.png 
+       -o ../doc/plots/upsetPlots/signatureGenes.lfcShrink.png
    ```
+   
+   The geneSignatureUpsetPlot.Intersection.csv has detail info about the genes in each intersection
    
 # bar charts
 

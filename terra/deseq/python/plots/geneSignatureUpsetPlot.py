@@ -116,22 +116,45 @@ def main( inComandLineArgsList=None ):
                     deseqResult = masterDataSet[tissueId]['deseqResultSet']
                     stats = deseqResult[geneName]
                     # print("tissueId:{} gene:{} {}".format(tissueId, geneName, stats))
-                    df = pd.DataFrame({
-                            "tissueId":[tissueId]
-                            ,"gene": [geneName]
-                             ,"baseMean": [stats[0]]
-                             ,"log2FoldChange": [stats[1]]
-                             ,"lfcSE": [stats[2]]
-                             ,"stat": [stats[3]]
-                            ,"pvalue": [stats[4]]
-                            ,"padj": [stats[5]]
-                            })
+                    isHack = FALSE
+                    if "lfcShrink" in tissueId:
+                        isHack = TRUE
+                        #print("tissueID:{}".format(tissueId))
+                        
+                    if isHack: 
+                        # lfcShrink does not have a stat col
+                        # print("ishack tissueID:{}".format(tissueId))
+                        df = pd.DataFrame({
+                                "tissueId":[tissueId]
+                                ,"gene": [geneName]
+                                 ,"baseMean": [stats[0]]
+                                 ,"log2FoldChange": [stats[1]]
+                                 ,"lfcSE": [stats[2]]
+                                 ,"stat": "Na"
+                                ,"pvalue": [stats[3]]
+                                ,"padj": [stats[4]]
+                                })
+                    
+                    else :
+                        # print("not isHack  tissueID:{}".format(tissueId))
+                        df = pd.DataFrame({
+                                "tissueId":[tissueId]
+                                ,"gene": [geneName]
+                                 ,"baseMean": [stats[0]]
+                                 ,"log2FoldChange": [stats[1]]
+                                 ,"lfcSE": [stats[2]]
+                                 ,"stat": [stats[3]]
+                                ,"pvalue": [stats[4]]
+                                ,"padj": [stats[5]]
+                                })                        
                     if intersectionDF is not None :
                         intersectionDF = pd.concat( [intersectionDF, df] )
                     else:
                         intersectionDF = df
                         
-    print( intersectionDF )
+    AEDWIP = "geneSignatureUpsetPlot.Intersection.csv"
+    intersectionDF.to_csv(AEDWIP, index=False)
+    print("\n*************** wrote file\n{}".format(AEDWIP))
                                                                  
 
 ########################################################################
