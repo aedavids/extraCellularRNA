@@ -18,6 +18,7 @@ class DESeqSelect(object):
     logger = logging.getLogger(__name__)
     
     #"name","baseMean","log2FoldChange","lfcSE","stat","pvalue","padj"
+    # lfcshrink does not have stat col. "name","baseMean","log2FoldChange","lfcSE",        "pvalue","padj"
     # ['"SFTPA1"',  name 0
     #  '3211.04578787063', baseMean 1
     #  '11.753362315757', log2 2
@@ -26,6 +27,8 @@ class DESeqSelect(object):
     #  '0', pvalue 5
     #  '0' padj] 6
     
+    
+   
     GENE_NAME_IDX = 0
     BASE_MEAN_IDX = 1
     LOG_IDX = 2
@@ -40,10 +43,14 @@ class DESeqSelect(object):
         self.inputPath = Path(inputPath)
         
     ################################################################################ 
-    def readVolcanoPlotData(self, numHeaderLines):   
+    def readVolcanoPlotData(self, numHeaderLines, hackPadjIndx=P_ADJ_IDX):   
         '''
         arguments:
             numHeaderLines: number of lines to skip before before data begins
+            
+            hackPadjIndx:
+                default is 6
+                DESeq lfcShrink padj column index should be 5. does not have stat column
             
         returns: (geneNames, x, y)
             type: numpy array
@@ -75,7 +82,7 @@ class DESeqSelect(object):
                 #     return
                 
                 try :
-                    fancy = np.array(tokens)[ [self.BASE_MEAN_IDX, self.LOG_IDX, self.P_ADJ_IDX] ]
+                    fancy = np.array(tokens)[ [self.BASE_MEAN_IDX, self.LOG_IDX, hackPadjIndx] ]
                 except BaseException as e:
                     self.logger.error("exc:{} tokens:{}".format(e, tokens))
                     continue

@@ -32,23 +32,43 @@ def main( inComandLineArgsList=None ):
         
     print(cli.args)
         
-    numHeaderLines = cli.args.numHeaderLines
-    files = cli.args.inputFiles
+    # numHeaderLines = cli.args.numHeaderLines
+    
+    # read data set CSV file
+    # first column is the set name, second is file path the DESeq results
+    dataSetsDF = pd.read_csv( cli.args.dataSetsCSV )
+    print(dataSetsDF )
+    
     
     masterDataSet = {} # we want to be able to save the tissueIds, intersecting genes along with deseq values
     geneSets = {} # the data we want to plot
-    for file in files:
-        print("\nprocessing file: {}".format(file))
-        tokens = file.split("/")
-        #print(tokens)
+    numFiles = dataSetsDF.shape[0]
+    for i in range(numFiles):
+        tissueId = dataSetsDF.iloc[i,0]
+        numHeaderLines = dataSetsDF.iloc[i,1]
+        file = dataSetsDF.iloc[i,2]
         
-        # last token: signatureGenesValidateThyroid.csv
-        fileName = tokens[-1].split(".")[0]
-        #print(fileName)
-        tissueId = fileName[ len( "signatureGenesValidate" ):]
-        print(tissueId)
+        #tokens = file.split(".")
+        isHack = False
+        if "lfcShrink" in file:
+            isHack = True
+            
+        print("\nprocessing setId:{} numHeaderLines:{} file: {}".format(tissueId, numHeaderLines, file))
+        # tokens = file.split("/")
+        # #print(tokens)
+        #
+        # # last token: signatureGenesValidateThyroid.csv
+        # fileName = tokens[-1].split(".")[0]
+        # #print(fileName)
+        # tissueId = fileName[ len( "signatureGenesValidate" ):]
+        # print(tissueId)
         dataLoader = DESeqSelect( file )
-        geneNamesNP, baseMeanNP, xlog2FoldChangeNP, yNeglog10pValueNP = dataLoader.readVolcanoPlotData(numHeaderLines)
+        
+        if isHack:
+            geneNamesNP, baseMeanNP, xlog2FoldChangeNP, yNeglog10pValueNP = dataLoader.readVolcanoPlotData(numHeaderLines, hackPadjIndx=5)
+        else:
+            geneNamesNP, baseMeanNP, xlog2FoldChangeNP, yNeglog10pValueNP = dataLoader.readVolcanoPlotData(numHeaderLines)
+            
         geneSets[tissueId] = set( geneNamesNP )
         
         # hold on to deseq results Data so that we can analyze signature gene sets with overlapping genes
@@ -67,7 +87,7 @@ def main( inComandLineArgsList=None ):
     # [INFO] subPlotDict keys:dict_keys(['matrix', 'shading', 'totals', 'intersections'])
 
     # quick hack looked at plot , print names of intersecting genes
-    print("\nThyroid intersection with Kidney_Cortex")
+    print("\nThyroid intersection with Kidney")
     print( geneSets["Thyroid"].intersection(geneSets['Kidney_Cortex']) )
     
     print("\nThyroid intersection with Lung")

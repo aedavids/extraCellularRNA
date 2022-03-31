@@ -48,25 +48,36 @@ class GeneSignatureUpsetPlotCommandLine( VolcanoPlotCommandLine ):
     def _build( self ):
         self.parser = ArgumentParser( description=self._getLicence(), formatter_class=RawDescriptionHelpFormatter )
     
-        self.parser.add_argument( '-n', '--numHeaderLines', default=0, metavar="", type=int,
-                                            action='store', help="number of header lines in input file")
+        #
+        # optional arguments
+        #
+        # self.parser.add_argument( '-n', '--numHeaderLines', default=0, metavar="", type=int,
+        #                                     action='store', help="number of header lines in input file")
         
         self.parser.add_argument( '-t', '--title', default=None, metavar="",
                                               action='store', help='plot title' )        
         
-        # # https://stackoverflow.com/a/60796254/4586180
-        # self.parser.add_argument('-i', '--inputFiles', action='store', nargs="+", 
-        #                          help="one or more results files create by DESeq")
-        
+        #
+        # group required arguments. This will create a better help message
+        # make sure to set required=True
+        #
         self.requiredArg = self.parser.add_argument_group( 'required arguments' )
         
-        # https://stackoverflow.com/a/60796254/4586180
-        self.requiredArg.add_argument('-i', '--inputFiles', required=True, action='store', nargs="+", 
-                                 help="one or more results files create by DESeq")
+        self.requiredArg.add_argument('-d', '--dataSetsCSV', required=True, action='store',  metavar="",
+                                      help="A csv file with 3 columns. the first column has setName,"
+                                        + " The second contains the number of header lines to skip when reading."
+                                        + " The third contains the path the the DESeqResults file")        
+        
+        # # good example for how to define vargs
+        # # https://stackoverflow.com/a/60796254/4586180
+        # self.requiredArg.add_argument('-i', '--inputFiles', required=True, action='store', nargs="+", 
+        #                          help="one or more results files create by DESeq")
+        
         # metavar
         # see https://stackoverflow.com/questions/26626799/pythons-argument-parser-printing-the-argument-name-in-upper-case
         # self.requiredArg.add_argument( '-i', '--inputFile', required=True, default=None, metavar="",
         #                                       action='store', help='input file name' )
         self.requiredArg.add_argument( '-o', '--outputFile', required=True, default=None, metavar="",
                                              action='store', help='output file name. suffix determines output format' )
+        
 
