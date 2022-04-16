@@ -31,8 +31,8 @@ USER_ID=`id -u`
 #IMG='bioconductor/bioconductor_docker:devel'
 #IMG='aedavids/biocworkshop2018desq2'
 #IMG='aedavids/extra_cellular_rna'
-IMG='aedavids/extra_cellular_rna_2_01' # starts rstudio-server
-#IMG='aedavids/edu_ucsc_kim_lab-1vsall_1.0' # production version, support for DESeq, rstudio-server was removed
+#IMG='aedavids/extra_cellular_rna_2_01' # starts rstudio-server
+IMG='aedavids/edu_ucsc_kim_lab-1vsall_1.0' # production version, support for DESeq, rstudio-server was removed
 
 # docker arguments
 # -d  --detach Run container in background and print container ID
