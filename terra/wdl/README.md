@@ -97,13 +97,25 @@ buildContextDir=../R
 
 docker build --file ./DockerFile.1vsAll --tag $myTag $buildContextDir
  ```
+ 
+## set the docker image tag
+<span style="colore:red"> use check the docker image repository</span>
+```
+docker images |grep aedavids
+```
+
+set an env var
+```
+export IMG="aedavids/edu_ucsc_kim_lab-1vsall_1.0"
+```
+
 
 ## step 2) test
 launch the docker and open a bash shell
 
 start the container
 ```
-docker run --rm --detach aedavids/test-1vs-all-2
+docker run --rm --detach $IMG
 ```
 
 to find the name of our container
@@ -147,6 +159,8 @@ $ java -jar ${WDL_TOOLS}/womtool-74.jar inputs 1vsAllTask.wdl > 1vsAllTask.wdl.i
 $ java -jar $WDL_TOOLS/womtool-74.jar outputs 1vsAllTask.wdl > 1vsAllTask.wdl.outputs.json
 ```
 
+
+
 input assume we are running in a tmp sub dir
 ```
 $ cat
@@ -174,16 +188,35 @@ $ cat 1vsAllTask.wdl.outputs.json
 
 ```
 
-## step 5) test (run cromwell)
+## step 5) test (run cromwell) locally
+<span style="color:red">THIS IS TRICKY!</span>
+
+set isDebug='true' in 1vsAllTask.wdl.inputs.json
+
+when you run you may see an error and stack trace like bellow. Just ignor it. your container ran. For details see [github issue](https://github.com/broadinstitute/cromwell/issues/6674)
+```
+[2022-03-30 15:56:09,04] [warn] BackendPreparationActor_for_6fef3552:deseq_one_vs_all.one_vs_all:-1:1 [6fef3552]: Docker lookup failed
+java.lang.Exception: Unauthorized to get docker hash aedavids/edu_ucsc_kim_lab-1vsall_1.0:latest
+	at cromwell.engine.workflow.WorkflowDockerLookupActor.cromwell$engine$workflow$WorkflowDockerLookupActor$$handleLookupFailure(WorkflowDockerLookupActor.scala:222)
+```
+
+You should be able to find all the output from your run under 
+```
+cromwell-executions/deseq_one_vs_all/randomGUID/call-one_vs_all/execution
+```
+
 runCromwell and cromwellDebug.conf set the user id so that it is easy to 
 remove output files
 ```
+cd extraCellularRNA/terra/deseq/
+mkdir tmp
+
 $ cd tmp
 $ ../../../bin/runCromwell.sh \
-    -Dconfig.file=../cromwellDebug.conf \
+    -Dconfig.file=../../wdl/cromwellDebug.conf \
     -jar ${WDL_TOOLS}/cromwell-74.jar run \
-    --inputs ../1vsAllTask.wdl.inputs.json \
-    ../1vsAllTask.wdl
+    --inputs ../../wdl/1vsAllTask.wdl.inputs.json \
+    ../../wdl/1vsAllTask.wdl
 ```
 
 check test results. File paths will have different quids

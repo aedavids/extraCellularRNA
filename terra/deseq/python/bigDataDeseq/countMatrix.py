@@ -64,7 +64,7 @@ class CountMatrix(object):
         
         WARNING: this does not work well with large data set stored in txt,CSV,TSV format. 
         Name col with a range value. Name col + numReads is 491 m. on disk
-        just numReads is 21 m on diskSEE: loadSalmonReadsTableWithRowId(). 
+        just numReads is 21 m on disk SEE: loadSalmonReadsTableWithRowId(). 
         Try using Data Lake/Parquet file format
         
         arguments
@@ -198,7 +198,7 @@ class CountMatrix(object):
 
             
             self.logger.debug('AEDWIP REMOVE SHOW()')
-            sampleDF.show()
+            # sampleDF.show()
             
             sampleDF.createOrReplaceTempView( "sample" )
                         
