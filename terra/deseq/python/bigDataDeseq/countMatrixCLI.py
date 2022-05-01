@@ -75,8 +75,8 @@ class CommandLine( object ):
 
         # metavar
         # see https://stackoverflow.com/questions/26626799/pythons-argument-parser-printing-the-argument-name-in-upper-case
-        self.requiredArg.add_argument( '-m', '--mappingCSV', required=True, default=None, metavar="",
-                                              action='store', help='mapping file in csv format with columns txId and geneId' )
+        # self.requiredArg.add_argument( '-m', '--mappingCSV', required=True, default=None, metavar="",
+        #                                       action='store', help='mapping file in csv format with columns txId and geneId' )
         self.requiredArg.add_argument( '-q', '--quantFilesCSV', required=True, default=None, metavar="",
                                               action='store', help='file in csv format with two columns sampleName, and source. The source can be unix file path or url' )
 
@@ -133,7 +133,7 @@ def main( inComandLineArgsList=None ):
     # spark uses log4j. logger.warning() generates reflection error
     logger.warn("arguments:\n {}".format(cli.args))
     
-    txId2GeneIdFile = cli.args.mappingCSV
+    # txId2GeneIdFile = cli.args.mappingCSV
     
     # get the sample names 
     quantFiles = cli.args.quantFilesCSV
