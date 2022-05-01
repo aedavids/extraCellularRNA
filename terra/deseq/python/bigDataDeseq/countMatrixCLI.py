@@ -154,7 +154,7 @@ def main( inComandLineArgsList=None ):
     
     # run
     logger.info("main() start execution")
-    cm = CountMatrix(spark, logger)
+    cm = CountMatrix(spark, log4jLogger)
     
     countMatrixSparkDF = cm.loadSalmonReadsTableWithRowId(fileList, sampleNameList)
     # AEDWIP TODO use CountMatrix, constructor args have changed 
