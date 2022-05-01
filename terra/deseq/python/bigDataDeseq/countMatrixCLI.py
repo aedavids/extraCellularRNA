@@ -20,7 +20,8 @@ It defines classes_and_methods
 
 from   argparse import ArgumentParser
 from   argparse import RawDescriptionHelpFormatter
-from bigDataDeseq.estimateScalingFactors import EstimateScalingFactors
+# from bigDataDeseq.estimateScalingFactors import EstimateScalingFactors
+from bigDataDeseq.countMatrix import CountMatrix
 
 import pandas as pd
 from   pyspark.sql import SparkSession
@@ -100,7 +101,7 @@ def main( inComandLineArgsList=None ):
      
     spark = SparkSession\
                 .builder\
-                .appName("estimatedScalingFactors")\
+                .appName("countMatrixCLI")\
                 .getOrCreate()
                 #.config("spark.driver.memory", "15g")     .getOrCreate()   
         
@@ -153,28 +154,37 @@ def main( inComandLineArgsList=None ):
     
     # run
     logger.info("main() start execution")
-    AEDWIP TODO use CountMatrix, constructor args have changed 
-    AEDWIP change the name of this file it loads the counts and estimates
-    esf = EstimateScalingFactors( spark, fileList, sampleNameList, txId2GeneIdFile, log4jLogger )
-    retScalingFactorsDF, retCountDF = esf.run()
+    cm = CountMatrix(spark, logger)
+    
+    countMatrixSparkDF = cm.loadSalmonReadsTableWithRowId(fileList, sampleNameList)
+    # AEDWIP TODO use CountMatrix, constructor args have changed 
+    # AEDWIP change the name of this file it loads the counts and estimates
+    # esf = EstimateScalingFactors( spark, fileList, sampleNameList, txId2GeneIdFile, log4jLogger )
+    # retScalingFactorsDF, retCountDF = esf.run()
     
     # save
     if outputDir[-1] == "/" :
         outputDir = outputDir[:-1]
          
-    outputDir = outputDir + "/" + "preprocessData"
-    outFileESF = outputDir + "/" + "estimatedScalingFactors"
-    outfileCount = outputDir + "/" + "counts"   
+    # outputDir = outputDir + "/" + "preprocessData"
+    # outFileESF = outputDir + "/" + "estimatedScalingFactors"
+    outfileCount = outputDir + "/" + "countMatrixCLI.out/counts.tsv"   
 
     # spark uses log4j. logger.warning() generates reflection err0r
-    logger.warn("writing scalingFactors to {}".format(outFileESF ) )
-    retScalingFactorsDF.coalesce(1).write.csv( outFileESF, mode='overwrite',  header=True)       
+    # logger.warn("writing scalingFactors to {}".format(outFileESF ) )
+    # retScalingFactorsDF.coalesce(1).write.csv( outFileESF, mode='overwrite',  header=True)       
     
     # spark uses log4j. logger.warning() generates reflection err0r    
     logger.warn("writing count matrix to {}".format(outfileCount ) ) 
     # do not coalesce. Spark can read/write parts in parallel
     # write a separate jobs to batch, combine, ... for Terra/DESeq    
-    retCountDF.write.csv( outfileCount, mode='overwrite', header=True)
+    
+    
+    # coalesce(1) creates a singe part file
+    countMatrixSparkDF.coalesce(1).write.csv( outfileCount, 
+                                              mode='overwrite',
+                                              sep="\t",
+                                               header=True)
 
                  
 ########################################################################
