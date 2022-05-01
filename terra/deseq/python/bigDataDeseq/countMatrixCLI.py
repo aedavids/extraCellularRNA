@@ -156,7 +156,8 @@ def main( inComandLineArgsList=None ):
     logger.info("main() start execution")
     cm = CountMatrix(spark, log4jLogger)
     
-    countMatrixSparkDF = cm.loadSalmonReadsTableWithRowId(fileList, sampleNameList)
+    # countMatrixSparkDF = cm.loadSalmonReadsTableWithRowId(fileList, sampleNameList)
+    countMatrixSparkDF = cm.loadSalmonReadsTable(fileList, sampleNameList)
     # AEDWIP TODO use CountMatrix, constructor args have changed 
     # AEDWIP change the name of this file it loads the counts and estimates
     # esf = EstimateScalingFactors( spark, fileList, sampleNameList, txId2GeneIdFile, log4jLogger )
