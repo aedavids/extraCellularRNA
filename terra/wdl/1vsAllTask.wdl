@@ -83,7 +83,7 @@ task one_vs_all {
     echo "runTimePreemptible: ${runTimePreemptible}"        
 
 
-    set -x # turn shell trace debugging on 
+    set -euxo pipefail  # ref: https://gist.github.com/vncsna/64825d5609c146e80de8b1fd623011ca 
 
         
     #
@@ -99,11 +99,17 @@ task one_vs_all {
     # we need to know in advance what the output file name will
     # be
     # outFile="${referenceLevel}_vs_all.results.csv"
-    outFile="${referenceLevel}_vs_all.results.csv"
+    outFile="${referenceLevel}_vs_all.results"
     if [ "$isCSVTrue" != "true" ]; then
         unset isCSVFLag
-        outFile="${referenceLevel}_vs_all.results"
+        #outFile="${referenceLevel}_vs_all.results"
     fi
+    
+    # where does outFile go?
+    echo "pwd: " `pwd`
+    echo "pwd: " `pwd` >> foo.txt
+    pwd >> foo.txt
+    echo $outFile >> foo.txt
         
     #
     # determin the concurrency level
@@ -135,6 +141,14 @@ task one_vs_all {
       --oneVsAll \
       $isCSVFlag 2>&1 
 
+	# debug: wdl output files are missing
+	ls -l
+    
+    # debug: R CMD puts some of the log/message output needed to debug in DESeqScript.out
+    # 4/17/22 version of terra does not save files that are not listed in WDL ouput
+    # add it to the terra stdout add logs.
+    cat DESeqScript.out
+    
     >>>
 
 
