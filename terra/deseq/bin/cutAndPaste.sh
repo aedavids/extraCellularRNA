@@ -11,13 +11,13 @@ set -x
 for f in `ls *quant.sf*`;
 do
 
-    echo "\n****** $f"
+    printf "\n****** $f"
     gzip -t $f 2>/dev/null
     if [ $? -eq 0 ];
     then
         gzip -d $f
     else
-        echo not a compressed file
+        printf not a compressed file
     fi
     
 done
@@ -36,15 +36,33 @@ for q in `ls *.quant.sf`;
 do
     printf "\n****** $q"
     sampleName=`echo $q | cut -d . -f 1`
-    sed '1d' $q | cut -f 5 | head > cut.out/${sampleName}
+    sed '1d' $q | cut -f 5 | head -n 5 > cut.out/${sampleName}
 done
 
 #
 # get the transcript names
 #
 quantFile=`ls *.quant.sf | head -n 1`
-sed '1d' ${quantFile} | cut -f 1 | head > names.txt
+sed '1d' ${quantFile} | cut -f 1 | head -n 5 > names.txt
+
 #
 # combine into a single table
 #
-paste names.txt `ls cut.out/* | sort` > table.tsv
+paste names.txt `ls cut.out/* | sort` > tmpTable.tsv
+
+#
+# reconstruct the header line
+#
+
+printf "Name" > header.txt
+for s in `ls cut.out/* | sort`;
+do
+    sampleName=`basename $s`
+    printf "\t${sampleName}" >> header.txt
+done
+printf "\n" >> header.txt
+
+# strip out all the new lines to convert column into a row
+#sed -e 's/\n//g' column.txt > rowHeader.txt
+
+cat header.txt tmpTable.tsv > table.tsv
