@@ -31,8 +31,20 @@ done
 # ENST00000450305.2|ENSG00000223972.5|OTTHUMG00000000961.2|OTTHUMT00000002844.2|DDX11L1-201|DDX11L1|632|transcribed_unprocessed_pseudogene|	632	466.0000.000000	0.000
 
 # cut the numReads column and remove the header line
+mkdir cut.out
 for q in `ls *.quant.sf`;
 do
     printf "\n****** $q"
-    sed '1d' $q | cut -f 5 | head
+    sampleName=`echo $q | cut -d . -f 1`
+    sed '1d' $q | cut -f 5 | head > cut.out/${sampleName}
 done
+
+#
+# get the transcript names
+#
+quantFile=`ls *.quant.sf | head -n 1`
+sed '1d' ${quantFile} | cut -f 1 | head > names.txt
+#
+# combine into a single table
+#
+paste names.txt `ls cut.out/* | sort` > table.tsv
