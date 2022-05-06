@@ -18,20 +18,21 @@ outputFile=$1
 
 # ref: https://gist.github.com/vncsna/64825d5609c146e80de8b1fd623011ca 
 #set -euxo pipefail
-set -x
+#set -x
 
 
 # check if file is compressed or not
+printf "uncompressing quant.sf.gz files\n"
 for f in `ls *quant.sf*`;
 do
 
-    printf "\n****** $f"
+    #printf "\n****** $f"
     gzip -t $f 2>/dev/null
     if [ $? -eq 0 ];
     then
         gzip -d $f
-    else
-        printf not a compressed file
+    # else
+    #     printf not a compressed file
     fi
     
 done
@@ -45,10 +46,11 @@ done
 # ENST00000450305.2|ENSG00000223972.5|OTTHUMG00000000961.2|OTTHUMT00000002844.2|DDX11L1-201|DDX11L1|632|transcribed_unprocessed_pseudogene|	632	466.0000.000000	0.000
 
 # cut the numReads column and remove the header line
+printf "selecting numReads column from quant.sf files \n"
 mkdir -p cut.out
 for q in `ls *.quant.sf`;
 do
-    printf "\n****** $q"
+    #printf "\n****** $q"
     sampleName=`echo $q | cut -d . -f 1`
     sed '1d' $q | cut -f 5 > cut.out/${sampleName}
 done
@@ -62,6 +64,7 @@ sed '1d' ${quantFile} | cut -f 1  > names.txt
 #
 # combine into a single table
 #
+printf "creating the count matrix tsv file \n"
 paste names.txt `ls cut.out/* | sort` > tmpTable.tsv
 
 #
