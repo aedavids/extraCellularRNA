@@ -30,10 +30,15 @@ do
     gzip -t $f 2>/dev/null
     if [ $? -eq 0 ];
     then
-        gzip -d $f
+        gzip -d $f &
     # else
     #     printf not a compressed file
     fi
+
+    # wait for all background processes to complete
+    # to run paste we need to be a big machine. we want to do as much
+    # concurrent processing as possile
+    wait
     
 done
 
@@ -52,8 +57,15 @@ for q in `ls *.quant.sf`;
 do
     #printf "\n****** $q"
     sampleName=`echo $q | cut -d . -f 1`
-    sed '1d' $q | cut -f 5 > cut.out/${sampleName}
+    sed '1d' $q | cut -f 5 > cut.out/${sampleName} &
 done
+
+# wait for all background processes to complete
+# to run paste we need to be a big machine. we want to do as much
+# concurrent processing as possile
+wait
+
+
 
 #
 # get the transcript names
