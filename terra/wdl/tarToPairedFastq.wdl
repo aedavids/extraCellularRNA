@@ -1,3 +1,16 @@
+#
+# prepares a tar file containing fastq files so that it can be used with
+# by a down stream wdl task like salmonPairedReadQuantTask.wdl
+#
+# the input tarfile is assume to have paired end
+# fastq files. There may be replicants. The fastq files can be in subdirectories
+#
+# for paired fastqs two gzip files will be created. The first will contain a single file
+# created by concatenating all the "1" fastq files. The second will contain all the "2" files
+#
+# TODO
+# add support for single end fastq files
+#
 
 workflow tarToFastqTest {
     meta {
@@ -34,80 +47,86 @@ task tarToFastqTask {
         # Redirect standard error to standard out such that 
         # standard error ends up going to wherever standard
         # out goes (the file).
+        #
+        # this will cause the 'set -x' output to be interleaved with the output of each statement
+        #
         exec 2>&1
 
         echo "input values"
         echo "tar: ${tarFile}"        
         echo "sampleName: ${sampleName}"
 
-        set -x # turn shell trace debugging on
+        # configure script to make debug easier
+        # ref: https://gist.github.com/vncsna/64825d5609c146e80de8b1fd623011ca         
+        set -euxo pipefail  
+        
 
-        # create a sub dir and extract tar
         echo " "
         mkdir ${sampleName}
-        # tar -xvf ${tarFile} -C ${sampleName}
-        tar -xvf ${tarFile} --directory=${sampleName}
-
-        # make it easier to debug
-        echo " "
-        ls -l ${sampleName}
-
-        echo " "
-        pwd
-        ls -l .
-
-        error=0
-        unknownNameFirstEndFastq=`find ${sampleName} -name "*1.fast*"`
-        if [ -z "$unknownNameFirstEndFastq" ]
-        then
-            echo "ERROR firstEndfastq not found"
-            error=1
-        else
-            # we need to create a known name
-        # cromwell can not expect command variable in output section
         #
-        # if suffix is '*.1.fast' salmon produces error
-        # ERROR: file [/cromwell_root/fc-secure-689c9432-cc55-446b-b247-25666c8ac96f/66c81aeb-1444-44b9-ac6e-3a3fe1794873/quantify/b09734c2-5fb3-41fe-9537-893c9405d7f4/call-tarToFastqTask/ESCA-2H-A9GF-TP.2.fast] has extension .fast, which suggests it is neither a fasta nor a fastq file (or gzip compressed fasta/q).
-# Is this file compressed in some other way?  If so, consider replacing: 
+        # find all the fastq files and make sure they are uncompressed
+        #
+        if [[ ${tarFile} == *".tar" || ${tarFile} == *".tar.gz" ]]; then
+            tar -xvf ${tarFile} --directory=${sampleName}
+            listOfFastQFiles=`find ${sampleName} -name "*fastq*"`
 
-# /cromwell_root/fc-secure-689c9432-cc55-446b-b247-25666c8ac96f/66c81aeb-1444-44b9-ac6e-3a3fe1794873/quantify/b09734c2-5fb3-41fe-9537-893c9405d7f4/call-tarToFastqTask/ESCA-2H-A9GF-TP.2.fast
+            
+            printf "\nckecking if quant files need to be uncompressed. \nlistOfFastQFiles: $listOfFastQFiles\n"
 
-# with
+            #
+            # test if gz and uncompress
+            #
+            for quantFile in $listOfFastQFiles;
+            do
+                gzip -t $quantFile 2>/dev/null
+                if [ $? -eq 0 ];
+                then
+                    gzip -d $quantFile &
+                    # else
+                    #     not a compressed file
+                fi
 
-# <(decompressor /cromwell_root/fc-secure-689c9432-cc55-446b-b247-25666c8ac96f/66c81aeb-1444-44b9-ac6e-3a3fe1794873/quantify/b09734c2-5fb3-41fe-9537-893c9405d7f4/call-tarToFastqTask/ESCA-2H-A9GF-TP.2.fast)
-#
-#        which will decompress the reads "on-the-fly"
-        
-            #firstEndFast="${sampleName}.1.fast"
-            firstEndFast="${sampleName}.1.fastq"        
-            mv $unknownNameFirstEndFastq $firstEndFast
-            echo "firstEndFast: $firstEndFast"
+                printf "\n ****** debug\n"
+                jobs
+            done
+
+            # wait for all background processes to complete
+            # concurrent processing as possile
+            wait
+            
         fi
 
-        unknownNameSecondEndFastq=`find ${sampleName} -name "*2.fast*"`
-        if [ -z "$unknownNameSecondEndFastq" ]
-        then
-            echo "ERROR secondfastq not found"
-            error=1
-        else
-            # we need to create a known name
-            # cromwell can not expect command variable in output section        
-            # secondEndFast="${sampleName}.2.fast"
-            secondEndFast="${sampleName}.2.fastq"
-            mv $unknownNameSecondEndFastq $secondEndFast
-            echo "secondEndFast: $secondEndFast"
-        fi
+        printf "\n#########################\n"
+        #
+        # find the uncompress versions of all the fastq files
+        #
+        listOf_1_fastqFiles=`find ${sampleName} -name "*1.fastq*" `
+        printf "\n listOf_1_fastqFiles\n $listOf_1_fastqFiles \n"
 
-        if [ "$error" -ne 0 ]
-        then
-            echo "error command returns -1"
-            exit 1
-        fi
+        listOf_2_fastqFiles=`find ${sampleName} -name "*2.fastq*" `        
+        printf "\n listOf_2_fastqFiles\n $listOf_2_fastqFiles \n"
+
+
+        #
+        # concat the fastq files
+        #
+        cat $listOf_1_fastqFiles > ${sampleName}.1.fastq
+        cat $listOf_2_fastqFiles > ${sampleName}.2.fastq
+
+        #
+        # compress
+        #
+        gzip ${sampleName}.1.fastq
+        gzip ${sampleName}.2.fastq
+
     >>>
 
     output {
+	# File firstEndFast = "${sampleName}.1.fastq"
+	# File secondEndFast = "${sampleName}.2.fastq"
 	File firstEndFast = "${sampleName}.1.fastq"
 	File secondEndFast = "${sampleName}.2.fastq"
+        
     }
 
     runtime {
