@@ -34,13 +34,13 @@ do
     # else
     #     printf not a compressed file
     fi
-
-    # wait for all background processes to complete
-    # to run paste we need to be a big machine. we want to do as much
-    # concurrent processing as possile
-    wait
     
 done
+
+# wait for all background processes to complete
+# to run paste we need to be a big machine. we want to do as much
+# concurrent processing as possile
+wait
 
 #
 # example of quant file
