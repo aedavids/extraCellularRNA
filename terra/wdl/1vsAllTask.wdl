@@ -153,7 +153,17 @@ task one_vs_all {
 
 
     output {
-        File outFile="${referenceLevel}_vs_all.results"
+        # File outFile="${referenceLevel}_vs_all.results"
+        
+        if ("${isCSV)" {
+            File outFile="${referenceLevel}_vs_all.results.csv"
+        }
+        
+        if (!"${isCSV}") {
+            File outFile="${referenceLevel}_vs_all.results"
+    }
+    #File outFile = glob("${referenceLevel}_vs_all.results*")
+        File outFile = "${referenceLevel}_vs_all.results*"
     }
 
 
