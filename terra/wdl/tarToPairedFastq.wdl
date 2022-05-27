@@ -124,8 +124,8 @@ task tarToFastqTask {
     output {
 	# File firstEndFast = "${sampleName}.1.fastq"
 	# File secondEndFast = "${sampleName}.2.fastq"
-	File firstEndFast = "${sampleName}.1.fastq"
-	File secondEndFast = "${sampleName}.2.fastq"
+	File firstEndFast = "${sampleName}.1.fastq.gz"
+	File secondEndFast = "${sampleName}.2.fastq.gz"
         
     }
 
