@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #
 # return a tsv file. first col header name is 'Name' remain headers
@@ -23,23 +23,48 @@ outputFile=$1
 
 # check if file is compressed or not
 printf "uncompressing quant.sf.gz files\n"
+
+#
+# run concurrent batchs
+# to run paste we need to be a big machine. we want to do as much
+# concurrent processing as possile
+# batch size keeps VM from crashing due to OOM execption
+#
+
+declare -i batchSize
+batchSize=10
+
+declare -i count
+count=1
+
+declare -i i
+i=0
 for f in `ls *quant.sf*`;
 do
-
-    #printf "\n****** $f"
-    gzip -t $f 2>/dev/null
+    # printf "\n****** $f"
+    # gzip -t is very slow # gzip -t $f 2>/dev/null
+    # why did we use gzip -t? instead of file ?
+    file $f | grep gzip 2>&1 > /dev/null
     if [ $? -eq 0 ];
     then
+        i="$i + 1"
         gzip -d $f &
     # else
     #     printf not a compressed file
+    fi
+
+    if [ $count -gt $batchSize ];
+    then
+        count=0
+        printf "waiting for gzip to complete current batch i: $i\n"
+        wait
+    else
+        count="$count + 1"
     fi
     
 done
 
 # wait for all background processes to complete
-# to run paste we need to be a big machine. we want to do as much
-# concurrent processing as possile
 wait
 
 #
