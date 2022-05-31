@@ -77,7 +77,8 @@ task tarToFastqTask {
             # test if gz and uncompress
             #
             for quantFile in $listOfFastQFiles;
-            do
+        do
+        aedwip do not use gzip -t. it is slow see cut-n-paste.sh it uses file and grep
                 gzip -t $quantFile 2>/dev/null
                 if [ $? -eq 0 ];
                 then
