@@ -60,7 +60,7 @@ task starGenerateGenomeTask {
             # /cromwell_root/fc-e15b796f-1abe-4206-ab91-bd58374cc275/data/chm13v2.0.fa.gz
             gzip -d  ${referenceFasta}
             dn=`dirname ${referenceFasta}`
-            bn==`basename ${referenceFasta} .gz`
+            bn=`basename ${referenceFasta} .gz`
             REF_FASTA=$dn/$bn
         # else
         #     printf not a compressed file
