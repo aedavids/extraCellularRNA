@@ -6,6 +6,6 @@
   "starGenerateGenome.starGenerateGenomeTask.diskSpaceGb": "Int (optional, default = 1000)",
   "starGenerateGenome.starGenerateGenomeTask.memoryGb": "Int (optional, default = 100)",
   "starGenerateGenome.starGenerateGenomeTask.runTimePreemptible": "Int (optional, default = 3)",
-  "starGenerateGenome.starGenerateGenomeTask.outputIndexFileName": "String${star.idx.chm13v2-0"
+  "starGenerateGenome.starGenerateGenomeTask.outputIndexFileName": "Stringstar.idx.chm13v2-0"
 }
 
