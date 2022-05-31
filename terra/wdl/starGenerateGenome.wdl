@@ -52,27 +52,39 @@ task starGenerateGenomeTask {
 
         set -euxo pipefail  # ref: https://gist.github.com/vncsna/64825d5609c146e80de8b1fd623011ca
 
-        GTF_FILE=""
-        if [ ! -z ${sjdbGTF_File} ]
+        # check if gzip
+        REF_FASTA=${referenceFasta}
+        file   ${referenceFasta} | grep gzip 2>&1 > /dev/null
+        if [ $? -eq 0 ];
         then
-            file  ${sjdbGTF_File} | grep gzip 2>&1 > /dev/null
-            if [ $? -eq 0 ];
-            then
-                gzip -d ${sjdbGTF_File}
-                gtfFileName=`basename  ${sjdbGTF_File} .gtf`
-            # else
-                #     printf not a compressed file
-                gtfFileName=${sjdbGTF_File}
-            fi
-
-            GTF_FILE="--sjdbGTFfile $gtfFileName "
+            gzip -d  ${referenceFasta}
+            REF_FASTA=`basename ${referenceFasta} .gz`
+        # else
+        #     printf not a compressed file
         fi
+        
+        
+        # GTF_FILE=""
+        # if [ ! -z ${sjdbGTF_File} ]
+        # then
+        #     file  ${sjdbGTF_File} | grep gzip 2>&1 > /dev/null
+        #     if [ $? -eq 0 ];
+        #     then
+        #         gzip -d ${sjdbGTF_File}
+        #         gtfFileName=`basename  ${sjdbGTF_File} .gtf`
+        #     # else
+        #         #     printf not a compressed file
+        #         gtfFileName=${sjdbGTF_File}
+        #     fi
+
+        #     GTF_FILE="--sjdbGTFfile $gtfFileName "
+        # fi
 
         mkdir -p  ${outputIndexFileName}
 
         STAR --runMode genomeGenerate runThreadN ${numThreads} \
             --genomeDir  ${outputIndexFileName} \
-            --genomeFastaFiles ${referenceFasta} 
+            --genomeFastaFiles $REF_FASTA 
 
         # EXITING because of FATAL INPUT PARAMETER ERROR: when generating genome without
         # annotations (--sjdbFileChrStartEnd or --sjdbGTFfile options) do not specify >0 --sjdbOverhang
