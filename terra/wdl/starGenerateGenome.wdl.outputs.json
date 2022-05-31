@@ -1,4 +1,3 @@
 {
-  "starGenerateGenome.starGenerateGenomeTask.starIdx": "File"
+  "starGenerateGenome.starGenerateGenomeTask.starIdx": "${workspace.star.idx.chm13v2.0}"
 }
-
