@@ -1,20 +1,20 @@
 # ref:
 # https://github.com/openwdl/wdl/blob/main/versions/1.0/SPEC.md
 
-workflow star-generate-genom {
+workflow starGenerateGenome {
     meta {
         author: "Andrew E. Davidson"
         email: "aedavids@ucsc.edu"
     }
     
-    call star-generate-genome-task
+    call starGenerateGenomeTask
 }
 
-task star-generate-genome-task {
+task starGenerateGenomeTask {
     File referenceFasta
     Int sjdbOverhang
     File? sjdbGTF_File
-    String ouputIndexFileName 
+    String outputIndexFileName
 
     Int memoryGb = 100
     Int diskSpaceGb = 1000
@@ -30,7 +30,7 @@ task star-generate-genome-task {
         # put copy input parms values in output to make debug easier
         echo "referenceFasta    : ${referenceFasta}"
         echo "sjdbOverhang      : ${sjdbOverhang}"
-        echo "ouputIndexFileName: ${ouputIndexFileName}"
+        echo "outputIndexFileName: ${outputIndexFileName}"
         echo "sjdbOverhang      : ${sjdbOverhang}"
         
         # put copy of runtime parameters in output. Makes debug easier
@@ -68,27 +68,27 @@ task star-generate-genome-task {
             GTF_FILE="--sjdbGTFfile $gtfFileName "
         fi
 
-        mkdir -p  ${ouputIndexFileName}
+        mkdir -p  ${outputIndexFileName}
 
         STAR --runMode genomeGenerate runThreadN ${numThreads} \
-            --genomeDir  ${ouputIndexFileName} \
+            --genomeDir  ${outputIndexFileName} \
             --genomeFastaFiles ${referenceFasta} \
             --sjdbOverhang ${sjdbOverhang} \
             $GTF_FILE
 
-        tar -cvzf ${ouputIndexFileName}.tar.gz  ${ouputIndexFileName}
+        tar -cvzf ${outputIndexFileName}.tar.gz  ${outputIndexFileName}
 
         
     >>>
 
     output {
-        File starIdx =  ${ouputIndexFileName}.tar.gz
+        File starIdx="${outputIndexFileName}.tar.gz"
     }
     
     runtime {
         docker: "us.gcr.io/tag-public/neovax-tag-rnaseq:v1"
         memory: "${memoryGb}GB"
-        disks: "local-disk ${disk_space} SSD"
+        disks: "local-disk ${diskSpaceGb} SSD"
         cpu: "${numThreads}"
         preemptible: "${runTimePreemptible}"
     }
@@ -99,3 +99,8 @@ task star-generate-genome-task {
     }
     
 }
+
+
+
+
+
