@@ -32,7 +32,7 @@ task starGenerateGenomeTask {
         # put copy input parms values in output to make debug easier
         echo "referenceFasta    : ${referenceFasta}"
         echo "outputIndexFileName: ${outputIndexFileName}"
-        #echo "sjdbOverhang      : ${sjdbOverhang}"
+        #echo "sjdbOverhang      :  aedwip sjdbOverhang"
         
         # put copy of runtime parameters in output. Makes debug easier
         echo ""
@@ -89,7 +89,7 @@ task starGenerateGenomeTask {
         # EXITING because of FATAL INPUT PARAMETER ERROR: when generating genome without
         # annotations (--sjdbFileChrStartEnd or --sjdbGTFfile options) do not specify >0 --sjdbOverhang
         # SOLUTION: re-run genome generation without --sjdbOverhang option
-        # --sjdbOverhang ${sjdbOverhang} \
+        # --sjdbOverhang aedwip sjdbOverhang} \
         #    $GTF_FILE
 
         tar -cvzf ${outputIndexFileName}.tar.gz  ${outputIndexFileName}
