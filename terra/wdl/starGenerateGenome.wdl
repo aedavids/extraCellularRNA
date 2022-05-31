@@ -1,5 +1,7 @@
 # ref:
 # https://github.com/openwdl/wdl/blob/main/versions/1.0/SPEC.md
+# when generating genome without annotations (--sjdbFileChrStartEnd or --sjdbGTFfile options)
+# do not specify >0 --sjdbOverhang
 
 workflow starGenerateGenome {
     meta {
@@ -12,7 +14,7 @@ workflow starGenerateGenome {
 
 task starGenerateGenomeTask {
     File referenceFasta
-    Int sjdbOverhang
+    #Int sjdbOverhang
     File? sjdbGTF_File
     String outputIndexFileName
 
@@ -29,9 +31,8 @@ task starGenerateGenomeTask {
     command <<<
         # put copy input parms values in output to make debug easier
         echo "referenceFasta    : ${referenceFasta}"
-        echo "sjdbOverhang      : ${sjdbOverhang}"
         echo "outputIndexFileName: ${outputIndexFileName}"
-        echo "sjdbOverhang      : ${sjdbOverhang}"
+        #echo "sjdbOverhang      : ${sjdbOverhang}"
         
         # put copy of runtime parameters in output. Makes debug easier
         echo ""
@@ -71,9 +72,13 @@ task starGenerateGenomeTask {
 
         STAR --runMode genomeGenerate runThreadN ${numThreads} \
             --genomeDir  ${outputIndexFileName} \
-            --genomeFastaFiles ${referenceFasta} \
-            --sjdbOverhang ${sjdbOverhang} \
-            $GTF_FILE
+            --genomeFastaFiles ${referenceFasta} 
+
+        # EXITING because of FATAL INPUT PARAMETER ERROR: when generating genome without
+        # annotations (--sjdbFileChrStartEnd or --sjdbGTFfile options) do not specify >0 --sjdbOverhang
+        # SOLUTION: re-run genome generation without --sjdbOverhang option
+        # --sjdbOverhang ${sjdbOverhang} \
+        #    $GTF_FILE
 
         tar -cvzf ${outputIndexFileName}.tar.gz  ${outputIndexFileName}
 
