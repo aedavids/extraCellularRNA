@@ -51,8 +51,6 @@ task starGenerateGenomeTask {
 
         set -euxo pipefail  # ref: https://gist.github.com/vncsna/64825d5609c146e80de8b1fd623011ca
 
-        aedwip $ gunzip gencode.v37.annotation.gtf.gz
-
         if [ ! -z ${sjdbGTF_File} ]
         then
             file  ${sjdbGTF_File} | grep gzip 2>&1 > /dev/null
