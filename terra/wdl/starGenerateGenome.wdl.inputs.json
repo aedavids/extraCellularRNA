@@ -1,0 +1,11 @@
+{
+  "starGenerateGenome.starGenerateGenomeTask.referenceFasta": "File",
+  "starGenerateGenome.starGenerateGenomeTask.sjdbGTF_File": "File? (optional)",
+  "starGenerateGenome.starGenerateGenomeTask.numThreads": "Int (optional, default = 10)",
+  "starGenerateGenome.starGenerateGenomeTask.sjdbOverhang": "Int",
+  "starGenerateGenome.starGenerateGenomeTask.diskSpaceGb": "Int (optional, default = 1000)",
+  "starGenerateGenome.starGenerateGenomeTask.memoryGb": "Int (optional, default = 100)",
+  "starGenerateGenome.starGenerateGenomeTask.runTimePreemptible": "Int (optional, default = 3)",
+  "starGenerateGenome.starGenerateGenomeTask.outputIndexFileName": "String"
+}
+
