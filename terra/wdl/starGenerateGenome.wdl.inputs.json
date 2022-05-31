@@ -1,11 +1,10 @@
 {
   "starGenerateGenome.starGenerateGenomeTask.referenceFasta": "${workspace.chm13v2-0_fa_gz}",
-  "starGenerateGenome.starGenerateGenomeTask.sjdbGTF_File": "File? (optional)",
-  "starGenerateGenome.starGenerateGenomeTask.numThreads": "Int (optional, default = 10)",
-  "starGenerateGenome.starGenerateGenomeTask.sjdbOverhang": "75",
-  "starGenerateGenome.starGenerateGenomeTask.diskSpaceGb": "Int (optional, default = 1000)",
-  "starGenerateGenome.starGenerateGenomeTask.memoryGb": "Int (optional, default = 100)",
-  "starGenerateGenome.starGenerateGenomeTask.runTimePreemptible": "Int (optional, default = 3)",
-  "starGenerateGenome.starGenerateGenomeTask.outputIndexFileName": "Stringstar.idx.chm13v2-0"
+  "starGenerateGenome.starGenerateGenomeTask.sjdbGTF_File": "${}",
+  "starGenerateGenome.starGenerateGenomeTask.numThreads": "${}",
+  "starGenerateGenome.starGenerateGenomeTask.sjdbOverhang": "${75}",
+  "starGenerateGenome.starGenerateGenomeTask.diskSpaceGb": "${}",
+  "starGenerateGenome.starGenerateGenomeTask.memoryGb": "${}",
+  "starGenerateGenome.starGenerateGenomeTask.runTimePreemptible": "${}",
+  "starGenerateGenome.starGenerateGenomeTask.outputIndexFileName": "star.idx.chm13v2-0"
 }
-
