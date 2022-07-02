@@ -87,11 +87,11 @@ def main( inComandLineArgsList=None ):
     # [INFO] subPlotDict keys:dict_keys(['matrix', 'shading', 'totals', 'intersections'])
 
     # quick hack looked at plot , print names of intersecting genes
-    print("\nThyroid intersection with Kidney")
-    print( geneSets["Thyroid"].intersection(geneSets['Kidney_Cortex']) )
-    
-    print("\nThyroid intersection with Lung")
-    print( geneSets["Thyroid"].intersection(geneSets['Lung']) )    
+    # print("\nThyroid intersection with Kidney")
+    # print( geneSets["Thyroid"].intersection(geneSets['Kidney_Cortex']) )
+    #
+    # print("\nThyroid intersection with Lung")
+    # print( geneSets["Thyroid"].intersection(geneSets['Lung']) )    
     
     title = cli.args.title
     if title:
@@ -116,9 +116,9 @@ def main( inComandLineArgsList=None ):
                     deseqResult = masterDataSet[tissueId]['deseqResultSet']
                     stats = deseqResult[geneName]
                     # print("tissueId:{} gene:{} {}".format(tissueId, geneName, stats))
-                    isHack = FALSE
+                    isHack = False
                     if "lfcShrink" in tissueId:
-                        isHack = TRUE
+                        isHack = True
                         #print("tissueID:{}".format(tissueId))
                         
                     if isHack: 
