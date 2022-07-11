@@ -1,6 +1,6 @@
 {
   "deseq_one_vs_all.one_vs_all.colData": "${workspace.GTEx_TCGA_TrainColData}",
-  "deseq_one_vs_all.one_vs_all.countMatrix": "${workspace.TCGA-TrainGroupByGeneId}",
+  "deseq_one_vs_all.one_vs_all.countMatrix": "gs://fc-e15b796f-1abe-4206-ab91-bd58374cc275/data/GTEx_TCGA/GTEx_TCGA_TrainGroupby.csv",
   "deseq_one_vs_all.one_vs_all.design": "~  age + gender + category",
   "deseq_one_vs_all.one_vs_all.diskSpaceGb": "${}",
   "deseq_one_vs_all.one_vs_all.dockerImg": "${}",
