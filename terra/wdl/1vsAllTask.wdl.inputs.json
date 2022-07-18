@@ -1,17 +1,13 @@
 {
-    "comment": "do not set isDebug in production. It will default to 'false'",
-    "deseq_one_vs_all.one_vs_all.isDebug": "true",
-
-    
-  "deseq_one_vs_all.one_vs_all.memoryGb": "20",
-  "deseq_one_vs_all.one_vs_all.runTimeCpu": "1",
-  "deseq_one_vs_all.one_vs_all.colData": "../../deseq/python/test/data/colData.csv",
-  "deseq_one_vs_all.one_vs_all.isCSV": "true",
-  "deseq_one_vs_all.one_vs_all.referenceLevel": "ctrl",
-  "deseq_one_vs_all.one_vs_all.diskSpaceGb": "40",
-  "deseq_one_vs_all.one_vs_all.design": "~ treatment",
-  "deseq_one_vs_all.one_vs_all.dockerImg": "aedavids/edu_ucsc_kim_lab-1vsall_1.0",
-  "deseq_one_vs_all.one_vs_all.runTimePreemptible": "3",
-  "deseq_one_vs_all.one_vs_all.countMatrix": "../../deseq/python/test/data/numReadsMatrix.csv"    
+  "deseq_one_vs_all.one_vs_all.colData": "${workspace.GTEx_TCGA_TrainColData}",
+  "deseq_one_vs_all.one_vs_all.countMatrix": "gs://fc-e15b796f-1abe-4206-ab91-bd58374cc275/data/GTEx_TCGA/GTEx_TCGA_TrainGroupby.csv",
+  "deseq_one_vs_all.one_vs_all.design": "~  gender + category",
+  "deseq_one_vs_all.one_vs_all.diskSpaceGb": "${200}",
+  "deseq_one_vs_all.one_vs_all.dockerImg": "${}",
+  "deseq_one_vs_all.one_vs_all.isCSV": "${}",
+  "deseq_one_vs_all.one_vs_all.isDebug": "${}",
+  "deseq_one_vs_all.one_vs_all.memoryGb": "${200}",
+  "deseq_one_vs_all.one_vs_all.referenceLevel": "${this.category}",
+  "deseq_one_vs_all.one_vs_all.runTimeCpu": "${}",
+  "deseq_one_vs_all.one_vs_all.runTimePreemptible": "${0}"
 }
- 
