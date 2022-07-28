@@ -10,10 +10,13 @@ __date__ = '2022-03-26'
 __updated__ = '2022-03-26'
 __user_name__ = 'Andrew E. Davidson'
 
+import logging
+import os
 import pandas as pd
 from plots.DESeqSelect import DESeqSelect
 from plots.geneSignatureUpsetPlotCommandLine import GeneSignatureUpsetPlotCommandLine
 from matplotlib import pyplot as plt
+import traceback
 import upsetplot as up
 from utils.upsetPlotData import UpSetPlotData
 
@@ -24,6 +27,18 @@ def main( inComandLineArgsList=None ):
     '''
     process command line arguments load data and  call createPlot()
     '''
+    # print("AEDWIP PWD: {}".format(os.getcwd()))
+    # print( "__FILE__ : {}".format(__file__))
+    # print("PYTHONPATH: {}".format(os.environ['PYTHONPATH']))
+    # print("does stderr work? {}".format("hello world"), file = sys.stderr );
+    logging.basicConfig(level=logging.INFO, format="[%(levelname)s %(asctime)s %(filename)s:%(lineno)s - %(funcName) s()] %(message)s")
+    #configFilePath = setupLogging( default_level=logging.INFO) # default_path='python/logging.test.ini.json'
+    logger = logging.getLogger(__name__)
+    # logger.info("DOES INFO LEVEL WORK?")
+    # logger.warning("DOES WARN LEVEL WORK?")
+    # logger.error("DOES ERROR WORK?")
+    
+    
     cli = GeneSignatureUpsetPlotCommandLine( __user_name__, __version__, __date__, __updated__ )
     if inComandLineArgsList is None:
         cli.parse()
@@ -77,13 +92,28 @@ def main( inComandLineArgsList=None ):
             # key is geneName
             "deseqResultSet": dataLoader.loadDESeqResultsAsStrings(numHeaderLines)
             }
-        
-    upData = UpSetPlotData( geneSets )
+    try:
+        numThreadsArg = cli.args.numThreads
+        upData = UpSetPlotData( geneSets, numThreadsArg )
+    except Exception as e:
+        logger.error("UpSetPlotData failed")
+        logger.error("exc:{}".format(e))
+        logging.error(traceback.format_exc())
+        os._exit(-1)
     
-    figureWidthInInches = 8
-    figureHeightInInches = 3
+    logger.info("BEGIN plotting")
+    figureWidthInInches = cli.args.width
+    figureHeightInInches = cli.args.height
     fig = plt.figure(figsize=(figureWidthInInches,figureHeightInInches))
-    subPlotDict = up.plot(upData.plotData, fig)
+    
+    #
+    #  orientation='vertical'
+    # 
+    #subPlotDict = up.plot(upData.plotData, fig) # plots all three blows up on GTEx_TCGA 83 sets
+    subPlotDict = up.plot(upData.plotData, fig, element_size=None)
+    # crash and burnup.UpSet(upData.plotData).plot_intersections( fig)
+    logger.info("END plotting")
+    
     # [INFO] subPlotDict keys:dict_keys(['matrix', 'shading', 'totals', 'intersections'])
 
     # quick hack looked at plot , print names of intersecting genes
@@ -104,7 +134,8 @@ def main( inComandLineArgsList=None ):
     #
     # output sets that share genes and the genes in their intersection
     #
-    print("\n\n\n $$$$$$$$$$$$$$$$ intersections:")
+    logger.info("BEGIN creating intersection data set")
+    #print("\n\n\n $$$$$$$$$$$$$$$$ intersections:")
     intersectionDF = None
     for setName, intersectionSet in upData.intersectionDict.items():
         tokens = setName.split(",")
@@ -151,10 +182,11 @@ def main( inComandLineArgsList=None ):
                         intersectionDF = pd.concat( [intersectionDF, df] )
                     else:
                         intersectionDF = df
-                        
-    AEDWIP = "geneSignatureUpsetPlot.Intersection.csv"
-    intersectionDF.to_csv(AEDWIP, index=False)
-    print("\n*************** wrote file\n{}".format(AEDWIP))
+
+    logger.info("END creating intersection data set")
+    intersectionOutputFile = cli.args.intersectionOutputFile
+    intersectionDF.to_csv(intersectionOutputFile, index=False)
+    print("\n*************** wrote file: {}".format(intersectionOutputFile))
                                                                  
 
 ########################################################################

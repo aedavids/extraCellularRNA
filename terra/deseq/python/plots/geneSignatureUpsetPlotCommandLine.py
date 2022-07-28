@@ -55,7 +55,14 @@ class GeneSignatureUpsetPlotCommandLine( VolcanoPlotCommandLine ):
         #                                     action='store', help="number of header lines in input file")
         
         self.parser.add_argument( '-t', '--title', default=None, metavar="",
-                                              action='store', help='plot title' )        
+                                              action='store', help='plot title' )      
+        
+        self.parser.add_argument( '-w', '--width', default=10, type=int, action="store", help="image width in inches")
+        
+        self.parser.add_argument( '-z', '--height', default=4, type=int, action="store", metavar="HEIG", help="image height in inches")
+        #  action="store",
+        # default=3, type=int,
+        # self.parser.add_argument( '-z', '--height', default=3, type=int, action="store", help="image height in inches")
         
         #
         # group required arguments. This will create a better help message
@@ -81,3 +88,8 @@ class GeneSignatureUpsetPlotCommandLine( VolcanoPlotCommandLine ):
                                              action='store', help='output file name. suffix determines output format' )
         
 
+        self.requiredArg.add_argument('-c', '--numThreads', required=True, default=None, type=int, metavar="", 
+                                      action='store', help="currency level: size of thread pool")
+        
+        self.requiredArg.add_argument( '-i', '--intersectionOutputFile', required=True, default=None, metavar="",
+                                       action='store', help="csv file containing intersection sets data")
