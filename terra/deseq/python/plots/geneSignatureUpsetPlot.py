@@ -31,6 +31,7 @@ def initializeLogging():
     print("CALLING initializeLogging()")
     global isloggingInitailized
     if not isloggingInitailized:
+        print("first call initialize Logging")
         logging.basicConfig(level=logging.INFO, format="[%(levelname)s %(asctime)s %(filename)s:%(lineno)s - %(funcName) s()] %(message)s")
         isloggingInitailized = TRUE
         
@@ -93,7 +94,7 @@ class GeneSignatureUpsetPlot(object) :
         #  in their intersection
         self.intersectionDF = None
         self._createIntersectionDF()
-        self.logger.end()
+        self.logger.info("END")
                     
     ################################################################################
     def getGeneSets(self):
