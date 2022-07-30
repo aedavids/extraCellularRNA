@@ -251,11 +251,7 @@ def main( inComandLineArgsList=None ):
     process command line arguments load data and  call createPlot()
     '''
     logger = logging.getLogger(__name__)
-    # logger.info("DOES INFO LEVEL WORK?")
-    # logger.warning("DOES WARN LEVEL WORK?")
-    # logger.error("DOES ERROR WORK?")
-    
-    
+   
     cli = GeneSignatureUpsetPlotCommandLine( __user_name__, __version__, __date__, __updated__ )
     if inComandLineArgsList is None:
         cli.parse()
@@ -264,85 +260,22 @@ def main( inComandLineArgsList=None ):
         
     logger.info("cli.args: {}".format(cli.args))
         
-    # numHeaderLines = cli.args.numHeaderLines
     
     # read data set CSV file
     # first column is the set name, second is file path the DESeq results
     logger.info("read data set CSV file: {}".format(cli.args.dataSetsCSV ))
     dataSetsDF = pd.read_csv( cli.args.dataSetsCSV )
-    #print(dataSetsDF )
     
     gsup = GeneSignatureUpsetPlot(dataSetsDF, cli.args.numThreads)
-    
-    # masterDataSet = {} # we want to be able to save the tissueIds, intersecting genes along with deseq values
-    # geneSets = {} # the data we want to plot
-    # numFiles = dataSetsDF.shape[0]
-    # for i in range(numFiles):
-    #     tissueId = dataSetsDF.iloc[i,0]
-    #     numHeaderLines = dataSetsDF.iloc[i,1]
-    #     file = dataSetsDF.iloc[i,2]
-    #
-    #     #tokens = file.split(".")
-    #     isHack = False
-    #     if "lfcShrink" in file:
-    #         isHack = True
-    #
-    #     print("\nprocessing setId:{} numHeaderLines:{} file: {}".format(tissueId, numHeaderLines, file))
-    #     # tokens = file.split("/")
-    #     # #print(tokens)
-    #     #
-    #     # # last token: signatureGenesValidateThyroid.csv
-    #     # fileName = tokens[-1].split(".")[0]
-    #     # #print(fileName)
-    #     # tissueId = fileName[ len( "signatureGenesValidate" ):]
-    #     # print(tissueId)
-    #     dataLoader = DESeqSelect( file )
-    #
-    #     if isHack:
-    #         geneNamesNP, baseMeanNP, xlog2FoldChangeNP, yNeglog10pValueNP = dataLoader.readVolcanoPlotData(numHeaderLines, hackPadjIndx=5)
-    #     else:
-    #         geneNamesNP, baseMeanNP, xlog2FoldChangeNP, yNeglog10pValueNP = dataLoader.readVolcanoPlotData(numHeaderLines)
-    #
-    #     geneSets[tissueId] = set( geneNamesNP )
-    #
-    #     # hold on to deseq results Data so that we can analyze signature gene sets with overlapping genes
-    #     masterDataSet[tissueId] = {
-    #         "inputFile":file,
-    #         # key is geneName
-    #         "deseqResultSet": dataLoader.loadDESeqResultsAsStrings(numHeaderLines)
-    #     }
-        
-    # try:
-    #     numThreadsArg = cli.args.numThreads
-    #     upData = UpSetPlotData( geneSets, numThreadsArg )
-    # except Exception as e:
-    #     logger.error("UpSetPlotData failed")
-    #     logger.error("exc:{}".format(e))
-    #     logging.error(traceback.format_exc())
-    #     os._exit(-1)
-    
+
     logger.info("BEGIN plotting")
     figureWidthInInches = cli.args.width
     figureHeightInInches = cli.args.height
     # fig = plt.figure(figsize=(figureWidthInInches,figureHeightInInches))
     fig, subPlotDict = gsup.plot(figureWidthInInches, figureHeightInInches)
     
-    #
-    #  orientation='vertical'
-    # 
-    #subPlotDict = up.plot(upData.plotData, fig) # plots all three blows up on GTEx_TCGA 83 sets
-    # subPlotDict = up.plot(upData.plotData, fig, element_size=None)
-    # crash and burnup.UpSet(upData.plotData).plot_intersections( fig)
     logger.info("END plotting")
     
-    # [INFO] subPlotDict keys:dict_keys(['matrix', 'shading', 'totals', 'intersections'])
-
-    # quick hack looked at plot , print names of intersecting genes
-    # print("\nThyroid intersection with Kidney")
-    # print( geneSets["Thyroid"].intersection(geneSets['Kidney_Cortex']) )
-    #
-    # print("\nThyroid intersection with Lung")
-    # print( geneSets["Thyroid"].intersection(geneSets['Lung']) )    
     
     title = cli.args.title
     if title:
@@ -356,60 +289,12 @@ def main( inComandLineArgsList=None ):
     # output sets that share genes and the genes in their intersection
     #
     logger.info("BEGIN creating intersection data set")
-    #print("\n\n\n $$$$$$$$$$$$$$$$ intersections:")
-    #intersectionDF = None
-    # for setName, intersectionSet in upData.intersectionDict.items():
-    #     tokens = setName.split(",")
-    #     if len(tokens) > 1 :
-    #         genesList = list(intersectionSet)
-    #         # print("\n{}\n\t{}".format(setName, genesList))
-    #         for geneName in genesList:
-    #             for tissueId in tokens:
-    #                 deseqResult = masterDataSet[tissueId]['deseqResultSet']
-    #                 stats = deseqResult[geneName]
-    #                 # print("tissueId:{} gene:{} {}".format(tissueId, geneName, stats))
-    #                 isHack = False
-    #                 if "lfcShrink" in tissueId:
-    #                     isHack = True
-    #                     #print("tissueID:{}".format(tissueId))
-    #
-    #                 if isHack: 
-    #                     # lfcShrink does not have a stat col
-    #                     # print("ishack tissueID:{}".format(tissueId))
-    #                     df = pd.DataFrame({
-    #                             "tissueId":[tissueId]
-    #                             ,"gene": [geneName]
-    #                              ,"baseMean": [stats[0]]
-    #                              ,"log2FoldChange": [stats[1]]
-    #                              ,"lfcSE": [stats[2]]
-    #                              ,"stat": "Na"
-    #                             ,"pvalue": [stats[3]]
-    #                             ,"padj": [stats[4]]
-    #                             })
-    #
-    #                 else :
-    #                     # print("not isHack  tissueID:{}".format(tissueId))
-    #                     df = pd.DataFrame({
-    #                             "tissueId":[tissueId]
-    #                             ,"gene": [geneName]
-    #                              ,"baseMean": [stats[0]]
-    #                              ,"log2FoldChange": [stats[1]]
-    #                              ,"lfcSE": [stats[2]]
-    #                              ,"stat": [stats[3]]
-    #                             ,"pvalue": [stats[4]]
-    #                             ,"padj": [stats[5]]
-    #                             })                        
-    #                 if intersectionDF is not None :
-    #                     intersectionDF = pd.concat( [intersectionDF, df] )
-    #                 else:
-    #                     intersectionDF = df
 
     logger.info("END creating intersection data set")
     intersectionOutputFile = cli.args.intersectionOutputFile
     intersectionDF = gsup.getIntersectionDF()
     intersectionDF.to_csv(intersectionOutputFile, index=False)
-    print("\n*************** wrote file: {}".format(intersectionOutputFile))
-                                                                 
+    print("\n*************** wrote file: {}".format(intersectionOutputFile)) 
 
 ########################################################################
 if __name__ == '__main__':
