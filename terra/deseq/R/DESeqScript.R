@@ -12,6 +12,55 @@ startTime <- Sys.time()
 library("argparse")
 library("DESeq2")
 library("BiocParallel")
+
+saveResults <- function(outFile, dds, DESeqResults ) {
+  cat("\n*********DEBUG begin saveResults()")
+  txt <- sprintf("debug begin outFile: %s\n", outFile)
+  cat(txt)
+  head(DESeqResults)
+  cat( sprintf("\n after head\n") )
+  
+  # write self describing meta data to header section of output file
+  descriptionList <- DESeqResults@elementMetadata@listData[["description"]]
+  cat( sprintf("%s \n", descriptionList[[1]]), file=outFile)
+  for (i in 2:length(descriptionList)) {
+      txt <- sprintf( "%s \n", descriptionList[[i]] ) 
+      cat( txt, file=outFile, append=TRUE)
+  }
+
+  txt <- sprintf( "design: %s \n", format(design(dds)))
+  cat( txt, file = outFile, append = TRUE)
+
+  # create a column named 'name' with the gene name
+  # else the output from write table will header line will not have
+  # the same number of columns as the data rows
+
+  cat("debug head(rownames(DESeqResults)) \n")
+  cat( head(rownames(DESeqResults)) )
+  cat(" \n")
+
+  DESeqResults<- cbind( rownames(DESeqResults), DESeqResults )
+  cat("debug  rownames after cbind( rownames(DESeqResults), DESeqResults )\n")
+  cat( head(rownames(DESeqResults)) )
+
+  colnames(DESeqResults)[1] <- "name"
+  #AEDWIP cat("debug  rownames setting first col to 'name'\n")
+  #AEDWIP cat( rownames(DESeqResults) )
+
+  cat("debug before write.table head(DESeqResults)\n")
+  print( head(DESeqResults) )
+
+  cat("debug callign write.table\n")
+  write.table( DESeqResults,
+               file = outFile,
+               sep=delimator,
+               row.names=FALSE,
+               append=TRUE)
+
+  cat( paste("wrote file: ", outFile, "\n") )
+  cat("\n*********DEBUG end saveResults()")
+}
+
 #
 # parse cli
 # https://cran.r-project.org/web/packages/argparse/vignettes/argparse.html
@@ -73,8 +122,23 @@ outFile <- args$outFile
 numCores <-args$numCores
 estimateSizeFactorsOutfile <- args$estimateSizeFactorsOutfile
 oneVsAll <- args$oneVsAll
+isCSV <- args$isCSV
+#
+# DEBUG arguments
+# allows us to run script in RStudio
+#
+# getwd()
+# countMatrixFile <- "data/1vsAllTest/unitTestGroupByGenesCountMatrix.csv"
+# colDataFile <- "data/1vsAllTest/unitTestColData.csv" 
+# design <- '~ sex + tissue_id'
+# referenceLevel <- 'Lung'
+# outFile <- 'unitTestDESeqResultOutfile'
+# numCores <- 2
+# estimateSizeFactorsOutfile <- 'unitTestEstimateSizeFactorsOutfile'
+# oneVsAll <- TRUE
+# isCSV <- TRUE
 
-if (args$isCSV) {
+if (isCSV) {
   delimator <- ","
 } else {
   delimator <- "\t"
@@ -131,12 +195,18 @@ if (oneVsAll) {
   #levels( colDataDF[variableOfInterest] )[ levels(colDataDF[variableOfInterest] ) != referenceLevel ] <- notLevel
   # https://stackoverflow.com/questions/19730806/access-data-frame-column-using-variable
   levels( colDataDF[, variableOfInterest] )[ levels(colDataDF[, variableOfInterest] ) != referenceLevel ] = notLevel
+
+  colDataDF[variableOfInterest][,1] <- relevel(colDataDF[variableOfInterest][,1], notLevel)
+
+
   cat("\none vs. all levels\n")
-  print( levels(colDataDF[variableOfInterest] ) )
-  # print("str(colDataDF)")
+  print( levels(colDataDF[variableOfInterest][,1] ) )
+  print("str(colDataDF)")
   # print(str(colDataDF))
   # print("colDataDF")
   # print(colDataDF)
+  # print("####### end 1 vs. all debug ##########")
+
 }
 
 cat("\nhead(colData) \n")
@@ -224,53 +294,50 @@ cat("\nsave our expected results\n")
 # results takes a name argument. by default we sampleType treatment vs control
 # see the documentation there are lots of arguments
 DESeqResults <- results(dds, parallel=TRUE)
+
+# sort by adjusted p-value
+DESeqResults <- DESeqResults[order(DESeqResults$padj),]
 print( head(DESeqResults) )
+saveResults( outFile, dds, DESeqResults )
 
-# write self describing meta data to header section of output file
-descriptionList <- DESeqResults@elementMetadata@listData[["description"]]
-cat( sprintf("%s \n", descriptionList[[1]]), file=outFile)
-for (i in 2:length(descriptionList)) {
-  txt <- sprintf( "%s \n", descriptionList[[i]] ) 
-  cat( txt, file=outFile, append=TRUE)
-}
 
-txt <- sprintf( "design: %s \n", format(design(dds)))
-cat( txt, file = outFile, append = TRUE)
+#
+# calculate the log fold change shrinkage
+#
+cat("\n")
+print("DEBUG ***** starting lfcShrink()")
 
-# create a column named 'name' with the gene name
-# else the output from write table will header line will not have
-# the same number of columns as the data rows
+# by default the log2 fold change and Wald test p value will be for the last
+# variable in the design formula, and if this is a factor, the comparison will
+# be the last level of this variable over the reference level 
 
-cat("debug rownames(DESeqResults) \n")
-# cat( rownames(DESeqResults) )
-# cat(" \n")
+coefList <- resultsNames(dds) # lists the coefficients
+lastVariable = tail(coefList, 1)
 
-DESeqResults<- cbind( rownames(DESeqResults), DESeqResults )
-cat("debug  rownames after cbind( rownames(DESeqResults), DESeqResults )\n")
-# cat( rownames(DESeqResults) )
+cat("\nDEBUG ***** lastVariable ")
+print(class(coefList))
+print(coefList)
+print(lastVariable)
 
-colnames(DESeqResults)[1] <- "name"
-cat("debug  rownames setting first col to 'name'\n")
-#cat( rownames(DESeqResults) )
+DESeqResult_lfcShrink <- lfcShrink(dds, coef=lastVariable, type="apeglm")
 
-cat("debug before write.table head(DESeqResults)\n")
-print( head(DESeqResults) )
+# sort by adjusted p-value
+DESeqResult_lfcShrink <- DESeqResult_lfcShrink[order(DESeqResult_lfcShrink$padj),]
 
-cat("debug callign write.table\n")
-write.table( DESeqResults,
-           file = outFile,
-           sep=delimator,
-           row.names=FALSE,
-           append=TRUE)
+#print( "head(DESeqResult_lfcShrink)" )
+#head(DESeqResult_lfcShrink)
+lfsShrinkOutFile <- paste(sep="", outFile, ".lfcShrink")
+saveResults( lfsShrinkOutFile , dds, DESeqResult_lfcShrink )
+
 
 cat("DESeqScript.R completed sucessfully\n")
-
-# turn output capture off
-sink()
 
 endTime <- Sys.time()
 cat("\nrun time")
 print( endTime - startTime )
+
+# turn output capture off
+sink()
 
 # exit session do not save
 q(save="no")

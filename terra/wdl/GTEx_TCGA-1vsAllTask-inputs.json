@@ -1,13 +1,13 @@
 {
   "deseq_one_vs_all.one_vs_all.colData": "${workspace.GTEx_TCGA_TrainColData}",
   "deseq_one_vs_all.one_vs_all.countMatrix": "gs://fc-e15b796f-1abe-4206-ab91-bd58374cc275/data/GTEx_TCGA/GTEx_TCGA_TrainGroupby.csv",
-  "deseq_one_vs_all.one_vs_all.design": "~  gender + category",
-  "deseq_one_vs_all.one_vs_all.diskSpaceGb": "${200}",
+  "deseq_one_vs_all.one_vs_all.design": "~  age + gender + category",
+  "deseq_one_vs_all.one_vs_all.diskSpaceGb": "${}",
   "deseq_one_vs_all.one_vs_all.dockerImg": "${}",
   "deseq_one_vs_all.one_vs_all.isCSV": "${}",
   "deseq_one_vs_all.one_vs_all.isDebug": "${}",
-  "deseq_one_vs_all.one_vs_all.memoryGb": "${200}",
+  "deseq_one_vs_all.one_vs_all.memoryGb": "${180}",
   "deseq_one_vs_all.one_vs_all.referenceLevel": "${this.category}",
   "deseq_one_vs_all.one_vs_all.runTimeCpu": "${}",
-  "deseq_one_vs_all.one_vs_all.runTimePreemptible": "${0}"
+  "deseq_one_vs_all.one_vs_all.runTimePreemptible": "${}"
 }

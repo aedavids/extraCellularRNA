@@ -97,13 +97,25 @@ buildContextDir=../R
 
 docker build --file ./DockerFile.1vsAll --tag $myTag $buildContextDir
  ```
+ 
+## set the docker image tag
+<span style="colore:red"> use check the docker image repository</span>
+```
+docker images |grep aedavids
+```
+
+set an env var
+```
+export IMG="aedavids/edu_ucsc_kim_lab-1vsall_1.0"
+```
+
 
 ## step 2) test
 launch the docker and open a bash shell
 
 start the container
 ```
-docker run --rm --detach aedavids/test-1vs-all-2
+docker run --rm --detach $IMG
 ```
 
 to find the name of our container
@@ -147,6 +159,8 @@ $ java -jar ${WDL_TOOLS}/womtool-74.jar inputs 1vsAllTask.wdl > 1vsAllTask.wdl.i
 $ java -jar $WDL_TOOLS/womtool-74.jar outputs 1vsAllTask.wdl > 1vsAllTask.wdl.outputs.json
 ```
 
+
+
 input assume we are running in a tmp sub dir
 ```
 $ cat
@@ -174,16 +188,35 @@ $ cat 1vsAllTask.wdl.outputs.json
 
 ```
 
-## step 5) test (run cromwell)
+## step 5) test (run cromwell) locally
+<span style="color:red">THIS IS TRICKY!</span>
+
+set isDebug='true' in 1vsAllTask.wdl.inputs.json
+
+when you run you may see an error and stack trace like bellow. Just ignor it. your container ran. For details see [github issue](https://github.com/broadinstitute/cromwell/issues/6674)
+```
+[2022-03-30 15:56:09,04] [warn] BackendPreparationActor_for_6fef3552:deseq_one_vs_all.one_vs_all:-1:1 [6fef3552]: Docker lookup failed
+java.lang.Exception: Unauthorized to get docker hash aedavids/edu_ucsc_kim_lab-1vsall_1.0:latest
+	at cromwell.engine.workflow.WorkflowDockerLookupActor.cromwell$engine$workflow$WorkflowDockerLookupActor$$handleLookupFailure(WorkflowDockerLookupActor.scala:222)
+```
+
+You should be able to find all the output from your run under 
+```
+cromwell-executions/deseq_one_vs_all/randomGUID/call-one_vs_all/execution
+```
+
 runCromwell and cromwellDebug.conf set the user id so that it is easy to 
 remove output files
 ```
+cd extraCellularRNA/terra/deseq/
+mkdir tmp
+
 $ cd tmp
 $ ../../../bin/runCromwell.sh \
-    -Dconfig.file=../cromwellDebug.conf \
+    -Dconfig.file=../../wdl/cromwellDebug.conf \
     -jar ${WDL_TOOLS}/cromwell-74.jar run \
-    --inputs ../1vsAllTask.wdl.inputs.json \
-    ../1vsAllTask.wdl
+    --inputs ../../wdl/1vsAllTask.wdl.inputs.json \
+    ../../wdl/1vsAllTask.wdl
 ```
 
 check test results. File paths will have different quids
@@ -200,6 +233,81 @@ TODO:
 - docker images rm
 
 
-# publishing to dockerstore.org
-https://docs.dockstore.org/en/stable/launch-with/terra-launch-with.html
-https://docs.dockstore.org/en/stable/getting-started/getting-started.html
+# publish docker container
+need to make it aviable to terra. dockerstore.org is hard to use documentation is mess and over complicated. Just use docker store, upload wdl to broad repository
+
+- https://docs.docker.com/docker-hub/repos
+
+on mustard
+
+find image 1vsall image
+```
+$ docker images |grep aedavids | cut -f 1
+aedavids/edu_ucsc_kim_lab-1vsall_1.0                                       latest                                                      6058eac32165        2 weeks ago         6.29GB
+aedavids/extra_cellular_rna_2_01                                           latest                                                      c728ed04d08a        5 months ago        6.28GB
+aedavids/biocontest                                                        1.0                                                         080c37b0ade1        10 months ago       3.95GB
+aedavids/extra_cellular_rna_broken                                         latest                                                      b8c2a26d9690        17 months ago       5.02GB
+```
+
+create a docker repository
+
+1. log on to
+   [https://hub.docker.com/repository](https://hub.docker.com/repository)
+
+2. press create an re repository
+    * my account name is aedavids
+    * new repo name is edu_ucsc_kim_lab
+
+3. push image from mustard
+   https://docs.docker.com/engine/reference/commandline/push/
+  
+   ```
+   # image was already tag with docker user id
+   $ docker login
+   $ dockerUser=aedavids
+   $ dockerRepo=edu_ucsc_kim_lab
+   $ localTag=aedavids/edu_ucsc_kim_lab-1vsall_1.0
+   $ docker image push $localTag
+   the push refers to repository [docker.io/aedavids/edu_ucsc_kim_lab-1vsall_1.0]
+   ca8223fbe2d3: Pushed 
+   e156336e3923: Pushed 
+   574ede5b3fdc: Pushed 
+   21b52c92873d: Pushed 
+   d3ddc5418c48: Pushed 
+   f612b808c909: Pushed 
+   1e138e22eaf9: Pushed 
+   83160482d625: Pushed 
+   c7a649503e62: Pushed 
+   05e86bdff9ed: Pushed 
+   5c9adbf2cdef: Pushed 
+   d9608d01217a: Pushed 
+   35d4453e3f63: Mounted from bioconductor/bioconductor_docker 
+   c52616870693: Mounted from bioconductor/bioconductor_docker 
+   8b34b2b231dd: Mounted from bioconductor/bioconductor_docker 
+   8e8fdf416a80: Mounted from bioconductor/bioconductor_docker 
+   84bb14749b6e: Mounted from bioconductor/bioconductor_docker 
+   cf6d15ee8907: Mounted from bioconductor/bioconductor_docker 
+   ae157dd031cb: Mounted from bioconductor/bioconductor_docker 
+   b949cb87dde4: Mounted from bioconductor/bioconductor_docker 
+   e17ef34273d7: Mounted from bioconductor/bioconductor_docker 
+   5f629bbc7ac7: Mounted from bioconductor/bioconductor_docker 
+   75aff22e485d: Mounted from bioconductor/bioconductor_docker 
+   a75397c7fdd5: Mounted from bioconductor/bioconductor_docker 
+   99384de96be4: Mounted from bioconductor/bioconductor_docker 
+   7555a8182c42: Mounted from kishwars/pepper_deepvariant 
+   latest: digest: sha256:330c1bcdfc532192f44f5841095936875c74bcbaf90e35e16eb54595cc68c371 size: 5997
+   ```
+
+on  https://hub.docker.com/repository/docker/aedavids/edu_ucsc_kim_lab-1vsall_1.0 you will find our image aedavids/edu_ucsc_kim_lab-1vsall_1.0
+
+This is the matches the String dockerImg default value in 1vsAllTask.wdl
+
+upload wdl to broads method repository. 
+1. Go to terra workspace, click on 'workflows" -> find workflow -> Broad Methods Respository 
+2. create new method
+3 fill in form
+    * namespace aedavids.ucsc.edu
+    * name 1vsAllTask.wdl
+    * load from file
+    * export to workspace
+    

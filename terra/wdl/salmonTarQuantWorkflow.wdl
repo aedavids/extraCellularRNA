@@ -1,6 +1,6 @@
 
 # note urls have version information
-import "https://api.firecloud.org/ga4gh/v1/tools/aedavids.ucsc.edu:tarToPairedFastq.wdl/versions/4/plain-WDL/descriptor" as tarToPairedFastTask
+import "https://api.firecloud.org/ga4gh/v1/tools/aedavids.ucsc.edu:tarToPairedFastq.wdl/versions/6/plain-WDL/descriptor" as tarToPairedFastTask
 import "https://api.firecloud.org/ga4gh/v1/tools/aedavids.ucsc.edu:SalmonPairedReadQuantTask/versions/27/plain-WDL/descriptor" as salmonPairedReadQuantTask
 
 workflow quantify {

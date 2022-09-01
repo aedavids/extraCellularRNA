@@ -1,0 +1,13 @@
+{
+  "deseq_one_vs_all.one_vs_all.memoryGb": "${140}",
+  "deseq_one_vs_all.one_vs_all.runTimeCpu": "${}",
+  "deseq_one_vs_all.one_vs_all.colData": "${workspace.TCGA-TrainColData}",
+  "deseq_one_vs_all.one_vs_all.isCSV": "${}",
+  "deseq_one_vs_all.one_vs_all.isDebug": "${}",
+  "deseq_one_vs_all.one_vs_all.referenceLevel": "${this.Cohort}",
+  "deseq_one_vs_all.one_vs_all.diskSpaceGb": "${}",
+  "deseq_one_vs_all.one_vs_all.design": "~ Gender + Cohort",
+  "deseq_one_vs_all.one_vs_all.countMatrix": "${workspace.TCGA-TrainGroupByGeneId}",
+  "deseq_one_vs_all.one_vs_all.dockerImg": "${}",
+  "deseq_one_vs_all.one_vs_all.runTimePreemptible": "${}"
+}

@@ -17,6 +17,7 @@ task one_vs_all {
     String design
     String referenceLevel
     Boolean? isCSV
+    Boolean? isDebug
 
     # https://cromwell.readthedocs.io/en/stable/RuntimeAttributes/
     # String dockerImg = 'aedwip quay.io/biocontainers/salmon:1.4.0--hf69c8f4_0'
@@ -31,6 +32,10 @@ task one_vs_all {
     # We find that allocating 8 — 12 threads results in the maximum speed, threads
     # allocated above this limit will likely spend most of their time idle / sleeping
     #
+
+    # random guess
+    # are all cpu's fully utilized?
+    # do we get a speed up? is it cost effective?
     Int runTimeCpu = 8
 
     # random guess
@@ -66,6 +71,8 @@ task one_vs_all {
     echo "colData        : ${colData}"
     echo "design         : ${design}"
     echo "referenceLevel : ${referenceLevel}"
+    echo "isCSV          : ${isCSV}"
+    echo "isDebug        : ${isDebug}"
         
     # put copy of runtime parameters in output. Makes debug easier
     echo "runtime parameters"
@@ -76,7 +83,7 @@ task one_vs_all {
     echo "runTimePreemptible: ${runTimePreemptible}"        
 
 
-    set -x # turn shell trace debugging on 
+    set -euxo pipefail  # ref: https://gist.github.com/vncsna/64825d5609c146e80de8b1fd623011ca 
 
         
     #
@@ -95,15 +102,28 @@ task one_vs_all {
     outFile="${referenceLevel}_vs_all.results"
     if [ "$isCSVTrue" != "true" ]; then
         unset isCSVFLag
-        # outFile="${referenceLevel}_vs_all.results.tsv"
+        #outFile="${referenceLevel}_vs_all.results"
     fi
+    
+    # where does outFile go?
+    echo "pwd: " `pwd`
+    echo "pwd: " `pwd` >> foo.txt
+    pwd >> foo.txt
+    echo $outFile >> foo.txt
         
     #
     # determin the concurrency level
     # do not create more threads 'BiocParallel child processes
     # than we have cores for. We need one core for OS
     #
-    minRunTimeCPU=2
+    minRunTimeCPU=2 # production value
+    isDebugTrue=${default="false" isDebug}
+    if [ "$isDebugTrue" = "true" ]; then
+        # we onl get 1 cpu when we run cromwell locally
+        minRunTimeCPU=1 
+    fi
+
+
     if [  "${runTimeCpu}" -lt $minRunTimeCPU ]; then    
         echo "ERROR  ${runTimeCpu} must be >=  $minRunTimeCPU"
         exit 1
@@ -121,11 +141,20 @@ task one_vs_all {
       --oneVsAll \
       $isCSVFlag 2>&1 
 
+	# debug: wdl output files are missing
+	ls -l
+    
+    # debug: R CMD puts some of the log/message output needed to debug in DESeqScript.out
+    # 4/17/22 version of terra does not save files that are not listed in WDL ouput
+    # add it to the terra stdout add logs.
+    cat DESeqScript.out
+    
     >>>
 
 
     output {
         File outFile="${referenceLevel}_vs_all.results"
+        File estimatedSizeFactors = "estimatedSizeFactors.csv"
     }
 
 
@@ -155,6 +184,7 @@ task one_vs_all {
         design: "indicates how to model the samples. example '~ age + sex + tissue_id' "
         referenceLevel: "tissue type present in the 'tissue_id' column in the colData table"
         isCSV: "boolean. default is true. if false files must be in TSV format"
+        isDebug: "boolean. default is false. set to true to test using cromwell on local machine"
     }
 
     meta {

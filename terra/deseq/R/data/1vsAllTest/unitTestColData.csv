@@ -1,0 +1,11 @@
+sample_id,participant_id,tissue_id,tissue_site_detail,sex,age
+GTEX-1117F-0426-SM-5EGHI,GTEX-1117F,Muscle_Skeletal,Muscle - Skeletal,Female,66
+GTEX-1117F-0726-SM-5GIEN,GTEX-1117F,Heart_Atrial_Appendage,Heart - Atrial Appendage,Female,66
+GTEX-1117F-2426-SM-5EGGH,GTEX-1117F,Lung,Lung,Female,66
+GTEX-1117F-2826-SM-5GZXL,GTEX-1117F,Breast_Mammary_Tissue,Breast - Mammary Tissue,Female,66
+GTEX-1117F-2926-SM-5GZYI,GTEX-1117F,Skin_Not_Sun_Exposed_Suprapubic,Skin - Not Sun Exposed (Suprapubic),Female,66
+GTEX-1117F-3026-SM-5GZYU,GTEX-1117F,Minor_Salivary_Gland,Minor Salivary Gland,Female,66
+GTEX-1117F-3226-SM-5N9CT,GTEX-1117F,Brain_Cortex,Brain - Cortex,Female,66
+GTEX-111CU-0326-SM-5GZXO,GTEX-111CU,Lung,Lung,Male,57
+GTEX-111CU-0426-SM-5GZY1,GTEX-111CU,Lung,Lung,Male,57
+

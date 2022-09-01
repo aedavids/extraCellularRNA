@@ -2,6 +2,30 @@
 
 The files in this directory are used to test and develop a docker container capable of running DESeq2 from count matrix data.
 
+## 0) Debugging DESeqScript.R
+a. configure startRStudioServer.sh to run IMG='aedavids/extra_cellular_rna_2_01'
+b. open DESeqScript.R in RStudio
+c. uncomment the following lines
+```
+#
+# DEBUG arguments
+# allows us to run script in RStudio
+#
+# getwd()
+# countMatrixFile <- "data/1vsAllTest/unitTestGroupByGenesCountMatrix.csv"
+# colDataFile <- "data/1vsAllTest/unitTestColData.csv"
+# design <- '~ sex + tissue_id'
+# referenceLevel <- 'Lung'
+# outFile <- 'unitTestDESeqResultOutfile'
+# numCores <- 2
+# estimateSizeFactorsOutfile <- 'unitTestEstimateSizeFactorsOutfile'
+# oneVsAll <- TRUE
+# isCSV <- TRUE
+```
+
+d. manual execute the lines in DESeqScript.R . <span style="color:red">DO NOT EXECUTE THE CLI PARSE LINES</span>
+
+
 ## 1) setting up the test enviroment on mustard
 0. if you need to create a 1vsAll docker image
    follow directions in extraCellularRNA/terra/deseq/bin/dockerFile.1vsAll
@@ -31,6 +55,10 @@ use runner.sh to driver execute testDESeqScript.R. This hack test script use the
 Note it uses a hack to get the mock data to run. It is not a production quality script.
 It is useful for quickly debugging R and DESeq issues
 
+the test data is in extraCellularRNA/terra/deseq/R. The output will be written to runner.sh.out.
+
+Will use mock data files masterCount.tsv  masterColData.tsv 
+
 ```
 $ runner.sh
 # lots of stuff to console. My guess is this is stuff from messages, [R] writes this to stderr
@@ -39,26 +67,6 @@ $ runner.sh
 $ ls -lt
 total 2556
 -rw-rw-r-- 1 rstudio rstudio   3391 Jan 25 02:59  DESeqScript.out
-```
-
-you can test the results of a run as follows
-
-```
-diff testDESeqScript.expected.out testDESeqScript.out
-```
-
-## 2) Running GTEx train 1 vs all tests on mustard
-It is faster to debug our R scripts on a mustard rather than using WDL/cromwell or terra. The batch script is the list of command mentioned above. Strange. If you use top you will 1vsAllRunner.batch.sh and its child script 1vsAllRunner.sh
-```
-$ docker exec --detach --user rstudio friendly_davinci /home/rstudio/extraCellularRNA/terra/deseq/R/1vsAllRunner.batch.sh
-```
-
-## 4) testing production script using real data
-The production test data Was constructued using following on mustard
-
-```
-extraCellularRNA/juypterNotebooks/spark/createTestDESeq2_MasterDataSets.ipynb
-extraCellularRNA/terra/deseq/R/createTestColData.Rmd
 ```
 
 The data can be found at
@@ -78,5 +86,28 @@ total 32M
 -rw-r--r-- 1 aedavids prismuser   0 Oct 20 18:41 _SUCCESS
 ```
 
+you can test the results of a run as follows
+
+```
+diff testDESeqScript.expected.out testDESeqScript.out
+```
 
 
+
+## 2) Running GTEx train 1 vs all tests on mustard
+It is faster to debug our R scripts on a mustard rather than using WDL/cromwell or terra. The batch script is the list of command mentioned above. Strange. If you use top you will 1vsAllRunner.batch.sh and its child script 1vsAllRunner.sh
+```
+$ docker exec --detach --user rstudio friendly_davinci \
+    /home/rstudio/extraCellularRNA/terra/deseq/R/1vsAllRunner.batch.sh
+```
+
+## 4) testing production script using real data
+The production test data Was constructued using following on mustard
+
+```
+extraCellularRNA/juypterNotebooks/spark/createTestDESeq2_MasterDataSets.ipynb
+extraCellularRNA/terra/deseq/R/createTestColData.Rmd
+```
+
+## 5) testing docker container and WDL using cromwell
+it will be much faster to debug localling than on terra. See extraCellularRNA/terra/wdl/README.md
