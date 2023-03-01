@@ -28,4 +28,5 @@ export PYTHONPATH="${PYTHONPATH}:`pwd`/src"
 
 
 # $@ == $1 $2, ...
-jupyter notebook --no-browser --port $HOST_PORT "$@"
+#jupyter notebook --no-browser --port $HOST_PORT "$@"
+jupyter lab --no-browser --port $HOST_PORT "$@"
