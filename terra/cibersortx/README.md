@@ -7,6 +7,7 @@ aedavids@ucsc.edu
 
 ref:
 - [https://cibersortx.stanford.edu/download.php](https://cibersortx.stanford.edu/download.php) select Access instructions (zip)
+- extraCellularRNA/terra/cibersortx/README_CIBERSORTxFractions.txt
 
 
 ## cibersort input data

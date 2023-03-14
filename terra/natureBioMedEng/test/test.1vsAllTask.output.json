@@ -1,0 +1,5 @@
+{
+  "deseq_one_vs_all.one_vs_all.outFile": "deseqResult1vsAll",
+  "deseq_one_vs_all.one_vs_all.estimatedSizeFactors": "deseqResult1vsAll.estimatedSizeFactors"
+}
+

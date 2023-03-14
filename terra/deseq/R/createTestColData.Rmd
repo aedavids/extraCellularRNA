@@ -1,0 +1,60 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+create colData real bio test 
+
+# Find all the salmon estimated transcript count files
+
+```{r}
+source("/home/rstudio/extraCellularRNA/R/notebooks/findFiles.R") 
+```
+
+
+```{r}
+rootDir <- "/home/kimlab"
+#outputRoot <- "/home/aedavids/extraCellularRNA/R/output"
+outputRoot <- "/home/aedavids/extraCellularRNA/data/R/output"
+dir.create(outputRoot, recursive=TRUE, showWarnings = FALSE)
+```
+
+
+```{r}
+day5KrasIpscFileList <- findDay5KrasIpscDataFiles(rootDir)
+names( day5KrasIpscFileList )
+```
+
+```{r}
+print(day5KrasIpscFileList$bulkDay5CntrlSalmonFiles )
+print(" ")
+print(day5KrasIpscFileList$bulkDay5KrasSalmonFiles)
+```
+
+
+
+```{r}
+numBulkCntrl <- length( day5KrasIpscFileList$bulkDay5CntrlSalmonFiles )
+numBulkKras  <- length( day5KrasIpscFileList$bulkDay5KrasSalmonFiles )
+
+sampleName <- c( "ctrl_1", "ctrl_2", "ctrl_3", "kras_1", "kras_2", "kras_3" )
+
+# place holder for day 5 vs 7. we only have exo data for day 5 control
+day <- c( rep('5', numBulkCntrl + numBulkKras) ) 
+day <- factor( day )
+
+sampleType <- c( rep('bulk', numBulkCntrl), rep('bulk', numBulkKras))
+sampleType <- factor( sampleType )
+
+treatment <- c( rep('ctrl', numBulkCntrl), rep('kras', numExoCntrl) ) 
+treatment <- factor(treatment)
+
+colDataDF <- data.frame(sampleName, sampleType, treatment, day)
+
+colDataDF
+```
+
+```{r}
+# row.names = false , do not write row index
+write.table( colDataDF, file="colData.tsv", sep="\t", row.names = FALSE)
+```
+
