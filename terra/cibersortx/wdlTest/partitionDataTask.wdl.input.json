@@ -1,0 +1,5 @@
+{
+  "partitionDataWorkflow.partitionDataTask.dataFile": "../test/partition/t10.csv",
+  "partitionDataWorkflow.partitionDataTask.numSamplesInPartition": "3"
+}
+

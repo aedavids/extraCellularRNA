@@ -43,7 +43,12 @@ notebooks are listed in chronologic order
     * <span style="color:green">It is possible to split traning data set in to shards run cibersort concurrently and re-assemble results</span>
     * ref: extraCellularRNA/terra/cibersortx/cibersortParallelization.md
 
-- preliminaryCibersortClusterPlots.ipynb
+- clusters
+  * preliminaryCibersortClusterPlots.ipynb TODO louvain + UMAP
+  * preliminaryResultsCibersortFractionsPCA.ipynb
+    - PCA plot male/female, and GTEx/TCGA
+  * preliminaryResultsCibersortFractionsUMAP.ipynb
+    - uses shapes and colors to show how all 83 classes cluster
 
 - volcanoPlots.ipynb
   * used a notebook to keep track of how all the plots where created
@@ -69,3 +74,5 @@ notebooks are listed in chronologic order
       
   
   
+- verifyCIBERSORTxFractionsWorkflow.ipynb 3/28/23
+  * verify scatter/gather produces same results as run with entire mixture file

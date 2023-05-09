@@ -1,0 +1,13 @@
+{
+  "CIBERSORTxFractionsWorkflow.sigmatrix": "/private/home/aedavids/extraCellularRNA/terra/cibersortx/test/signatureGenes.txt",
+  "CIBERSORTxFractionsWorkflow.QN": "false",
+  "CIBERSORTxFractionsWorkflow.verbose": "true",
+  "CIBERSORTxFractionsWorkflow.token": "3f561ab6d4cf373d11f23d8e205b4b72",
+  "CIBERSORTxFractionsWorkflow.username":  "aedavids@ucsc.edu",
+  "CIBERSORTxFractionsWorkflow.perm": "100",
+  "CIBERSORTxFractionsWorkflow.label": "aedwip_label",
+  "CIBERSORTxFractionsWorkflow.mixture":  "/private/home/aedavids/extraCellularRNA/terra/cibersortx/test/mixture.txt",
+  "CIBERSORTxFractionsWorkflow.numSamplesInPartition": "4",
+  "CIBERSORTxFractionsWorkflow.isCSV": "false"
+}
+

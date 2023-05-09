@@ -1,0 +1,11 @@
+{
+    "mergeWorkflow.parts": [
+        "../test/merge/part_e.csv.aggregate.csv",
+        "../test/merge/part_d.csv.aggregate.csv",
+        "../test/merge/part_b.csv.aggregate.csv",
+        "../test/merge/part_c.csv.aggregate.csv",
+        "../test/merge/part_a.csv.aggregate.csv"        
+    ]
+}
+
+

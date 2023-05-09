@@ -7,23 +7,26 @@ Daniel Kim Lab
 
 ## Missing data
 we never ran 1vsAll on LAML
+- see extraCellularRNA/terra/doc/results/todo-fixLAML.notes.md
 
 ## Cibersort run time.
 - ~~docker took 3.5 days to run on GTEx_TCGA training set~~
 - ~~can we split training sets, run in parallel and test same results~~
 - ~~test using 1 100 samples~~
-- create scatter/gather wdl we can run on mustard. 
-  * see [https://miniwdl.readthedocs.io/en/latest/getting_started.html](https://miniwdl.readthedocs.io/en/latest/getting_started.html)
+- ~~see extraCellularRNA/terra/cibersortx/README.md for wdl hacks~~
+
 - it may be faster to do hyperpermater tunning on a small subset of our training data set
 
 ## GTEX_TCGA 1vsA
 - ~~run design ~ gender + category~~
 - ~~run design ~ category~~
-- download  '~ category' to mustard 
+- ~~download  '~ category' to mustard ~~
 
 ## signatureGenesUpsetPlots.ipynb
+<span style="color:red">TODO best filter genes with base mean greater than average base mean</span>
+
 - design ~ gender + category
-  * ~~select best~~
+  * select best
   * ~~select up~~
   * select down
   * select smallest possible 'best' (ie try 83 genes)
@@ -36,16 +39,21 @@ we never ran 1vsAll on LAML
   
 # CiberSort
 - should we scale counts (gene signature matrix and mixture matrix)?
+  * typically in ml we call data so that count data is in range 0.0 <= count <= 1.0. reduces training time
   * only scale if evidence we get better results
   * UC 1: select gene counts, do not scale
   * UC 2: we have DESeq estiated scaling factors from orginal 1vsAll for training set.
     + we could select genes of interest from non-training data sets and re-calculate DESeq2 estimated scaling facotrs. 
   * UC 3: use min-max scaling
   * UC 4: use estimated scaling factors then min-max
+  
+## Use DESeq sample scaling factors (normalize for library size and composition)
+
+We use 1vs all  to select best signature genes. When we run cibersort we can to first apply the DESeq scaling factors. for each new data set we first calculate the deseq scaling factors for all the groupby counts. The select the signature genes
 
 ## createCiberSortGeneSignatureMatrix
 - design ~ geneder + category
-  * ~~select best~~
+  * select best
   * ~~select up~~
   * select down
   * select smallest possible 'best' (ie try 83 genes)
@@ -65,7 +73,7 @@ we never ran 1vsAll on LAML
 ## createCibersortMixtureMatrix.ipynb
 
 - design ~ gender + category
-  * ~~select best~~
+  * select best
   * ~~select up~~
   * select down
   * select smallest possible 'best' (ie try 83 genes)
@@ -259,4 +267,40 @@ ALR/Alpha
 - see notebook pages 100, 103
 
 ## Can we use Alex's public blood samples
-see notebook pages 103 "1:1 with Daniel"
+- see notebook pages 103 "1:1 with Daniel"
+  * https://elifesciences.org/articles/75181#content "Cancer type classification using plasma cell-free RNAs derived from human and microbes"
+  * zotero : kimlab/cancer/alex-datasdet
+  * file:///Users/andrewdavidson/Zotero/storage/X6MIFXCU/acc.html
+  * plasma cell-free RNAs (cfRNAs) in cancer patients, we profiled cfRNAs in ~300 plasma samples of 5 cancer types (colorectal cancer, stomach cancer, liver cancer, lung cancer, and esophageal cancer) and healthy donors (HDs) with RNA-seq.
+- 1. GEO Accession viewer. https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE174302.
+  * https://www.ncbi.nlm.nih.gov/geo/info/overview.html#query
+  * search for data https://www.ncbi.nlm.nih.gov/gds/
+    GEO DataSets is a study-level database which users can search for studies relevant to their interests. The database stores descriptions of all original submitter-supplied records, as well as curated DataSets. More information about GEO DataSets and how to interpret GEO DataSets results pages can be found on the About GEO DataSets page.
+  * https://www.ncbi.nlm.nih.gov/geoprofiles/
+    GEO Profiles is a gene-level database which users can search for gene expression profiles relevant to their interests. More information about GEO Profiles and how to interpret GEO Profiles results pages can be found on the About GEO Profiles page.
+- Vikas has scripts to download data
+
+# Add our Covid-19 samples
+
+# Data Vis. 
+
+we have 83 types. Hard "see the forest from trees". currated plots ie kidney + kidney cancer do not tell the full story. Potentially other unknow releationships in the data. We want to let the data speak for itself
+
+- see mail folder PhD/DataVisualization (conversation with Chris V)
+
+
+~~# validate CIBERSORTxFractionsWorkflow.wdl ~~
+~~- extraCellularRNA/terra/cibersortx/runCIBERSORTxFractionsWorkflow.sh~~
+~~- we ran two tests ~~
+
+~~The resuls should be almost identical. cibersort uses 100 permutation monte-carlo simulation. There does not seem to be a way to set the random seed. Maybe we use numpy.isclose on a couple of rows in the top, middle, and bottom?~~at
+
+
+# Baseline, time series
+"I believe it will be possible to use exosomes to study human biology, disease, and aging. We can test this hypothesis by collecting time series data. We use the sample collected at time zero as our baseline and then look for changes over time. "
+
+Can we get time series data? 
+- sample from person with cancer, durring treatment, after then are declared cancer free?
+- cell lines? put cells under some sort of stress
+- connor is planning to make lung organoids that you can turn on mutant kras in, so in theory you could just track changes over time
+- you could try to validate these signal changes using different stage human lung cancer blood samples

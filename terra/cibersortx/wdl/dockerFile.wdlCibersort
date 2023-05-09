@@ -1,0 +1,23 @@
+#
+# aedavids@ucsc.edu 3/16/23
+# ref: https://www.bioconductor.org/help/docker
+# ref: extraCellularRNA/terra/deseq/bin/dockerFile.1vsAll
+#
+# how to create an image
+# myTag="aedavids/myTag" # example aedavids/cibersortx_fractions
+# buildContextDir="path to dir with files we want to copy into the image"
+# docker build --file ./dockerFile.wdlCibersort --tag $myTag $buildContexDir
+#
+# https://www.tutorialspoint.com/docker/docker_file.htm
+# https://www.tutorialspoint.com/docker/building_docker_files.htm
+# https://docs.docker.com/engine/reference/builder/#format
+# https://docs.docker.com/develop/develop-images/dockerfile_best-practices/
+
+# base image
+FROM cibersortx/fractions
+MAINTAINER aedavids@ucsc.edu
+
+RUN mkdir /src/data
+RUN mkdir /src/outdir
+RUN chmod a+rwx /src/data
+RUN chmod a+rwx /src/outdir

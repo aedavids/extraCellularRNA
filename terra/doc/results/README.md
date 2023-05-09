@@ -11,6 +11,8 @@ Daniel Kim Lab
 - [clean up](cleanUp.md)
 - [../../jupyterNotebooks/cibersort/README.md](../../jupyterNotebooks/cibersort/README.md)
 
+- [advancement 5/5/2023](advancement.md)
+
 # reference data files
 - what salmon ref index did we use?
   * gs://fc-secure-f5aa8a37-78e5-45f6-9c59-c643016f7d97/sel.align.gencode.v35.ucsc.rmsk.salmon.v1.3.0.sidx.tar.gz
@@ -187,9 +189,137 @@ Preliminary observations:
 - kidney releated class have good accuracy
 - some class perform poorly. e.g. artery_aorta, artery_coronary, and artery_tibial
 
+**/terra/jupyterNotebooks/cibersort/clusters**
+
+- preliminaryResultsCibersortFractionsUMAP.html
+  * pca and umap
+  * clustered by
+    + gender
+    + data set (GTEx or TCGA)
+    + class (83 classes)
 
 ## Software engineering
 cibersort took 3.5 days to run on mustard.
 
 1. It is possible to split mixture matrix into parts and run in parralle
    * extraCellularRNA/terra/cibersortx/cibersortParallelization.md
+
+
+## Tunning
+ref: terra/jupyterNotebooks/cibersort/createCiberSortGeneSignatureMatrix.html
+
+Evaluate different signature genes by comparing number true positives. Preliminary results where calculated using findBestSignatureGenes(). The basic algorithm is as follows
+
+findBestSignatureGenes().
+```
+select padj < 0.001
+select abs( log2 fold change) > 2.0
+sort by abs( log2 fold change)
+
+return top 25
+```
+
+Range of "best" base mean
+```
+cd /private/groups/kimlab/GTEx_TCGA/geneSignatureProfiles/best/GTEx_TCGA_1vsAll-design:~__gender_+_category-padj:0.001-lfc:2.0-n:25
+
+cut -d ,  -f 2 ACC_vs_all.results |sort -n | head -n 2
+6.83837343568373
+
+ cut -d ,  -f 2 ACC_vs_all.results |sort -n | tail -n 1
+48084.2703866417
+```
+
+Range of "best"  log 2 fold change
+```
+cd /private/groups/kimlab/GTEx_TCGA/geneSignatureProfiles/best/GTEx_TCGA_1vsAll-design:~__gender_+_category-padj:0.001-lfc:2.0-n:25
+cut -d ,  -f 3 ACC_vs_all.results |sort -n | head -n 1
+-22.7051991843563
+
+cut -d ,  -f 3 ACC_vs_all.results |sort -n | tail -n 1
+-10.9254006714462
+```
+
+findUpRegulatedSignatureGenes:
+```
+select padj < 0.001
+sort by log 2 fold change
+select log 2 fold change >= 2.0
+sort by baseMean
+return top 25
+```
+
+range "up" base mean
+```
+cd /private/groups/kimlab/GTEx_TCGA/geneSignatureProfiles/up/GTEx_TCGA_1vsAll-design:~__gender_+_category-padj:0.001-lfc:2.0-n:25
+
+cut -d ,  -f 2 ACC_vs_all.results |sort -n | head -n 2
+6889.17412711265
+
+cut -d ,  -f 2 ACC_vs_all.results |sort -n | tail -n 2
+1346880.15396171
+```
+
+
+
+
+# CIBERSORTxFractionsWorkflow.sh results
+Goal: we need to implemement some sort of grid search to find best set of gene signature. Initial run on 2022-10-18-07 took 83:02 hrs. We ran the docker provided by standford.
+
+data
+```
+rootDir=/scratch/aedavids/GTEx_TCGA
+bestRoot=geneSignatureProfiles/best
+oneVsAll=GTEx_TCGA_1vsAll-design:~__gender_+_category-padj:0.001-lfc:2.0-n:25
+inputRootDir="${rootDir}/${bestRoot}"
+
+geneSignatureProfiles/best/GTEx_TCGA_1vsAll-design:~__gender_+_category-padj:0.001-lfc:2.0-n:25/ciberSort/signatureGenes.tsv
+geneSignatureProfiles/best/GTEx_TCGA_1vsAll-design:~__gender_+_category-padj:0.001-lfc:2.0-n:25/ciberSort/GTEx_TCGA_TrainGroupby_RandomizedMixture.txt
+```
+
+```
+{
+  "CIBERSORTxFractionsWorkflow.sigmatrix": "/scratch/aedavids/CIBERSORTxFractionsWorkflow/wdl/geneSignatureProfiles/best/tmp/sign\
+atureGenes.tsv",
+  "CIBERSORTxFractionsWorkflow.QN": "false",
+  "CIBERSORTxFractionsWorkflow.verbose": "true",
+  "CIBERSORTxFractionsWorkflow.token": "3f561ab6d4cf373d11f23d8e205b4b72",
+  "CIBERSORTxFractionsWorkflow.username":  "aedavids@ucsc.edu",
+  "CIBERSORTxFractionsWorkflow.perm": "100",
+  "CIBERSORTxFractionsWorkflow.label": "fraction",
+  "CIBERSORTxFractionsWorkflow.mixture":  "/scratch/aedavids/CIBERSORTxFractionsWorkflow/wdl/geneSignatureProfiles/best/tmp/GTEx_\
+TCGA_TrainGroupby_mixture.txt",
+  "CIBERSORTxFractionsWorkflow.numSamplesInPartition": "1000",
+  "CIBERSORTxFractionsWorkflow.isCSV": "false"
+}
+```
+
+run time when we ran using CIBERSORTxFractionsWorkflow.sh "CIBERSORTxFractionsWorkflow.numSamplesInPartition": "1000" was 8:18 hrs
+```
+********** BEGIN runCIBERSORTxFractionsWorkflow.sh Thu Mar 23 18:11:41 PDT 2023
+********** END runCIBERSORTxFractionsWorkflow.sh Fri Mar 24 02:29:56 PDT 2023
+```
+
+peformance results are not strictly comparable. there was almost no load on mustard when we used wdl. I do not know wha the load on mustard was in Oct. 
+
+**does wdl scatter/gather scale out linearly?**
+repeat with "CIBERSORTxFractionsWorkflow.numSamplesInPartition": "500" should run in about 3 hrs (32 shards). Actuall wall clock 6:17 hrs
+
+cromwell-executions/CIBERSORTxFractionsWorkflow/54db5af2-c958-4702-8e49-53ef7138cc05/call-cibersortxFractionsTask
+
+```
+********** BEGIN runCIBERSORTxFractionsWorkflow.sh Fri Mar 24 11:50:12 PDT 2023
+********** END runCIBERSORTxFractionsWorkflow.sh Fri Mar 24 18:07:31 PDT 2023
+
+real	377m18.323s
+user	7m44.825s
+sys	5m12.515s
+
+```
+
+**verify results**
+runing as single large job or multiple parts the results should be the same
+
+ref: terra/jupyterNotebooks/cibersort/verifyCIBERSORTxFractionsWorkflow.ipynb
+
+fractions, R, and RMSE values are identical. P-values varry. probably because we can not set random seed and p-values calculated using monte carlo simulation

@@ -1,0 +1,34 @@
+#
+# aedavids@ucsc.edu 3/16/23
+# ref: https://www.bioconductor.org/help/docker
+# ref: extraCellularRNA/terra/deseq/bin/dockerFile.1vsAll
+#
+# how to create an image
+# myTag="aedavids/myTag"
+# buildContextDir="path to dir with files we want to copy into the image"
+# docker build --file ./dockerFile.wdlTest --tag $myTag $buildContexDir
+#
+# https://www.tutorialspoint.com/docker/docker_file.htm
+# https://www.tutorialspoint.com/docker/building_docker_files.htm
+# https://docs.docker.com/engine/reference/builder/#format
+# https://docs.docker.com/develop/develop-images/dockerfile_best-practices/
+
+# base image
+FROM nickgryg/alpine-pandas
+MAINTAINER aedavids@ucsc.edu
+
+# cromwell assume the image has bash
+RUN apk update && apk add bash
+
+# install the R script we want our wdl task to run
+COPY ./createTestData.py /bin/
+RUN chmod a+x /bin/createTestData.py
+
+COPY ./partitionData.py /bin/
+RUN chmod a+x /bin/partitionData.py
+
+COPY ./aggregate.py /bin/
+RUN chmod a+x /bin/aggregate.py
+
+COPY ./sortPartsFilePaths.py /bin/
+RUN chmod a+x /bin/sortPartsFilePaths.py

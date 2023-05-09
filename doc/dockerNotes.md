@@ -2,6 +2,7 @@
 see /Users/andrewdavidson/googleUCSC/kimLab/docker/gettingStarted/notes.md
 see /Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/dockerContainerList.md
 
+- [https://docker-curriculum.com/ good quick start](https://docker-curriculum.com/)
 - [https://www.docker.com/101-tutorial](https://www.docker.com/101-tutorial)
 - [more complete tutorial](https://takacsmark.com/dockerfile-tutorial-by-example-dockerfile-best-practices-2018/)
 
