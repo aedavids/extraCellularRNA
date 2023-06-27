@@ -1,3 +1,30 @@
+#
+# best practice install the libmamba package solver
+# https://www.anaconda.com/blog/a-faster-conda-for-a-growing-community/
+# it runs a lot faster than the standard conda solver
+#
+
+# https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#exporting-an-environment-file-across-platforms
+# https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#create-env-file-manually
+
+
+#
+# to update your enviroment, add new depedencies to the yml file
+# --prune remove dependencies that are no longer required
+# conda env update  --file testEnvironment.yml  --prune
+#
+
+#
+# clean up command
+# $ conda env remove -n testEnvironment
+#
+
+#
+# pip example. Sometimes you have no choice
+# https://github.com/binder-project/example-conda-environment/blob/master/environment.yml
+#
+
+
 name: extraCellularRNA
 channels:
   - conda-forge
@@ -5,6 +32,7 @@ channels:
   - defaults
 dependencies:
   - python=3.7.6
+  #- pipy libmamba solver problem?
   - numpy
   - matplotlib
   - gseapy
@@ -23,9 +51,11 @@ dependencies:
   - multiqc
   - cromwell
   - firecloud # google cloud fissc
-  - Dumper # debug fissc error
   - umap-learn # https://umap-learn.readthedocs.io/en/latest/
   - python-louvain
   - PivotTableJS
   - seaborn
+  #- pip
+  #  - dumper # debug gcp/terra fissc error
+
 prefix: /public/home/aedavids/miniconda3/envs/extraCellularRNA

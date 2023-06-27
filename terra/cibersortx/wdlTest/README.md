@@ -176,3 +176,90 @@ zip import.zip aggregateTask.wdl  createTestDataTask.wdl  partitionDataTask.wdl 
      --imports /private/home/aedavids/extraCellularRNA/terra/cibersortx/wdlTest/import.zip \
       testScatterGather.wdl
 ```
+
+## 5. Phoenix HPC Slurm test
+when we submit a slurm job, it get assigned to 1 of the nodes in the cluster. The nodes will not have access to docker images on mustard, or phoenix. The solution is to build the image on mustard and push it to docker.io
+ 
+ref:
+    - [extraCellularRNA/terra/wdl section 3.](../../wdl/README.md)
+    - [Submit a Slurm Batch Job](https://giwiki.gi.ucsc.edu/index.php/Overview_of_using_Slurm#Submit_a_Slurm_Batch_Job)
+    - [https://giwiki.gi.ucsc.edu/index.php/Quick_Reference_Guide](https://giwiki.gi.ucsc.edu/index.php/Quick_Reference_Guide)
+    - [https://gypsum-docs.cs.umass.edu/slurm_tutorial.html](https://gypsum-docs.cs.umass.edu/slurm_tutorial.html)
+
+We already have a docker account
+
+### 5a. push img built on mustard to docker.io
+```
+$ docker login
+$ dockerUser=aedavids
+$ dockerRepo=edu_ucsc_kim_lab
+$ localTag=aedavids/wdltest
+$ docker image push $localTag
+Using default tag: latest
+The push refers to repository [docker.io/aedavids/wdltest]
+62d3031b59c9: Pushed 
+ce07acafa4ff: Pushed 
+402cc21122d3: Pushed 
+dedfcc20031d: Pushed 
+2bf409592244: Pushed 
+7437c2bf7b24: Pushed 
+9c86362ee8c7: Pushed 
+851ae0d9ae05: Pushed 
+971a4a1833dd: Pushed 
+b18795da5e7f: Mounted from nickgryg/alpine-pandas 
+dafede43d7ef: Mounted from nickgryg/alpine-pandas 
+1468e3f86def: Mounted from nickgryg/alpine-pandas 
+058c2739fa73: Mounted from nickgryg/alpine-pandas 
+5a4db5caa17b: Mounted from nickgryg/alpine-pandas 
+8cc7586db7bd: Mounted from nickgryg/alpine-pandas 
+4fc242d58285: Mounted from nickgryg/alpine-pandas 
+latest: digest: sha256:179d042cc08e8a4c540ebdac0c9627e14b55e56a817559c65f0011f69fc346ab size: 3659
+```
+
+### 5b copy file to slurm frienlyd staging area
+You can still access file on /private/home/aedavids how ever best practices for large files to access them from /private/groups/kimlab
+
+```
+ssh from mac to phoenix
+cd /private/groups/kimlab/aedavids/slurm-jobs/cibersortx/wdlTest/
+
+# copy files to a phoenix node friendly location
+
+d=/private/groups/kimlab/aedavids/slurm-jobs/cibersortx/wdlTest
+cp $d/*.wdl .
+cp $d/dockerFile.wdlTest  .
+mkdir -p wdlTools
+cp /private/home/aedavids/extraCellularRNA/java/bin/*.jar wdlTools/
+```
+
+clean up results from old runs
+```
+rm -rf cromwell* serial*.log
+```
+
+submit job to slurm. sbatch submits the job. squeue display job information
+
+```
+sbatch wdlTest.slurm.sh; squeue; tail -f serial*.log
+```
+
+### 5c monitoring
+get detailed info for debugging while job is running
+```
+scontrol show jobid -dd <jobid>
+```
+
+after job completes
+```
+sacct -j <jobid> --format=JobID,JobName,MaxRSS,Elapsed
+```
+
+example
+```
+sacct -j 248836 --format=JobID,ReqNodes,allocNodes,NNodes,ReqMem,MaxRSS,ReqCPUS,AllocCPUS,MinCPU,NCPUS
+JobID        ReqNodes AllocNodes   NNodes     ReqMem     MaxRSS  ReqCPUS  AllocCPUS     MinCPU      NCPUS 
+------------ -------- ---------- -------- ---------- ---------- -------- ---------- ---------- ---------- 
+248836              1          1        1        32G                  32         32                    32 
+248836.batch        1          1        1              1026812K       32         32   00:00:43         32 
+
+```
