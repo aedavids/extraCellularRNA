@@ -117,3 +117,166 @@ S6	0.00000000000000000	0.49999999971531511	0.50000000028468483	0.000000000000000
 $ find cromwell-executions -name stdout
 cromwell-executions/cibersortxFractionsWorkflow/7a5ee882-dec7-4ef7-95b1-8ab81df79a19/call-cibersortxFractionsTask/execution/stdout
 ```
+
+
+# Phoenix HPC Slurm 
+when we submit a slurm job, it get assigned to 1 of the nodes in the cluster. The nodes will not have access to docker images on mustard, or phoenix. The solution is to build the image on mustard and push it to docker.io
+ 
+ref:
+    - [extraCellularRNA/terra/wdl section 3.](../../wdl/README.md)
+    - [Submit a Slurm Batch Job](https://giwiki.gi.ucsc.edu/index.php/Overview_of_using_Slurm#Submit_a_Slurm_Batch_Job)
+    - [https://giwiki.gi.ucsc.edu/index.php/Quick_Reference_Guide](https://giwiki.gi.ucsc.edu/index.php/Quick_Reference_Guide)
+    - [https://gypsum-docs.cs.umass.edu/slurm_tutorial.html](https://gypsum-docs.cs.umass.edu/slurm_tutorial.html)
+
+We already have a docker account
+
+## 1. copy to staging area
+
+```
+stagingArea=/private/groups/kimlab/aedavids/slurm-jobs/cibersortx/GTEx_TCGA
+mkdir -p $stagingArea
+
+cd extraCellularRNA/terra/cibersortx/wdl
+cp cibersortxFractionsTask.wdl CIBERSORTxFractionsWorkflow.wdl runCIBERSORTxFractionsWorkflow.sh $stagingArea
+cp CIBERSORTxFractionsWorkflow.wdl.input.json $stagingArea
+cp CIBERSORTxFractionsWorkflow.slurm.sh $stagingArea
+
+mkdir -p ${stagingArea}/wdlTest
+cp  ../wdlTest/partitionDataTask.wdl ../wdlTest/mergeTask.wdl ${stagingArea}/wdlTest
+
+```
+
+## 2. push img built on mustard to docker.io
+
+docker.io periodically remove old images. To build the image on mustard. there are two images
+
+### 2.a build docker used by ../wdlTest/partitionDataTask.wdl and ../wdlTest/mergeTask.wdl
+```
+cd extraCellularRNA/terra/cibersortx/wdlTest/
+myTag=aedavids/wdltest
+buildContexDir=`pwd`
+docker build --file ./dockerFile.wdlTest --tag $myTag $buildContexDir
+```
+
+### 2.b build the docker used by cibersortxFractionsTask.wdl
+```
+cd extraCellularRNA/terra/cibersortx/wdl/
+myTag=aedavids/cibersortx_fractions
+buildContextDir=`pwd`
+docker build --file ./dockerFile.wdlCibersort --tag $myTag $buildContexDir
+ => exporting to image                                                                0.0s
+ => => exporting layers                                                               0.0s
+ => => writing image sha256:0fc13a36b7c2607bbdc11464ff4fb8b2295166ea46caa0fae2050938  0.0s
+ => => naming to docker.io/aedavids/cibersortx_fractions                              0.0s
+```
+
+### 2.c push Tag=aedavids/wdltest
+```
+ docker login
+ dockerUser=aedavids
+ dockerRepo=edu_ucsc_kim_lab
+ localTag=aedavids/wdltest
+ docker image push $localTag
+```
+
+### 2.d push Tag=aedavids/cibersortx_fractions
+```
+docker login
+dockerUser=aedavids
+dockerRepo=edu_ucsc_kim_lab
+localTag=aedavids/cibersortx_fractions
+docker image push $localTag
+Using default tag: latest
+The push refers to repository [docker.io/aedavids/cibersortx_fractions]
+2a44f8ed016f: Pushed 
+
+...
+
+cc4590d6a718: Mounted from cibersortx/fractions 
+latest: digest: sha256:e5cad92a010bcd2d3c7ee88ff5f35d0a88e5dfea0d660a987047a39bc8089179 size: 4497
+```
+
+## 3. <span style="color:red">TODO edit CIBERSORTxFractionsWorkflow.wdl.input.json</span>
+
+docker can only mount file paths that contain letters, numbers or "_" and "-". You can use a symbolic link to work around paths with other chars
+```
+{
+  "CIBERSORTxFractionsWorkflow.sigmatrix": "/private/groups/kimlab/GTEx_TCGA/geneSignatureProfiles/best/GTEx_TCGA_1vsAll-design_tilda__gender_+_category-padj-0.001-lfc:2.0-n-25/ciberSort/signatureGenes.txt",            
+  "CIBERSORTxFractionsWorkflow.QN": "false",
+  "CIBERSORTxFractionsWorkflow.verbose": "true",
+  "CIBERSORTxFractionsWorkflow.token": "3f561ab6d4cf373d11f23d8e205b4b72",
+  "CIBERSORTxFractionsWorkflow.username":  "aedavids@ucsc.edu",
+  "CIBERSORTxFractionsWorkflow.perm": "100",
+  "CIBERSORTxFractionsWorkflow.label": "aedwip_label",
+
+  "CIBERSORTxFractionsWorkflow.mixture":  "/private/groups/kimlab/GTEx_TCGA/geneSignatureProfiles/best/GTEx_TCGA_1vsAll-design_tilda__gender_+_category-padj-0.001-lfc:2.0-n-25/ciberSort/GTEx_TCGA_TrainGroupby_mixture.txt",        
+  "CIBERSORTxFractionsWorkflow.numSamplesInPartition": "500",
+  "CIBERSORTxFractionsWorkflow.isCSV": "false"
+}
+```
+
+## 4. start slurm job
+
+clean up results from old runs
+```
+rm -rf cromwell* serial*.log
+```
+
+submit job to slurm. sbatch submits the job. squeue display job information
+
+```
+sbatch CIBERSORTxFractionsWorkflow.slurm.sh; squeue; sleep 10;  tail -f serial*.log
+```
+
+### 5. monitoring
+get detailed info for debugging while job is running
+```
+scontrol show jobid -dd <jobid>
+
+aedavids@phoenix $ scontrol show jobid -dd 251011
+JobId=251011 JobName=aedavids-wdlTest
+   UserId=aedavids(30108) GroupId=prismuser(600) MCS_label=N/A
+   Priority=1970 Nice=0 Account=(null) QOS=normal
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   DerivedExitCode=0:0
+   RunTime=00:00:28 TimeLimit=06:01:00 TimeMin=N/A
+   SubmitTime=2023-06-28T16:46:25 EligibleTime=2023-06-28T16:46:25
+   AccrueTime=2023-06-28T16:46:25
+   StartTime=2023-06-28T16:46:26 EndTime=2023-06-28T22:47:26 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2023-06-28T16:46:26 Scheduler=Main
+   Partition=main AllocNode:Sid=phoenix:1486129
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=phoenix-15
+   BatchHost=phoenix-15
+   NumNodes=1 NumCPUs=32 NumTasks=1 CPUs/Task=32 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=32,mem=32G,node=1,billing=32
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   JOB_GRES=(null)
+     Nodes=phoenix-15 CPU_IDs=0-31 Mem=32768 GRES=
+   MinCPUsNode=32 MinMemoryNode=32G MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/private/groups/kimlab/aedavids/slurm-jobs/cibersortx/GTEx_TCGA/CIBERSORTxFractionsWorkflow.slurm.sh
+   WorkDir=/private/groups/kimlab/aedavids/slurm-jobs/cibersortx/GTEx_TCGA
+   StdErr=/private/groups/kimlab/aedavids/slurm-jobs/cibersortx/GTEx_TCGA/serial_test_251011.log
+   StdIn=/dev/null
+   StdOut=/private/groups/kimlab/aedavids/slurm-jobs/cibersortx/GTEx_TCGA/serial_test_251011.log
+   Power=
+
+```
+
+after job completes
+```
+sacct -j <jobid> --format=JobID,JobName,MaxRSS,Elapsed
+```
+
+example
+```
+sacct -j 248836 --format=JobID,ReqNodes,allocNodes,NNodes,ReqMem,MaxRSS,ReqCPUS,AllocCPUS,MinCPU,NCPUS
+JobID        ReqNodes AllocNodes   NNodes     ReqMem     MaxRSS  ReqCPUS  AllocCPUS     MinCPU      NCPUS 
+------------ -------- ---------- -------- ---------- ---------- -------- ---------- ---------- ---------- 
+248836              1          1        1        32G                  32         32                    32 
+248836.batch        1          1        1              1026812K       32         32   00:00:43         32 
+
+```

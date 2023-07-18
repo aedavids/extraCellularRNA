@@ -76,3 +76,7 @@ notebooks are listed in chronologic order
   
 - verifyCIBERSORTxFractionsWorkflow.ipynb 3/28/23
   * verify scatter/gather produces same results as run with entire mixture file
+
+- 7/18/2023 scalingBug/README.md
+  * I wanted to save copies of these notebooks. I did not want to merge these notebooks back to main are
+  

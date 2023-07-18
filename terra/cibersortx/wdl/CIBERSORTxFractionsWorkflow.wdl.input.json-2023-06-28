@@ -1,4 +1,6 @@
 {
+  "comment" : "slurm run 6/28/23. Goal figure out how to run training set on slurm. ie resource allocations. TODO this version of best, did not consider baseMean when selecting signature genes. Also there may be a bug. we are supposed to divide by DESeq scaling factors, not multiple",
+  
   "CIBERSORTxFractionsWorkflow.sigmatrix": "/private/groups/kimlab/GTEx_TCGA/geneSignatureProfiles/best/GTEx_TCGA_1vsAll-design_tilda__gender_plus_category-padj-0.001-lfc-2.0-n-25/ciberSort/signatureGenes.tsv",
   "CIBERSORTxFractionsWorkflow.QN": "false",
   "CIBERSORTxFractionsWorkflow.verbose": "true",
