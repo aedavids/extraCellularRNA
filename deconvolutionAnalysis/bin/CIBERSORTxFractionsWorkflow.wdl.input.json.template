@@ -1,0 +1,17 @@
+{
+  "CIBERSORTxFractionsWorkflow.sigmatrix": "TOKEN-signatureGenes.tsv",
+  "CIBERSORTxFractionsWorkflow.QN": "false",
+  "CIBERSORTxFractionsWorkflow.verbose": "true",
+  "CIBERSORTxFractionsWorkflow.token": "TOKEN-CIBERSORTx-security",
+  "CIBERSORTxFractionsWorkflow.username":  "TOKEN-CIBERSORTx-user",
+  "CIBERSORTxFractionsWorkflow.perm": "100",
+  "CIBERSORTxFractionsWorkflow.label": "aedwip_label",
+
+  "CIBERSORTxFractionsWorkflow.mixture":  "TOKEN-mixture.txt",        
+  "CIBERSORTxFractionsWorkflow.numSamplesInPartition": "500",
+  "CIBERSORTxFractionsWorkflow.isCSV": "false"
+}
+
+
+
+

@@ -8,7 +8,7 @@
 #SBATCH --partition=main
 #
 # Where to send email (optional)
-#SBATCH --mail-user=adavids@ucsc.edu
+#SBATCH --mail-user=aedavids@ucsc.edu
 #
 # Number of nodes you need per job:
 #SBATCH --nodes=1

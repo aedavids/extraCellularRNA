@@ -255,7 +255,7 @@ mustard is a machine with a lot of memory
     
         This will let your batch job continue running after you log out.
         setsid will make it easy to kill your bulk download process and any child process. 
-        See batchDownloadExRNA.orgData.sh for example. There are some trick for passing arguments 
+        See extraCellularRNA/deconvolutionAnalysis/bin/best25GTEx_TCGA.sh and  extraCellularRNA/bin/exRNADownload/batchDownloadExRNA.orgData.sh for example. There are some trick for passing arguments 
         to the child processes
         ```
         $ setsid sh -c 'set -x; myBatchJob.sh ' > $scriptLog 2>&1 &

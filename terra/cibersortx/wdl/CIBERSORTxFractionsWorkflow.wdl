@@ -2,9 +2,10 @@ version 1.0
 
 # use zip to import local wdl files https://cromwell.readthedocs.io/en/stable/Imports/
 import "cibersortxFractionsTask.wdl" as cft
-import "../wdlTest/partitionDataTask.wdl" as partTask
-#import "partitionDataTask.wdl" as partTask
-import "../wdlTest/mergeTask.wdl" as mergeTask
+#import "../wdlTest/partitionDataTask.wdl" as partTask
+import "partitionDataTask.wdl" as partTask
+#import "../wdlTest/mergeTask.wdl" as mergeTask
+import "mergeTask.wdl" as mergeTask
 
 workflow CIBERSORTxFractionsWorkflow {
     input {

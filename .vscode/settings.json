@@ -1,0 +1,11 @@
+{
+    "terminal.integrated.env.linux": {
+        "PYTHONPATH":"/private/home/aedavids/extraCellularRNA/deconvolutionAnalysis/python:/private/home/aedavids/extraCellularRNA/src"
+
+    },
+    "terminal.integrated.env.osx": {
+        "PYTHONPATH":"/Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/deconvolutionAnalysis/python:/Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/src"
+    },
+
+    "python.terminal.executeInFileDir": true
+}

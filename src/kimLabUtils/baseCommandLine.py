@@ -33,14 +33,14 @@ class BBaseCommandLine( object ):
         self.author = author   
         
         self.program_version_message = '%%(prog)s %s (%s)' % ( self.program_version, self.program_build_date )
-        self.program_shortdesc = __import__( '__main__' ).__doc__.split( "\n" )[1]
+        self.program_shortdesc = __import__( '__main__' ).__doc__#.split( "\n" )#[1]
         
     ###############################################################################
     def _getLicence(self):
         return '''%s
 
       Created by %s on %s.
-      Copyright 2020 Santa Cruz Analytics. All rights reserved.
+      Copyright 2020 Daniel Kim Lab University of California Santa Cruz. All rights reserved.
 
     USAGE
     ''' % ( self.program_shortdesc, str(self.author), str( self.date ) )

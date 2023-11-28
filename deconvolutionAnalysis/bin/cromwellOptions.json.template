@@ -1,0 +1,4 @@
+{
+    "final_workflow_outputs_dir": "TOKEN_OUTPUT_DIR",
+    "use_relative_output_paths": true
+}

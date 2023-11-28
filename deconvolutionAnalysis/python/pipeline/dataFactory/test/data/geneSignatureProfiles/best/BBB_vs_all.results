@@ -1,0 +1,4 @@
+name,baseMean,log2FoldChange,lfcSE,stat,pvalue,padj
+g1,300,3.5,3.5,3.3,3.01,3.2
+g2,400,4.5,4.5,4.3,4.01,4.2
+g3,500,5.5,5.5,5.3,5.01,5.2

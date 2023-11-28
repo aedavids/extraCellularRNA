@@ -19,8 +19,9 @@ java -jar /private/home/aedavids/extraCellularRNA/java/bin/womtool-85.jar valida
      -jar ${WDL_TOOLS}/cromwell-85.jar \
      run \
      --inputs createTestDataTask.wdl.input.json \
+     --options cromwellOptions.json \
      createTestDataTask.wdl
 
 
 printf "\n\n\n\n*************\n"
-find cromwell-executions
+find cromwell.output -type f

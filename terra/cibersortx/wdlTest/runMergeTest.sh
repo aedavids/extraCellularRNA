@@ -18,8 +18,9 @@ java -jar /private/home/aedavids/extraCellularRNA/java/bin/womtool-85.jar valida
      -jar ${WDL_TOOLS}/cromwell-85.jar \
      run \
      --inputs mergeTask.wdl.input.json \
+     --options cromwellOptions.json \
      mergeTask.wdl
 
 
 printf "\n\n\n\n*************\n"
-find cromwell-executions
+find cromwell.output -type f

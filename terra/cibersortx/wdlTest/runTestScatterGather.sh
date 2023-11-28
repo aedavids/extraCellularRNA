@@ -17,8 +17,10 @@ zip import.zip aggregateTask.wdl  createTestDataTask.wdl  partitionDataTask.wdl 
      run \
      --inputs testScatterGather.wdl.input.json \
      --imports /private/home/aedavids/extraCellularRNA/terra/cibersortx/wdlTest/import.zip \
+     --options cromwellOptions.json \
       testScatterGather.wdl
 
 
 printf "\n\n\n\n*************\n"
-find cromwell-executions
+find cromwell.output -type f
+

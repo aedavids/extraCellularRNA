@@ -3,11 +3,14 @@
 aedavids@ucsc.edu
 2/28/23
 ```
+
+**TODO: see extraCellularRNA/deconvolutionAnalysis/bin/pipeline.sh for example of how to use the cromwell run  --options argment to copy output files to a known location**
+
 /private/groups/kimlab/natureBioMedEng
 
 Use this directory to keep track of work we did for the manuscript resubmission deadline (march 8th) of  our nature biomedical engineering manuscript
 
-Daniel: we want to 
+Daniel: "we want to"
 
 * 1  DESeq2 using all TCGA pancreatic cancer vs. all GTEx pancreas RNA-seq samples
     + i.e. PAAD vs pancreas

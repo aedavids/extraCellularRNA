@@ -1,0 +1,6 @@
+sample_id,participant_id,category,gender,age,dataSet
+GTEX-1117F-0226-SM-5GZZ7,GTEX-1117F,Adipose_Subcutaneous,Female,66.0,GTEx
+GTEX-1117F-0526-SM-5EGHJ,GTEX-1117F,Artery_Tibial,Female,66.0,GTEx
+GTEX-1117F-0726-SM-5GIEN,GTEX-1117F,Heart_Atrial_Appendage,Female,66.0,GTEx
+GTEX-1117F-2826-SM-5GZXL,GTEX-1117F,Breast_Mammary_Tissue,Female,66.0,GTEx
+GTEX-1117F-2826-SM-5GZXX,GTEX-1117F,Breast_Mammary_Tissue,Female,67.0,GTEx

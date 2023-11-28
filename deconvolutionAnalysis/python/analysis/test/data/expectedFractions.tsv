@@ -1,0 +1,10 @@
+sample_id	participant_id	category	gender	age	dataSet	BBB	AAA	CCC	DDD	EEE	FFF
+s1	p1	BBB	Female	57	GTEx	1	0	0	0	0	0
+s2	p2	AAA	Male	58	GTEx	0	1	0	0	0	0
+s3	p3	CCC	Male	59	TCGA	0	0	0	0	0	0
+s4	p4	BBB	Female	57	GTEx	1	0	0	0	0	0
+s5	p5	BBB	Male	58	GTEx	1	0	0	0	0	0
+s6	p6	CCC	Male	59	TCGA	0	0	0	0	0	0
+s7	p7	EEE	Male	63	TCGA	0	0	0	0	1	0
+s8	p8	BBB	Male	64	TCGA	1	0	0	0	0	0
+

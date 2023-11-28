@@ -4,7 +4,7 @@
   "cibersortxFractionsWorkflow.cibersortxFractionsTask.verbose": "true",
   "cibersortxFractionsWorkflow.cibersortxFractionsTask.username": "aedavids@ucsc.edu",
   "cibersortxFractionsWorkflow.cibersortxFractionsTask.mixture": "/private/home/aedavids/extraCellularRNA/terra/cibersortx/test/mixture.txt",
-  "cibersortxFractionsWorkflow.cibersortxFractionsTask.token": "3f561ab6d4cf373d11f23d8e205b4b72",
+  "cibersortxFractionsWorkflow.cibersortxFractionsTask.token":"26d267088e7de86512e9052332f04d01",
   "cibersortxFractionsWorkflow.cibersortxFractionsTask.sigmatrix": "/private/home/aedavids/extraCellularRNA/terra/cibersortx/test/signatureGenes.txt",
   "cibersortxFractionsWorkflow.cibersortxFractionsTask.label": "aedwip_label"
 }

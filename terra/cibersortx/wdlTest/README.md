@@ -114,19 +114,21 @@ runCreateTestData.sh*  runParitionDataTask.sh*  task1.sh*
 ** run our test **
 do not worry about exceptions when cromwell shuts down
 ```
-/private/home/aedavids/extraCellularRNA/bin/runCromwell.sh \
-     -Dconfig.file=/private/home/aedavids/extraCellularRNA/terra/wdl/cromwellDebug.conf \
-     -jar ${WDL_TOOLS}/cromwell-85.jar \
-     run \
-     --inputs createTestDataTask.wdl.input.json \
-     createTestDataTask.wdl
+runMergeTest.sh 2>&1 | tee runMergeTest.sh.out
 ```
 
-find the results
+You can find a copy of the wdl task and workflow file in ./cromwell.output. If you have run all the tests you should see 
 ```
- $ !find
-find . -name '*.test.tsv'
-./cromwell-executions/createTestWorkflow/0173a0f5-74c4-4dd6-b715-d66c96d591e7/call-createTestFile/execution/100.test.tsv
+(extraCellularRNA) aedavids@mustard $ find cromwell.output/
+cromwell.output/
+cromwell.output/100.test.csv
+cromwell.output/glob-09ac927ab083a6efc420f34969f74bd8
+cromwell.output/glob-09ac927ab083a6efc420f34969f74bd8/part_b.csv
+cromwell.output/glob-09ac927ab083a6efc420f34969f74bd8/part_d.csv
+cromwell.output/glob-09ac927ab083a6efc420f34969f74bd8/part_c.csv
+cromwell.output/glob-09ac927ab083a6efc420f34969f74bd8/part_a.csv
+cromwell.output/t10.csv.aggregate.csv
+cromwell.output/results.txt
 ```
 
 

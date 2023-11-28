@@ -106,3 +106,17 @@ signatureGenesUpsetPlots.ipynb,               Thu Sep 1 12:24:31 2022 -0700
 cibersort/createCibersortMixtureMatrix.ipynb, Tue Sep 6 15:55:28 2022 -0700
 ```
 
+* signatureGenesUpsetPlots.ipynb
+  - originaly written to run on terra
+  - selects set of 1vsAll genes. ie. best n=25, up regulated, down regulated, ...
+  - generates upset plots and gene set interections
+  - results where copied from GCP bucket to /private/groups/kimlab/GTEx_TCGA/geneSignatureProfiles
+  
+   * cibersort/createCibersortMixtureMatrix.ipynb
+   * scales counts using DESeq estiamted scaling factors
+   * output:
+     + mixture matrix
+     + expected fractions
+     + randomized mixture matirx. random shuffle. Does not contain any information we can use this to evaluate how well our model works
+  
+ 
