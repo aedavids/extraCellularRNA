@@ -1,0 +1,6 @@
+{
+    ('Vagina',)               : ['V_BBB', 'V_BBB_X'],
+    ('Vagina', 'Whole_Blood') : ['UVM_V_W', 'V_W', 'W_CCC'],
+    ('UVM', 'Vagina')         : ['UVM_V', 'UVM_V_W.1'],
+    ('UVM', 'Whole_Blood')    : ['UVM_AAA']
+}

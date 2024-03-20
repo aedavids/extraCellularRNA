@@ -266,7 +266,7 @@ mustard is a machine with a lot of memory
 
         use ps to montor your jobs
         ```
-        userId=aedavids
+        userId=aedavids # $USER should also work
         $ ps -e -o pid,ppid,pgid,command,user |head -n 1; ps -e -o pid,ppid,pgid,command,user |grep $userId
         ```
 

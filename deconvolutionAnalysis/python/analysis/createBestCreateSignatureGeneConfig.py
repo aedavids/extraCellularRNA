@@ -34,7 +34,7 @@ def createSignatureGeneConfig(outDirPath : str, vargs : list = None ) -> Signatu
 
     returns object derived from SignatureGeneConfiguration
     '''
-    logger = logging.getLogger("__name__")
+    logger = logging.getLogger(__name__)
 
     logger.info("BEGIN")
     logger.info(f'outDirPath : {outDirPath}')

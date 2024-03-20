@@ -430,7 +430,7 @@ def main(inCommandLineArgsList=None):
     logFMT = "%(asctime)s %(levelname)s %(name)s %(funcName)s() line:%(lineno)s] [%(message)s]"
     logging.basicConfig(format=logFMT, level=loglevel)    
 
-    logger = logging.getLogger("__name__")
+    logger = logging.getLogger(__file__)
     cli = CibersortMixtureFactoryCommandLine( 
                                              version=__version__ , 
                                              author=__author__ ,

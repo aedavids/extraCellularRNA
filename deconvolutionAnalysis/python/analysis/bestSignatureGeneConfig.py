@@ -21,8 +21,8 @@ from pipeline.dataFactory.signatureGeneConfig import SignatureGeneConfiguration
 __all__ = []
 __version__ = 0.1
 __author__ = "Andrew Davidson aedavids@ucsc.edu"
-__date__ = '2023-11-13'
-__updated__ = '2023-11-13'
+__date__ = '2024-01-08'
+__updated__ = '2024-01-08'
 
 ##############################################################################
 class BestSignatureGeneConfig(SignatureGeneConfiguration):
@@ -59,30 +59,46 @@ class BestSignatureGeneConfig(SignatureGeneConfiguration):
         self.logger.info(f'BEGIN')
         self.logger.info(f'END')
 
-    ################################################################################
-    def findGenes(self, deseqDF : pd.DataFrame ) -> pd.DataFrame :
+   ################################################################################
+    def findGenes(self, deseqDF : pd.DataFrame, fileName : str ) -> pd.DataFrame :
         '''
         Find genes that that are statistically signifigant with  lfc <= -2.0 or >= 2.0
-    
+
         arguments:
             deseqDF:
-                results of DESeq2 as a pandas dataframe 
+                results of DESeq2 as a pandas dataframe            
+
                 
-            signatureGeneConfig
-                contains run parmeters
-                    signatureGeneConfig.padjThreshold
-                    signatureGeneConfig.lfcThreshold
-            
-    
+            fileName:
+                useful for logging, debugging, and addition down stream processing   
+
         return:
             pandas dataframe
+            top N biologically signifigant genes sorted by baseMean
             
         ref: findBestSignatureGenes(deseqDF, signatureGeneConfig)
             extraCellularRNA/terra/jupyterNotebooks/signatureGenesUpsetPlots.ipynb
         '''
+        self.logger.info("BEGIN")
+
+        colsToReturn = deseqDF.columns
+        sortedDF = self._select(deseqDF, fileName)
+
+        # return the top n
+        retDF = sortedDF.loc[:, colsToReturn].head(n=self.n)
+
+        self.logger.info("END")
+        return retDF
+
+
+    ################################################################################
+    def _select(self, deseqDF : pd.DataFrame, fileName : str ) -> pd.DataFrame :
+        '''
+        select genes by padj and logfold changes and order by baseMean
+        '''
         self.logger.info(f'BEGIN')
         
-        colsToReturn = deseqDF.columns
+        # colsToReturn = deseqDF.columns
     
         #
         # find statistically signifigant genes
@@ -104,18 +120,14 @@ class BestSignatureGeneConfig(SignatureGeneConfiguration):
             
         significantDF3 = significantDF3.sort_values( by = ['baseMean'], ascending=False)
 
-        retDF = significantDF3.loc[:, colsToReturn].head(n=self.n)
-
         self.logger.info(f'END')
-        return retDF
+        return significantDF3
     
 
 ################################################################################
 def main(inCommandLineArgsList=None):
     '''
     use to test parsing of vargs
-
-
     '''
     # we only configure logging in main module
     loglevel = "WARN"
@@ -124,7 +136,7 @@ def main(inCommandLineArgsList=None):
     logFMT = "%(asctime)s %(levelname)s %(name)s %(funcName)s() line:%(lineno)s] [%(message)s]"
     logging.basicConfig(format=logFMT, level=loglevel)    
 
-    logger = logging.getLogger("__name__")
+    logger = logging.getLogger(os.path.basename(__file__))
     logger.warning("BEGIN")
 
     #

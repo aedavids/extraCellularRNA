@@ -103,6 +103,36 @@ def _step1(logger           : logging.Logger,
     return (sgc, selectedGeneSetsDict, outFileList) 
 
 ################################################################################
+def _savePlot(logger : logging.Logger,
+                upsetPlot : UpsetPlot,
+                vargs : str,
+                upsetPlotOutDir : str,
+                ):
+    '''
+    TODO
+    '''
+    logger.warning(f'create upset plot for {vargs}')
+    # fig, pltDict = upsetPlot.configurablePlot(show_counts=True, min_degree=min_degree, max_degree=max_degree)
+    try:
+        plotPath = upsetPlot.savePlot( outdir=upsetPlotOutDir,
+                                extraFileNameParts=vargs)
+        logger.info(f'plotPath : {plotPath}')  
+        
+    except ValueError as ve :
+        logger.warning(f'ValueError upset plot of all intersections was to big to save')
+        logger.warning(ve)
+
+    except Exception as e:
+        logger.warning(f'Exception upset  not saved')
+        logger.warning(e)
+
+    except BaseException as be: 
+        # stepped into upset plot save. looks like it might throw a BaseException.
+        # I would think Exception would catch it
+        logger.warning(f'BaseException: upset plot of all intersections was to big to save')
+        logger.warning(e)
+
+################################################################################
 def _step2(logger           : logging.Logger,
            outDir : str,
            selectedGeneSetsDict : dict,
@@ -114,6 +144,7 @@ def _step2(logger           : logging.Logger,
     logger.info("BEGIN")
     logger.info('step 2 create plots and find intersection elements')
     upsetFactory = UpsetPlotDataFactory()
+    logger.error(f'AEDWIP debug selectedGeneSetsDict\n{pp.pformat(selectedGeneSetsDict)}')
     upsetPlotDataDF, geneSetsDict = upsetFactory.createUpsetPlotDataFromSetDict(selectedGeneSetsDict)
     logger.info(f'upsetPlotDataDF:\n{pp.pformat(upsetPlotDataDF)}')
 
@@ -122,35 +153,46 @@ def _step2(logger           : logging.Logger,
                     geneSetsUpsetPlotData=upsetPlotDataDF)
     
     #
-    # create a plot of all intersections that are not empty
-    # 
-    fig, pltDict = upsetPlot.configurablePlot(show_counts=True)
-    upsetPlotOutDir = os.path.join(outDir, "upsetPlot.out")
-    plotPath = upsetPlot.savePlot( outdir=upsetPlotOutDir,
-                                    extraFileNameParts = 'allDegrees')
-    logger.warning(f'plotPath : {plotPath}')
-
+    # find all the intersections
+    #
     intersectionDict = upsetPlot.findIntersectionElements()  
+    upsetPlotOutDir = os.path.join(outDir, "upsetPlot.out")
     intersectionDictPath = upsetPlot.saveInteresection(upsetPlotOutDir, intersectionDict) 
     logger.warning(f'intersectionDictPath : {intersectionDictPath}')
 
     #
-    # the plot of all intersections can be difficult to use
-    # for each degree create a separate plot
-    # the degree of an intersection is the number of sets it was composed of
-    # the degree for A.intersections(B) is 2. 
-    #
+    # create a plot of all intersections that are not empty
+    # 
+    logger.warning(f'create upset plot for all')
+    fig, pltDict = upsetPlot.configurablePlot(show_counts=True)
+    vargs = 'allDegrees'
+    _savePlot(logger, upsetPlot, vargs, upsetPlotOutDir)
+
     degrees = upsetPlot.findDegrees(intersectionDict)
     logger.info(f'degrees: {degrees}')
+
+    lumpMinDegree = 0
+    if len(degrees) > 10:
+        # create plots for the first 10 degrees
+        # we will create another plot for the remaining
+        lumpMinDegree = degrees[10]
+        degrees = degrees[0:10]
 
     for degree in degrees:
         min_degree = degree
         max_degree = degree
-        fig, pltDict = upsetPlot.configurablePlot(show_counts=True, min_degree=min_degree, max_degree=max_degree)
         vargs = f"min_degree={min_degree},_max_degree={max_degree}"
-        plotPath = upsetPlot.savePlot( outdir=upsetPlotOutDir,
-                                extraFileNameParts=vargs)
-        logger.info(f'plotPath : {plotPath}')    
+
+        fig, pltDict = upsetPlot.configurablePlot(show_counts=True, min_degree=min_degree, max_degree=max_degree)
+        _savePlot(logger, upsetPlot, vargs, upsetPlotOutDir)
+
+    if lumpMinDegree > 0:
+        vargs = f"min_degree={min_degree}"
+        logger.warning(f'create upset plot for {vargs}')
+        fig, pltDict = upsetPlot.configurablePlot(show_counts=True, min_degree=lumpMinDegree,)
+        # plotPath = upsetPlot.savePlot( outdir=upsetPlotOutDir,
+        #                         extraFileNameParts=vargs)          
+        _savePlot(logger, upsetPlot, vargs, upsetPlotOutDir)
 
     logger.info("END")
 
@@ -172,7 +214,7 @@ def main(inCommandLineArgsList=None):
     logFMT = "%(asctime)s %(levelname)s %(name)s %(funcName)s() line:%(lineno)s] [%(message)s]"
     logging.basicConfig(format=logFMT, level=loglevel)    
 
-    logger = logging.getLogger("__name__")
+    logger = logging.getLogger(os.path.basename(__file__))
     logger.warning("BEGIN")
 
     #

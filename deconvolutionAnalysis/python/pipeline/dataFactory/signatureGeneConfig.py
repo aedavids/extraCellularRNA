@@ -104,13 +104,17 @@ class SignatureGeneConfiguration( object ):
         return self.localCacheRootPath + "/" + self.getfileNameBase()                 
 
     ################################################################################
-    def findGenes(self, deseqDF : pd.DataFrame ) -> pd.DataFrame:
+    def findGenes(self, deseqDF : pd.DataFrame, fileName : str ) -> pd.DataFrame:
         '''
         Find genes that that are statistically and biologically signifigant 
         
         arguments:
             deseqDF:
                 results of DESeq2 as a pandas dataframe          
+
+           fileName:
+                useful for logging, debugging, and addition down stream processing   
+                
         
         return:
             pandas dataframe

@@ -39,7 +39,7 @@ class TestSignatureGenes(unittest.TestCase):
     '''
     TODO
     '''
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(os.path.basename(__file__))
 
     # https://stackoverflow.com/a/14493895/4586180
     #maxDiff = None

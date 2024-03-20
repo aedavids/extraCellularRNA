@@ -15,6 +15,7 @@ from pipeline.dataFactory.signatureGeneConfig import SignatureGeneConfiguration
 def runSelectGenesOfInterest(
         signatureGeneConfig : SignatureGeneConfiguration, 
         candidateSignatureFileList : list[str],  
+        save : bool = True,
         ) -> tuple[dict, list[pl.PosixPath]]:
     '''
     finds candidate biomarker genes
@@ -30,6 +31,9 @@ def runSelectGenesOfInterest(
             
         candidateSignatureFileList: 
             a list of file paths to candidate signature gene files filter/select           
+
+        save : bool
+            default = True
             
     returns: (selectedDict, outFileList)
         selectedDict : dictionary
@@ -52,13 +56,17 @@ def runSelectGenesOfInterest(
         logger.info(f"runSelectGenesOfInterest() csgpFile: {csgpFile}")
         logger.info(f"runSelectGenesOfInterest() numRowsToSkip: {numRowsToSkip}")
         deseqDF = pd.read_csv(csgpFile, skiprows=numRowsToSkip)
-        signatureGenesDF = signatureGeneConfig.findGenes(deseqDF)   
 
         fileName = csgpFile.split("/")[-1]
+        signatureGenesDF = signatureGeneConfig.findGenes(deseqDF, fileName)   
 
         outFilePath = outDir.joinpath( fileName )
-        signatureGenesDF.to_csv(outFilePath, index=False)
-        logger.warning("saved to file: {}".format(outFilePath))
+
+        if save and not signatureGenesDF.empty :
+            signatureGenesDF.to_csv(outFilePath, index=False)
+            logger.warning("saved to file: {}".format(outFilePath))
+        else:
+            logger.warning(f'{csgpFile} has no signature genes')
 
         retDict[fileName] = signatureGenesDF
         retOutFileList.append(outFilePath)

@@ -24,6 +24,7 @@ print(f'pwd: {os.getcwd()}')
 import logging
 
 from analysis.metrics import CibersortResultsAsKWayClassifier
+import analysis.test.testUtilities as tu
 import numpy as np
 import pandas as pd
 import unittest
@@ -33,7 +34,7 @@ class TestFractions(unittest.TestCase):
     '''
     TODO
     '''
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(os.path.basename(__file__))
 
     # https://stackoverflow.com/a/14493895/4586180
     maxDiff = None
@@ -71,7 +72,7 @@ class TestFractions(unittest.TestCase):
         # # evaluator is a object that calculates classification statistics
         # evaluator = CibersortResultsAsKWayClassifier(resultPath, expectedFractionsPath, verbose=True)
 
-        evaluator = self._getEvaluator()
+        evaluator = tu.getEvaluator(self.relativeRootPath)
         # sanity test make sure our test data has not accidently changed
         trueLabelSeries = evaluator.trueLablesSeries
         self.logger.info(f'trueLablesSeries\n{trueLabelSeries}')
@@ -97,7 +98,7 @@ class TestFractions(unittest.TestCase):
         # There are no DDD examples or predictions. 
         # EEE has one expected, prediction is wrong. if we do not make a prediction join will drop EEE
         # FFF has no expected examples but one predicted
-        evaluator = self._getEvaluator()
+        evaluator = tu.getEvaluator(self.relativeRootPath)
         #self.logger.info(f'evaluator.confusionDF.to_dict()\n{evaluator.confusionDF.to_dict()}')
 
         # 
@@ -153,7 +154,7 @@ class TestFractions(unittest.TestCase):
         make sure the stats and error metrics are calculated as expected
         '''
         self.logger.info("BEGIN")   
-        evaluator = self._getEvaluator()
+        evaluator = tu.getEvaluator(self.relativeRootPath)
         #self.logger.info(f'evaluator.confusionDF.to_dict()\n{evaluator.confusionDF.to_dict()}')
 
         # 
@@ -218,24 +219,24 @@ class TestFractions(unittest.TestCase):
                                             [0, 0, 0, 0, 0]] )       
         return expectedCMLablesNone 
 
-    ################################################################################
-    def _getEvaluator(self) -> CibersortResultsAsKWayClassifier:
+    # ################################################################################
+    # def _getEvaluator(self) -> CibersortResultsAsKWayClassifier:
         
-        #dataDir = os.path.join(self.pwd, "../python/analysis/test/data")
-        #dataDir = os.path.join(self.pwd, "./data")
-        dataDir = self.relativeRootPath.joinpath("data")
-        # expectedFractionsPath = f'{dataDir}/expectedFractions.tsv'
-        # resultPath            = f'{dataDir}/results.tsv'
-        expectedFractionsPath = dataDir.joinpath('expectedFractions.tsv')
-        resultPath            = dataDir.joinpath('results.tsv')
+    #     #dataDir = os.path.join(self.pwd, "../python/analysis/test/data")
+    #     #dataDir = os.path.join(self.pwd, "./data")
+    #     dataDir = self.relativeRootPath.joinpath("data")
+    #     # expectedFractionsPath = f'{dataDir}/expectedFractions.tsv'
+    #     # resultPath            = f'{dataDir}/results.tsv'
+    #     expectedFractionsPath = dataDir.joinpath('expectedFractions.tsv')
+    #     resultPath            = dataDir.joinpath('results.tsv')
 
-        self.logger.info(f'pwd: {os.getcwd()}')
-        self.logger.info(f"expectedFractionsPath :{expectedFractionsPath}")
+    #     self.logger.info(f'pwd: {os.getcwd()}')
+    #     self.logger.info(f"expectedFractionsPath :{expectedFractionsPath}")
 
-        # evaluator is a object that calculates classification statistics
-        evaluator = CibersortResultsAsKWayClassifier(resultPath, expectedFractionsPath, verbose=True)
+    #     # evaluator is a object that calculates classification statistics
+    #     evaluator = CibersortResultsAsKWayClassifier(resultPath, expectedFractionsPath, verbose=True)
 
-        return evaluator
+    #     return evaluator
 
     ################################################################################
     def _getExpectedTrueLabels(self, 

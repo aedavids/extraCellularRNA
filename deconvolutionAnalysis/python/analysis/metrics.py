@@ -1,5 +1,5 @@
 #
-# fractions.py
+# metrics.py
 # functions for analysising the results from CIBERSORTx as if it was a multi-label classifier
 #
 # Andrew E. Davidson
@@ -8,7 +8,7 @@
 # ref: extraCellularRNA/terra/jupyterNotebooks/cibersort/fractionsAsMulticlassClassification.ipynb
 #
 
-# FractionsCommandLine CommandLine display the doc string 
+# MetricsCommandLine CommandLine display the doc string 
 '''
     Treats the cibersort results as if they where the output layer of k-way (multiclass) classifier. The fractions can be thought of as a probablity distribution. This class choose use max to predict
     the class for each sample
@@ -35,6 +35,7 @@ __version__ = 0.1
 __author__ = "Andrew Davidson aedavids@ucsc.edu"
 __date__ = '2023-11-13'
 __updated__ = '2023-11-13'
+
 
 ###############################################################################
 class CibersortResultsAsKWayClassifier( object ):
@@ -350,7 +351,7 @@ def main(inCommandLineArgsList=None):
     logFMT = "%(asctime)s %(levelname)s %(name)s %(funcName)s() line:%(lineno)s] [%(message)s]"
     logging.basicConfig(format=logFMT, level=loglevel)    
 
-    logger = logging.getLogger("__name__")
+    logger = logging.getLogger(__file__)
     logger.warning("BEGIN")
 
     #
@@ -412,7 +413,9 @@ def main(inCommandLineArgsList=None):
     metricsDF.to_csv(metricsPath)
     logger.warning(f'saved metrics to : {metricsPath}')
 
-
+    metricsRoundedPath = os.path.join(outDir, "metricsRounded.csv" )
+    metricsDF.round(decimals=3).to_csv(metricsRoundedPath)
+    logger.warning(f'saved rounded metrics to : {metricsRoundedPath}')
 
 ################################################################################
 if __name__ == '__main__':

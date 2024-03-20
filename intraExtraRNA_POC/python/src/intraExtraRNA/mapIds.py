@@ -126,17 +126,23 @@ def mapHUGO_2_ENSG(
 
     # if you try and split a tx id that does not have "|" like the repeats
     # you get back columns filled with None    
-    mapDF = transcriptDF.loc[:, 'uberId'].str.split('|', expand=True).loc[:, [5, 1]]
-    mapDF.columns = ['HUGO', 'ENSG']
+    mapDF = transcriptDF.loc[:, 'uberId'].str.split('|', expand=True).loc[:, [5, 1, 7]]
+    mapDF.columns = ['HUGO', 'ENSG', 'bioType']
+    mapDF.dropna(inplace=True)
+    mapDF.drop_duplicates(inplace=True)
 
     # ENSGDF.columns = ['ENSG']
     # # print(ENSGDF.shape)
     # # ENSGDF.head()
     #
     # ENSGList = list( ENSGDF.loc[:, "ENSG"].unique() )
-    selectRows = mapDF.loc[:, "HUGO"].isin(genesOfInterest)
-    ENSGDF = mapDF.loc[selectRows, :] 
-    retDF = ENSGDF.drop_duplicates(subset=['HUGO', 'ENSG'])
+
+    if  len(genesOfInterest) > 0:
+        selectRows = mapDF.loc[:, "HUGO"].isin(genesOfInterest)
+        ENSGDF = mapDF.loc[selectRows, :] 
+        retDF = ENSGDF.drop_duplicates(subset=['HUGO', 'ENSG'])
+    else:
+        retDF = mapDF
     
     return retDF
 

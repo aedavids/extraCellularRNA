@@ -14,7 +14,7 @@ import unittest
 ################################################################################
 class TestDESeqSelect(unittest.TestCase):
     configFilePath = setupLogging( default_path='logging.test.ini.json')
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(os.path.basename(__file__))
     logger.info("using logging configuration file:{}".format(configFilePath))   
     
     ################################################################################

@@ -307,6 +307,8 @@ class CibersortSignatureMatrixFactory( object ):
         self.logger.info("BEGIN")
         
         path = loadCache(self.groupByGeneCountFilePath, self.localCacheDir, verbose=self.verbose)
+        self.logger.info(f"loadCache completed: path: {path}")
+
         df = pd.read_csv(path, sep=",")
         
         # set index to geneId. will make join easier' When we transpose
@@ -441,7 +443,7 @@ def main(inCommandLineArgsList=None):
     logFMT = "%(asctime)s %(levelname)s %(name)s %(funcName)s() line:%(lineno)s] [%(message)s]"
     logging.basicConfig(format=logFMT, level=loglevel)    
 
-    logger = logging.getLogger("__name__")
+    logger = logging.getLogger(os.path.basename(__file__))
     cli = CibersortSignatureMatrixFactoryCLI( 
                                              version=__version__ , 
                                              author=__author__ ,

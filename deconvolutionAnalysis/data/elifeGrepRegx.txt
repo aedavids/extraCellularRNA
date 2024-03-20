@@ -1,0 +1,1 @@
+coad\|read\|colon_sigmoid\|colon_transverse\|esca\|esophagus_gastroesophageal_junction\|esophagus_mucosa\|esophagus_muscularis\|lihc\|liver\|lusc\|luad\|lung\|stad\|stomach

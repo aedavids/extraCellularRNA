@@ -237,6 +237,54 @@ python -m analysis.metrics -e "${expectedFractions}" \
                            -f "${cromwellOutDir}/results.txt" \
                            -o "${outDir}/metrics"
 
+#
+# run extra analytics
+# 
+
+#
+# createLungDeconvolutionMetricsCSV
+# runs grep to find lung releated metrics
+#
+
+# p is a hack. These scripts find reference files relative to where they are installed
+# todo might be clean to have best*.sh copy the bin dir locally
+p="/private/home/aedavids/extraCellularRNA/deconvolutionAnalysis/bin"
+script="${p}/createLungDeconvolutionMetricsCSV.sh"
+scriptOutDir="${outDir}/createLungDeconvolutionMetricsCSV.sh.out"
+mkdir -p "${scriptOutDir}"
+$script "${outDir}/metrics/metricsRounded.csv" > "${scriptOutDir}/lungMetrics.csv"
+
+#
+# createElifeDeconvolutionMetricsCSV
+# runs grep 
+#
+scriptOutDir="${outDir}/createElifeDeconvolutionMetricsCSV.sh.out"
+mkdir -p "${scriptOutDir}"
+script="${p}/createElifeDeconvolutionMetricsCSV.sh "
+$script "${outDir}/metrics/metricsRounded.csv" > "${scriptOutDir}/elifeMetrics.csv"
+
+#
+# lungExploreClassificationErrors
+# calculates FP, FN, and set of shared genes for tempest dataset (Lung) tissue type
+#
+intersectionDict="${outDir}/upsetPlot.out/*intersection.dict"
+scriptOutDir="${outDir}/lungExploreClassificationErrors.sh.out"
+mkdir -p "${scriptOutDir}"
+script="${p}/lungExploreClassificationErrors.sh"
+$script "${intersectionDict}" "${cromwellOutDir}/results.txt" "${expectedFractions}" "$scriptOutDir"
+
+
+#
+# flatten the confusion matrix and save as csv
+#
+fmeOutDir="${outDir}/findMisclassificationErrors.out"
+mkdir -p "$fmeOutDir"
+cmPath="${outDir}/metrics/confusionMatrix.csv"
+python -m analysis.findMisclassificationErrors \
+        --threshold 0 \
+        --confusionMatrixPath "${cmPath}" \
+        --outDir "${fmeOutDir}"
+
 printf "\n\n\nEND Evaluate CIBERSORTx results as if output from k-way classifier\n"
 
 printf "END ${0}"

@@ -33,7 +33,7 @@ class SignatureGeneConfigurationTest(SignatureGeneConfiguration):
         self.logger.info(f'END')
 
     ################################################################################
-    def findGenes(self, deseqDF : pd.DataFrame ) -> pd.DataFrame :
+    def findGenes(self, deseqDF : pd.DataFrame, fileName : str ) -> pd.DataFrame :
         self.logger.info(f'BEGIN')
         self.logger.info(f'padjThreshold : {self.padjThreshold}')
         self.logger.info(f'msg : {self.msg}' )

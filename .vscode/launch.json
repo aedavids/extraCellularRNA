@@ -1,6 +1,46 @@
 {
     "configurations": [
         {
+            "name": "fp exploreClassificationErrors",
+            "type": "python",
+            "request": "launch",
+            "module": "analysis.exploreClassificationErrors",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/deconvolutionAnalysis/python/:${workspaceFolder}/src:${workspaceFolder}/terra/deseq/python"
+            },
+            "cwd": "${workspaceFolder}/deconvolutionAnalysis/python",
+            "args": [
+                "fn",
+                "--results",
+                "analysis/test/data/results.tsv",
+                "--expected",
+                "analysis/test/data/expectedFractions.tsv",
+                "--category",
+                "Whole_Blood,Vagina"
+            ],            
+        },
+        {
+            "name": "sg exploreClassificationErrors",
+            "type": "python",
+            "request": "launch",
+            "module": "analysis.exploreClassificationErrors",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/deconvolutionAnalysis/python/:${workspaceFolder}/src:${workspaceFolder}/terra/deseq/python"
+            },
+            "cwd": "${workspaceFolder}/deconvolutionAnalysis/python",
+            "args": [
+                "sg",
+                "--intersectionDictionary",
+                "/private/groups/kimlab/aedavids/deconvolution/best20GTEx_TCGA/trainingSet/best20GTEx_TCGA.sh.out/upsetPlot.out/best20.intersection.dict",
+                "--category",
+                "LUAD,Spleen",
+                "--outDir",
+                "./tmp"
+            ],            
+        },        
+        {
             "name": "upstreamPipelineCLI",
             "type": "python",
             "request": "launch",
@@ -8,17 +48,23 @@
             "justMyCode": true,
             "env": {
                 "PYTHONPATH": "${workspaceFolder}/deconvolutionAnalysis/python/:${workspaceFolder}/src:${workspaceFolder}/terra/deseq/python"
-            },     
-            "cwd" : "${workspaceFolder}/deconvolutionAnalysis/python",
-            "args": ["--colDataPath", "pipeline/dataFactory/test/data/testIntegration/colData.csv",
-                    "--countDataPath", "pipeline/dataFactory/test/data/testIntegration/geneCounts.csv", 
-                    "--deseqResultsDir", "pipeline/dataFactory/test/data/testSignatureGenes/1vsAll",
-                    "--estimatedScalingFactors", "pipeline/dataFactory/test/data/testSignatureGenes/1vsAll/estimatedSizeFactors.csv",
-                    "--findModule", "pipeline.dataFactory.test.exampleCreateSignatureGeneConfig",
-                    "--outDir", "upstreamPipeline.out"                    
-                ],
+            },
+            "cwd": "${workspaceFolder}/deconvolutionAnalysis/python",
+            "args": [
+                "--colDataPath",
+                "pipeline/dataFactory/test/data/testIntegration/colData.csv",
+                "--countDataPath",
+                "pipeline/dataFactory/test/data/testIntegration/geneCounts.csv",
+                "--deseqResultsDir",
+                "pipeline/dataFactory/test/data/testSignatureGenes/1vsAll",
+                "--estimatedScalingFactors",
+                "pipeline/dataFactory/test/data/testSignatureGenes/1vsAll/estimatedSizeFactors.csv",
+                "--findModule",
+                "pipeline.dataFactory.test.exampleCreateSignatureGeneConfig",
+                "--outDir",
+                "upstreamPipeline.out"
+            ],
         },
-        
         {
             "name": "Python: Current File",
             "type": "python",
@@ -27,7 +73,7 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "env": {
-                "PYTHONPATH": "${workspaceFolder}/deconvolutionAnalysis/python/:${workspaceFolder}/src:${workspaceFolder}/terra/deseq/python"
+                "PYTHONPATH": "${workspaceFolder}/deconvolutionAnalysis/python/:${workspaceFolder}/src:${workspaceFolder}/terra/deseq/python:${workspaceFolder}/intraExtraRNA_POC/python/src"
             },
             "cwd": "${fileDirname}"
         }

@@ -1,10 +1,10 @@
 {
     "terminal.integrated.env.linux": {
-        "PYTHONPATH":"/private/home/aedavids/extraCellularRNA/deconvolutionAnalysis/python:/private/home/aedavids/extraCellularRNA/src"
+        "PYTHONPATH":"/private/home/aedavids/extraCellularRNA/deconvolutionAnalysis/python:/private/home/aedavids/extraCellularRNA/src:/private/home/aedavids/extraCellularRNA/intraExtraRNA_POC/python/src"
 
     },
     "terminal.integrated.env.osx": {
-        "PYTHONPATH":"/Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/deconvolutionAnalysis/python:/Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/src"
+        "PYTHONPATH":"/Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/deconvolutionAnalysis/python:/Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/src:/Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/intraExtraRNA_POC/python/src"
     },
 
     "python.terminal.executeInFileDir": true

@@ -15,6 +15,7 @@ import os
 import pandas as pd
 from   pathlib import Path
 from pipeline.dataFactory.signatureGeneConfig import SignatureGeneConfiguration
+import pprint as pp
 import upsetplot as upsp
 
 ###############################################################################
@@ -114,7 +115,8 @@ class UpsetPlot( object ):
 
         s = set() 
         for key,items in intersectionDict.items():
-            l = len(items)
+            # example key: ('Vagina', 'Whole_Blood')
+            l = len(key)
             s.add(l)
         
         ret = sorted( list(s) )
@@ -134,8 +136,7 @@ class UpsetPlot( object ):
 
         returns: dict
             retDict
-                key: a '_XXX_' separated list of set name
-                    we use a token that is unlikely to appear in an element names
+                key: a tuple of sorted  set names
                 value: the name of the elements in the intersection
 
         ref: plots.test.testUpsetPlots.testIntersection()
@@ -150,7 +151,7 @@ class UpsetPlot( object ):
 
         # use groupby level to aggregate by multilevel index instead of columns
         groupByDF = self.geneSetsUpsetPlotData.groupby( level=setNamesList)
-        token = "_XXX_"
+        #token = "_XXX_"
         retIntersectionDict = dict()
         for key, item in groupByDF:
             # key is tuple of booleans
@@ -158,13 +159,15 @@ class UpsetPlot( object ):
 
             # combine all the intersection set names into a single key
             # use numpy fancy indexing
-            intersectionSetNames = token.join( setNamesNP[ list(key) ] )
+            # intersectionSetNames = token.join( setNamesNP[ list(key) ] )
+            intersectionSetNames = tuple( sorted(setNamesNP[ list(key) ]) )
             self.logger.info(f'intersectionSetNames: {intersectionSetNames}')
-            self.logger.info(f'get_group({key}) \n{groupByDF.get_group(key)}, "\n\n"')
+            self.logger.debug(f'get_group({key}) \n{groupByDF.get_group(key)}, "\n\n"')
             ggDF = groupByDF.get_group(key)
             # self.logger.info(f'type(ggDF) : {type(ggDF)} ggDF.columns : {ggDF.columns}')
             # self.logger.info(f'aedwip : {ggDF["id"]} aedwip')
             self.logger.info(f'ggDF["id"].tolist() : {ggDF["id"].tolist()}')
+
             retIntersectionDict[intersectionSetNames] = ggDF["id"].tolist()
             
         self.logger.info("END")
@@ -173,7 +176,7 @@ class UpsetPlot( object ):
     ################################################################################    
     def saveInteresection(self,  
                             outdir : str,
-                            intersectionElementsDict
+                            intersectionElementsDict : dict
                             ) -> str :
         '''
         example of use
@@ -202,7 +205,9 @@ class UpsetPlot( object ):
         # filePath = aedwip    self.signatureGeneConfig.localCacheRoot + "/" + fileName
         filePath = os.path.join(outdir, fileName)
         with open(filePath,'w') as dataFile: 
-            dataFile.write(str(intersectionElementsDict))
+            #dataFile.write(str(intersectionElementsDict))
+            prettyStr =  pp.pformat(intersectionElementsDict, indent=4, sort_dicts=True)
+            dataFile.write(prettyStr)
         
         # intersectionURL = self.signatureGeneConfig.saveGenesOfInterestToBucketURL() + fileName
         # print("save to :\n{}".format(intersectionURL))

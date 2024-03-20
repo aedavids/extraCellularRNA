@@ -57,6 +57,9 @@ dependencies:
   - PivotTableJS
   - seaborn
   - upsetplot
+  - ipynbname
+  - esri::scikit-plot # https://scikit-plot.readthedocs.io/en/stable/index.html
+  - pytables # required by pandas.DataFrame.to_hdf
   #- pip
   #  - dumper # debug gcp/terra fissc error
 

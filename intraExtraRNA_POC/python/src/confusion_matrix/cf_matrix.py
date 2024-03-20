@@ -19,9 +19,18 @@ def make_confusion_matrix(cf,
     '''
     This function will make a pretty plot of an sklearn Confusion Matrix cm using a Seaborn heatmap visualization.
 
+    assumes a binary classifier
+
     Arguments
     ---------
     cf:            confusion matrix to be passed in
+                   create using from sklearn.metrics import confusion_matrix. the row id of the 
+                   cf will be [0,1], the col header will be [0,1]
+
+                                control cancer
+                                   0     1
+                    control = 0    TN   FP
+                    cancer  = 1    FN   TP
 
     group_names:   List of strings that represent the labels row by row to be shown in each square.
 
@@ -85,8 +94,14 @@ def make_confusion_matrix(cf,
             precision = cf[1,1] / sum(cf[:,1])
             recall    = cf[1,1] / sum(cf[1,:])
             f1_score  = 2*precision*recall / (precision + recall)
-            stats_text = "\n\nAccuracy={:0.3f}\nPrecision={:0.3f}\nRecall={:0.3f}\nF1 Score={:0.3f}".format(
-                accuracy,precision,recall,f1_score)
+            sensitivity = recall # TP / (TP + FN) 
+            specificity = cf[0,0]/(cf[0,0]+cf[0,1]) # TN/ (TN + FP)
+
+            # stats_text = "\n\nAccuracy={:0.3f}\nPrecision={:0.3f}\nRecall={:0.3f}\nF1 Score={:0.3f}".format(
+            #   accuracy,precision,recall,f1_score)
+            stats_text = "\n\nAccuracy={:0.3f}\nPrecision={:0.3f}\nRecall={:0.3f}\nF1 Score={:0.3f}\nSpecificity:{:0.3f}\nSensitivity:{:0.3f}".format(
+                accuracy,precision,recall,f1_score, specificity, sensitivity)
+        
         else:
             stats_text = "\n\nAccuracy={:0.3f}".format(accuracy)
     else:

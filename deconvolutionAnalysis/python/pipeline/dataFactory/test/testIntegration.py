@@ -258,11 +258,16 @@ class TestIntegration(unittest.TestCase):
 ################################################################################
     def _expectedIntersectionDict(self):
          expectedIntersectionDict = {
-                                'UVM': ['UVM_AAA', 'UVM_V_W.1'],
-                                'UVM_XXX_Vagina': ['UVM_V'],
-                                'Vagina': ['V_BBB'],
-                                'Vagina_XXX_Whole_Blood': ['UVM_V_W'],
-                                'Whole_Blood': ['W_CCC', 'V_W']
+                                # 'UVM': ['UVM_AAA', 'UVM_V_W.1'],
+                                # 'UVM_XXX_Vagina': ['UVM_V'],
+                                # 'Vagina': ['V_BBB'],
+                                # 'Vagina_XXX_Whole_Blood': ['UVM_V_W'],
+                                # 'Whole_Blood': ['W_CCC', 'V_W']
+               ('Whole_Blood',): ['W_CCC', 'V_W'],
+                ('Vagina',): ['V_BBB'],
+                ('Vagina', 'Whole_Blood'): ['UVM_V_W'],
+                ('UVM',): ['UVM_AAA', 'UVM_V_W.1'],
+                ('UVM', 'Vagina'): ['UVM_V']                                 
             }
          
          return expectedIntersectionDict

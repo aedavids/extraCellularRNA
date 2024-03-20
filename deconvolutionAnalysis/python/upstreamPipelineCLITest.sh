@@ -32,5 +32,5 @@ python -m pipeline.upstreamPipeline \
        --estimatedScalingFactors ${estimatedScalingFactors} \
        --findModule ${findModule} \
        --outDir ${outDir} \
-       ${vargs}
+       --vargs ${vargs}
 
