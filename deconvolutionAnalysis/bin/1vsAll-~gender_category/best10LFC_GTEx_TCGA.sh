@@ -12,13 +12,11 @@
 #
 #
 
-if [ $# -ne 2 -a $# -ne 3 ];
+if [ $# -ne 2 ];
     then
         printf "ERROR  \n"
         printf "local install: cp ~/extraCellularRNA/deconvolutionAnalysis/bin/{1vsAll-~gender_category/${0},pipeline.sh} .\n"
-        printf "usage:"
-        printf "to run on current server: $0 ciberSortSecurityToken ciberSortUser\n"
-        printf "to run on slurm         : $0 ciberSortSecurityToken ciberSortUser SLURM\n"
+        printf "usage: $0 ciberSortSecurityToken ciberSortUser\n"
         printf "usage: tail -f ${0}.log \n"
         printf "follow 'Token and instruction access' @ https://cibersortx.stanford.edu/download.php \n"
         exit 1 # error
@@ -32,7 +30,6 @@ if [ $# -ne 2 -a $# -ne 3 ];
 set -x
 ciberSortSecurityToken=$1
 ciberSortUser=$2
-runSlurm=$3
 
 # rootDir="/private/home/aedavids/extraCellularRNA/deconvolutionAnalysis/python"
 rootDir="/private/groups/kimlab/GTEx_TCGA"
@@ -48,7 +45,7 @@ countData="${rootDir}/groupbyGeneTrainingSets/GTEx_TCGA_TrainGroupby.csv"
 deseqResultsDir="${rootDir}/1vsAll"
 
 # findModule="analysis.createBest25CreateSignatureGeneConfig"
-findModule="analysis.createBestCreateSignatureGeneConfig"
+findModule="analysis.createBestLFCSignatureGeneConfig"
 
 # estimatedScalingFactors="${rootDir}/pipeline/dataFactory/test/data/testSignatureGenes/1vsAll/estimatedSizeFactors.csv"
 estimatedScalingFactors="${rootDir}/1vsAll/estimatedSizeFactors.csv"
@@ -116,8 +113,8 @@ zip -j import.zip "${wdlRoot}/cibersortxFractionsTask.wdl" "${wdlRoot}/../wdlTes
 wdlInputJSON="${outDir}/CIBERSORTxFractionsWorkflow.wdl.input.json"
 
 # arguments to pass to BestSignatureGeneConfig.__init__()
-topN=1
-title=` printf "best%s" $topN` # do not uses spaces, title will be part of file paths
+topN=10
+title=` printf "bestLFC_%s" $topN` # do not uses spaces, title will be part of file paths
 vargs=" --design tilda_gender_category \
         --padjThreshold 0.001 \
         --lfcThreshold 2.0 \
@@ -130,41 +127,21 @@ printf "\n\n\n SignatureGeneConfig vargs : $vargs \n !!!!!! \n"
 
 logFile="${0}.log"
 rm -f $logFile
-if [ -z "${runSlurm}" ]; then
-    # runSlurm is empty, start pipeline as background process
-    setsid sh -c "set -x; pipeline.sh ${colData} \
-                            ${countData} \
-                            ${deseqResultsDir} \
-                            ${findModule} \
-                            ${estimatedScalingFactors} \
-                            ${outDir} \
-                            import.zip \
-                            ${wdlInputJSON} \
-                            ${WDL_TOOLS} \
-                            ${gitRoot} \
-                            ${ciberSortSecurityToken} \
-                            ${ciberSortUser} \
-                            ${vargs}" > $logFile 2>&1 & 
+setsid sh -c "set -x; pipeline.sh ${colData} \
+                        ${countData} \
+                        ${deseqResultsDir} \
+                        ${findModule} \
+                        ${estimatedScalingFactors} \
+                        ${outDir} \
+                        import.zip \
+                        ${wdlInputJSON} \
+                        ${WDL_TOOLS} \
+                        ${gitRoot} \
+                        ${ciberSortSecurityToken} \
+                        ${ciberSortUser} \
+                        ${vargs}" > $logFile 2>&1 & 
 
-    sleep 10
-    pstree $USER
-    ps -e -o pid,ppid,pgid,command,user |head -n 1; ps -e -o pid,ppid,pgid,command,user |grep $USER
-else
-    if [[ $runSlurm != "SLURM" ]]; then
-        printf "ERROR the 3rd argument $runSlurm != SLURM"
-    else
-        sbatch pipeline.sh ${colData} \
-                            ${countData} \
-                            ${deseqResultsDir} \
-                            ${findModule} \
-                            ${estimatedScalingFactors} \
-                            ${outDir} \
-                            import.zip \
-                            ${wdlInputJSON} \
-                            ${WDL_TOOLS} \
-                            ${gitRoot} \
-                            ${ciberSortSecurityToken} \
-                            ${ciberSortUser} \
-                            ${vargs} > $logFile 2>&1
-    fi
-fi
+sleep 10
+pstree $USER
+ ps -e -o pid,ppid,pgid,command,user |head -n 1; ps -e -o pid,ppid,pgid,command,user |grep $USER
+
