@@ -66,7 +66,7 @@ def findSummaryMetricsCols(metric : str) :
     '''
 
     # mean_sensitivity	std_sensitivity
-    metricCols = [f'{m}_{metric}' for m in ['mean', 'std'] ]
+    metricCols = [f'{m}_{metric}' for m in ['mean', 'std', 'median'] ]
     retList = metricCols + ["numGenes", "numTypes", "numDegree1", "numAboveThreshold"]
 
     return retList
@@ -163,7 +163,8 @@ def _loadMetrics(rootDirPath: str,
         # calculate additional descriptive stats
         byCols = 1
         rowAverage = valuesDF.mean(axis=byCols)
-        rowStd = valuesDF.std(axis=byCols)
+        rowStd     = valuesDF.std(axis=byCols)
+        rowMedian  = valuesDF.median(axis=byCols)
 
         # how many genes where used?
         # signatureMatricPath = ! find $path -name "signatureGenes.tsv"
@@ -199,6 +200,7 @@ def _loadMetrics(rootDirPath: str,
         # add metrics to valuesDF
         valuesDF.loc[:, [f'mean_{metrics}'] ] = rowAverage
         valuesDF.loc[:, [f'std_{metrics}'] ] = rowStd
+        valuesDF.loc[:, [f'median_{metrics}'] ] = rowMedian
         valuesDF.loc[:, ['numGenes'] ] = numGenes
         valuesDF.loc[:, ['numTypes'] ] = numTypes   
         valuesDF.loc[:, ['numDegree1'] ] = len( degree1Sets ) 
