@@ -24,14 +24,14 @@
 # ref: extraCellularRNA/deconvolutionAnalysis/bin/test.slurm.sh
 #
 
-aedwip there is a bug will overrite best500_FindAllDegree1_wl500 results
 
-if [ $# -ne 2 ];
+if [ $# -ne 2 -a $# -ne 3 ];
     then
         printf "ERROR  \n"
         printf "local install: cp ~/extraCellularRNA/deconvolutionAnalysis/bin/pipeline.sh .\n"
         printf "local install: cp ~/extraCellularRNA/deconvolutionAnalysis/bin/1vsAll-~gender_category/${0} .\n"
-        printf "usage: $0 ciberSortSecurityToken ciberSortUser\n"
+        printf "to run on current server: $0 ciberSortSecurityToken ciberSortUser\n"
+        printf "to run on slurm         : $0 ciberSortSecurityToken ciberSortUser SLURM\n"
         printf "follow 'Token and instruction access' @ https://cibersortx.stanford.edu/download.php"
         exit 1 # error
     fi
@@ -46,6 +46,7 @@ set -euxo pipefail
 
 ciberSortSecurityToken=$1
 ciberSortUser=$2
+runSlurm=$3
 
 dataSet="GTEx_TCGA"
 
@@ -222,20 +223,43 @@ printf "\n\n\n SignatureGeneConfig vargs : $vargs \n !!!!!! \n"
 
 logFile="${0}.log"
 rm -f $logFile
-setsid sh -c "set -x; pipeline.sh ${colData} \
-                        ${countData} \
-                        ${deseqResultsDir} \
-                        ${findModule} \
-                        ${estimatedScalingFactors} \
-                        ${outDir} \
-                        import.zip \
-                        ${wdlInputJSON} \
-                        ${WDL_TOOLS} \
-                        ${gitRoot} \
-                        ${ciberSortSecurityToken} \
-                        ${ciberSortUser} \
-                        ${vargs}" > $logFile 2>&1 & 
 
-sleep 10
-pstree $USER
- ps -e -o pid,ppid,pgid,command,user |head -n 1; ps -e -o pid,ppid,pgid,command,user |grep $USER
+if [ -z "${runSlurm}" ]; then
+    # runSlurm is empty, start pipeline as background process
+    setsid sh -c "set -x; pipeline.sh ${colData} \
+                            ${countData} \
+                            ${deseqResultsDir} \
+                            ${findModule} \
+                            ${estimatedScalingFactors} \
+                            ${outDir} \
+                            import.zip \
+                            ${wdlInputJSON} \
+                            ${WDL_TOOLS} \
+                            ${gitRoot} \
+                            ${ciberSortSecurityToken} \
+                            ${ciberSortUser} \
+                            ${vargs}" > $logFile 2>&1 & 
+
+    sleep 10
+    pstree $USER
+    ps -e -o pid,ppid,pgid,command,user |head -n 1; ps -e -o pid,ppid,pgid,command,user |grep $USER
+
+else
+    if [[ $runSlurm != "SLURM" ]]; then
+        printf "ERROR the 3rd argument $runSlurm != SLURM"
+    else
+        sbatch pipeline.sh ${colData} \
+                            ${countData} \
+                            ${deseqResultsDir} \
+                            ${findModule} \
+                            ${estimatedScalingFactors} \
+                            ${outDir} \
+                            import.zip \
+                            ${wdlInputJSON} \
+                            ${WDL_TOOLS} \
+                            ${gitRoot} \
+                            ${ciberSortSecurityToken} \
+                            ${ciberSortUser} \
+                            ${vargs} > $logFile 2>&1
+    fi
+fi
