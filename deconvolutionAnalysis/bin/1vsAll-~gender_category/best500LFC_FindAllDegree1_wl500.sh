@@ -186,7 +186,7 @@ categories="Brain_Amygdala LIHC TGCT COAD Lung Esophagus_Gastroesophageal_Juncti
 
 upsetOutBase="/private/groups/kimlab/aedavids/deconvolution/${designDir}/best${topN}LFC_${dataSet}/training"
 upsetOut="${upsetOutBase}/best${topN}LFC_${dataSet}.sh.out/upsetPlot.out"
-upStreamIntersectionDictionaryPath="${upsetOut}/best${topN}.intersection.dict"
+upStreamIntersectionDictionaryPath="${upsetOut}/bestLFC_${topN}.intersection.dict"
 
 pythonSrcRoot="/private/home/aedavids/extraCellularRNA"
 
