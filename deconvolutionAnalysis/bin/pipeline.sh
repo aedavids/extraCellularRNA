@@ -16,11 +16,11 @@
 #SBATCH --job-name=aedavids-pipeline.slurm.sh
 #
 # Partition - This is the queue it goes in:
-#SBATCH --partition=main
+#SBATCH --partition=long
 #
 # Where to send email (optional)
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=$aedavids@ucsc.edu
+#SBATCH --mail-user=aedavids@ucsc.edu
 #
 
 #
@@ -31,23 +31,29 @@
 #
 # Memory needed for the jobs.  Try very hard to make this accurate.  DEFAULT = 4gb
 # S-aedwip-BATCH --mem=4gb
-#SBATCH --mem=32G # total memory per node
+#S-aedwip-OOM-BATCH --mem=32G # total memory per node
+#SBATCH --mem=64G # total memory per node
 #
 # Number of tasks (one for each CPU desired for use case) (example):
 #SBATCH --ntasks=1
 #
 # Processors per task:
 # At least eight times the number of GPUs needed for nVidia RTX A5500
-#SBATCH --cpus-per-task=1
+# ref https://giwiki.gi.ucsc.edu/index.php?title=Using_Docker_under_Slurm
+# slurm cannot limit the resources that docker uses. 
+# set to number of samples / CIBERSORTxFractionsWorkflow.wdl.input.json CIBERSORTxFractionsWorkflow.numSamplesInPartition
+#SBATCH --cpus-per-task=32
 #
 # Number of GPUs, this can be in the format of "--gres=gpu:[1-8]", or "--gres=gpu:A5500:[1-8]" with the type included (optional)
 #SBATCH --gres=gpu:1
 #
 # Standard output and error log
-#SBATCH --output=serial_test_%j.log
+#SBATCH --output=serial_test_%j.log 
 #
 # Wall clock limit in hrs:min:sec:
-#SBATCH --time=10:02:30
+# best500GTEx* timmed out
+#S-AEDWIP-BATCH --time=10:02:30
+#SBATCH --time=24:00:00
 #
 
 #
