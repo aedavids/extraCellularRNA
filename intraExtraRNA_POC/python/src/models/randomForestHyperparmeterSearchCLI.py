@@ -45,10 +45,26 @@ class RandomForestHyperparmeterSearchCLI( BBaseCommandLine ):
         #
         self.requiredArg = self.parser.add_argument_group( 'required arguments' )
 
-        self.requiredArg.add_argument( '-f', '--features', required=True, 
-                                      choices=['LUAD', 'LUSC', 'Lung', "all"], 
+        # self.requiredArg.add_argument( '-f', '--features', required=True, 
+        #                               choices=['LUAD', 'LUSC', 'Lung', "all"], 
+        #                               action="store",
+        #                               help='\nuse features from signature gene set')
+
+        self.requiredArg.add_argument( '-e', '--elife', required=True, 
+                                      nargs='+', # require 1 or more args
+                                      #choices=['LUAD', 'LUSC', 'Lung', "all"], 
                                       action="store",
-                                      help='\nuse features from signature gene set')
+                                      help='\n list of elife class. items are space separated. Valid options "Colorectal Cancer", "Esophagus Cancer", "Healthy donor", "Liver Cancer", "Lung Cancer", "Stomach Cancer"')        
+
+        # https://stackoverflow.com/a/15753721/4586180
+        # allow user to pass a list 
+        #self.requiredArg.add_argument('-l','--list', nargs='+', help='<Required> Set flag', required=True)
+
+        self.requiredArg.add_argument( '-f', '--features', required=True, 
+                                      nargs='+', # require 1 or more args
+                                      #choices=['LUAD', 'LUSC', 'Lung', "all"], 
+                                      action="store",
+                                      help='\nuse features from signature gene sets. list of GTEx or TCGA categories. Items are space separated')
 
         self.requiredArg.add_argument( '-o', '--outDir', required=True, default=".", metavar="",   
                                             action='store', 

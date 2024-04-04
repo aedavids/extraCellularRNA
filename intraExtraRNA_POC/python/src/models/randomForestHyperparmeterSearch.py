@@ -24,7 +24,7 @@ from sklearn.metrics         import make_scorer
 from sklearn.model_selection import RepeatedStratifiedKFold
 import sys
 
-from intraExtraRNA.elifeUtilities import loadElifeLungTrainingData
+from intraExtraRNA.elifeUtilities import loadElifeTrainingData
 from models.randomForestHyperparmeterSearchCLI import RandomForestHyperparmeterSearchCLI
 
 meaningOfLife = 42
@@ -251,6 +251,17 @@ def tunningFramework(logger : logging.Logger,
     return resultsDict
 
 ################################################################################
+def cleanWhiteSpace(logger,  args = list[str] ):
+    ret = []
+    for i in range(len(args)):
+        c = args[i]
+        cc = c.strip()
+        logger.info(f'AEDWIP c : xxx{c}xxx cc : xxx{cc}xxx')
+        ret.append( cc)
+
+    return ret
+
+################################################################################
 def main(inCommandLineArgsList=None):
     '''
     TODO
@@ -288,19 +299,24 @@ def main(inCommandLineArgsList=None):
 
     logger.warning(f'command line arguments : {cli.args}')
 
-    features = cli.args.features 
+    features = cleanWhiteSpace(logger,  cli.args.features )
     outDir   = cli.args.outDir   
     os.makedirs(outDir, exist_ok=True)
     pipelineStageName = cli.args.pipelineStageName
+    selectElifeCategories = cleanWhiteSpace(logger, cli.args.elife )
 
     logger.info(f'features: {features}')
     logger.info(f'outDir: {outDir}')
     logger.info(f'pipelineStageName: {pipelineStageName}')
+    logger.info(f'selectElifeCategories: {selectElifeCategories}')
 
-
+ 
     # load training data
 
-    HUGO_lungGenes, elifeLungGenes, countDF, metaDF, XNP, yNP = loadElifeLungTrainingData(pipelineStageName, features)
+    # HUGO_lungGenes, elifeLungGenes, countDF, metaDF, XNP, yNP = loadElifeLungTrainingData(pipelineStageName, features)
+    HUGO_lungGenes, elifeLungGenes, countDF, metaDF, XNP, yNP = loadElifeTrainingData(pipelineStageName, 
+                                                                                      features, 
+                                                                                      selectElifeCategories)
 
     parameterKwags= createSearchParameters(logger, XNP, debug=False)
 
@@ -412,7 +428,7 @@ def mainCLITest(inCommandLineArgsList=None):
 if __name__ == '__main__':
     main()
     
-    # hack used to test parsing of vargs
+    #hack used to test parsing of vargs
     # mainCLITest(
     #     #inCommandLineArgsList=['-h']
     #     inCommandLineArgsList=[
