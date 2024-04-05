@@ -66,9 +66,9 @@ class BestLFCSignatureGeneConfig(SignatureGeneConfiguration):
         and baseMean >= median( baseMean )
         sorted by lfc 
 
-        This algorithm selects biomarkers with the strongest 'signal' not biomarkers that
-        are the most differentially expressed
-
+        This algorithm selects biomarkers that are the most differential expressed
+        with a strong 'signal' not biomarkers that have the strongest signal
+        
         arguments:
             deseqDF:
                 results of DESeq2 as a pandas dataframe            

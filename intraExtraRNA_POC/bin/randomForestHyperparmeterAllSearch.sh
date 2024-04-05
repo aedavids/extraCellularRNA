@@ -16,7 +16,7 @@ if [ $# -ne 1 ];
         exit 1 # error
     fi
 
-progName=$0
+progName=`basename $0`
 outDir=$1/${progName}.out
 mkdir $outDir
 
@@ -52,7 +52,7 @@ if [ -z ${PYTHONPATH+x} ];
 
 printf "PYTHONPATH : $PYTHONPATH \n"
 
-logFile="${outDir}/${0}.log"
+logFile="${outDir}/${progName}.log"
 setsid sh -c "set -x; python -m models.randomForestHyperparmeterSearch \
                         --outDir ${outDir} \
                         --features all \

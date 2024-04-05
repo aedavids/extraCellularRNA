@@ -1,10 +1,10 @@
 #!/bin/bash
 # Andrew Davidson
 # aedavids@ucsc.edu
-# 2/5/24
+# 4/1/24
 # 
 # runs  extraCellularRNA/intraExtraRNA_POC/python/src/models/randomForestHyperparmeter 
-# on elife lung cancer samples
+# on elife Esophagus cancer samples
 #
 
 
@@ -55,8 +55,8 @@ printf "PYTHONPATH : $PYTHONPATH \n"
 logFile="${outDir}/${progName}.log"
 setsid sh -c "set -x; python -m models.randomForestHyperparmeterSearch \
                         --outDir ${outDir} \
-                        --features LUAD \
-                        " > $logFile 2>&1 & 
+                        --features Esophagus_Mucosa \
+                        --elife 'Healthy donor' 'Esophagus Cancer'" > $logFile 2>&1 & 
 
 sleep 10
 pstree $USER

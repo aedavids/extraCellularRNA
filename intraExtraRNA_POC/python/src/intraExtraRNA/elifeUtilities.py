@@ -6,6 +6,7 @@
 '''
 public functions 
     loadCounts()
+    loadElifeTrainingData()
     loadElifeLungTrainingData()
     loadMetaData()
     searchForMissingMapGenes()
@@ -22,6 +23,8 @@ from intraExtraRNA.mapIds import mapHUGO_2_ENSG
 from intraExtraRNA.utilities import  selectSamples
 
 logger = logging.getLogger(__name__)
+
+validElifeCategories = {"Colorectal Cancer", "Esophagus Cancer", "Healthy donor", "Liver Cancer", "Lung Cancer", "Stomach Cancer"}
 
 ################################################################################
 def loadCounts(
@@ -43,19 +46,36 @@ def loadCounts(
         (AAAAACT)n,0,0,0
 
     returns a data frame with index = sample ids, and columns = genes
+
+    $ pwd
+    /private/groups/kimlab/alex/data/elife
+    $ cut -d , -f 12 elife_scaled_metaData_2023-05-18.csv| sort | uniq -c
+        53 "Colorectal Cancer"
+        1 "diagnosis"
+        31 "Esophagus Cancer"
+        43 "Healthy donor"
+        26 "Liver Cancer"
+        35 "Lung Cancer"
+        36 "Stomach Cancer"    
     '''
 
     countPath = f'{dataRoot}/{countFile}'
     countDF = pd.read_csv(countPath, index_col='gene').transpose()
     return countDF
 
+
 ################################################################################
 def loadElifeLungTrainingData(
         pipelineStageName : str = "best10CuratedDegree1_ce467ff",
-        features : str = "all"
+        features : str = "all",
     ) -> tuple[list[str], list[str], pd.DataFrame, pd.DataFrame, np.array, np.array]:
     '''
-    TODO
+    Easy of use class. Makes it easy to select lung releated samples from eLife, GTex, and TCGA
+    wrapper around loadElifeTrainingData()
+
+    broke this out to maintain random forest hyper parameter search backwards compatiblity
+    
+    raises: ValueError
 
     arguments: 
         features: 
@@ -66,17 +86,67 @@ def loadElifeLungTrainingData(
         (HUGO_lungGenes, elifeLungGenes, countDF, metaDF, XNP, yNP)
     '''
     logger.info("BEGIN")
-    logger.debug(f"AEDWIP pipelineStageName : {pipelineStageName}")
-    #logger.error(f'AEDWIP features: {features}')
-    countDF = loadCounts()
-    metaDF = loadMetaData()
-
-    if features == "all":
+    if features == "all":# TODO AEDWIP do not hard code
         categories = ['LUAD', 'LUSC', 'Lung']
     else :
         categories = [features]
 
     logger.debug(f'AEDWIP categories : {categories}')
+
+    selectElifeCategories =  ["Healthy donor", "Lung Cancer"]
+
+    logger.info("END")
+    return loadElifeTrainingData(pipelineStageName,
+                                 categories,
+                                 selectElifeCategories)
+
+################################################################################
+def loadElifeTrainingData(
+        pipelineStageName : str,
+        features : list[str],
+        selectElifeCategories : list[str],
+    ) -> tuple[list[str], list[str], pd.DataFrame, pd.DataFrame, np.array, np.array]:
+    '''
+
+    raises: ValueError
+
+    arguments: 
+        features: 
+            a list of GTEx or TCGA classes to select features from 
+
+        selectElifeCategories:
+            valid items:
+                 "Colorectal Cancer", "Esophagus Cancer", "Healthy donor", 
+                 "Liver Cancer", "Lung Cancer", "Stomach Cancer"
+
+
+    returns
+        (HUGO_lungGenes, elifeLungGenes, countDF, metaDF, XNP, yNP)
+    '''
+    logger.info("BEGIN")
+    logger.debug(f"AEDWIP pipelineStageName : {pipelineStageName}")
+    #logger.error(f'AEDWIP features: {features}')
+    countDF = loadCounts()
+    metaDF = loadMetaData()
+
+    # if features == "all":# TODO AEDWIP do not hard code
+    #     categories = ['LUAD', 'LUSC', 'Lung']
+    # else :
+    #     categories = [features]
+
+    # logger.debug(f'AEDWIP categories : {categories}')
+
+    # validate elife categories arguments
+    errorMsg = None
+    for elifeType in selectElifeCategories:
+        if not elifeType in validElifeCategories:
+            if errorMsg == None:
+                errorMsg = "ERROR invalide elife diagnosis: "
+            errorMsg = errorMsg + f' xxx{elifeType}xxx expected : {validElifeCategories}'
+
+    if not errorMsg == None:
+        logger.error(errorMsg)
+        raise ValueError(errorMsg)
 
     # category="LUAD" 
     # LUADGenes = findSignatureGenesForPipelineStage(category, pipelineStageName, )
@@ -94,7 +164,7 @@ def loadElifeLungTrainingData(
     # HUGO_lungGenes = LUADGenes + LUSCGenes + controlGenes
         
     HUGO_lungGenes = []
-    for c in categories :
+    for c in features :
         logger.debug(f'AEDWIP category : {c}')
         genes = findSignatureGenesForPipelineStage(c, pipelineStageName, )
         logger.debug(f'category : {c} genes:\n{genes}')
@@ -112,16 +182,16 @@ def loadElifeLungTrainingData(
     # only all has 29 assert len(features) == 29, "ERROR removing missing elife genes"
 
     # select training data
-    listOfCategories = ["Healthy donor", "Lung Cancer"]
+    #aedwip selectElifeCategories = ["Healthy donor", "Lung Cancer"] aedwip do not hard code , use default value to provide backwards compatiblity
     tmpMetaDF = metaDF.rename( columns={ "diagnosis" : "category"} )
     # display( tmpMetaDF.head() )
-    XDF = selectSamples(tmpMetaDF, countDF, listOfCategories)
+    XDF = selectSamples(tmpMetaDF, countDF, selectElifeCategories)
 
     XDF = XDF.loc[:, features]
     logger.info(f'XDF.shape : {XDF.shape}')
 
     # create labels
-    selectRows = tmpMetaDF.loc[:, 'category'].isin(listOfCategories)
+    selectRows = tmpMetaDF.loc[:, 'category'].isin(selectElifeCategories)
     conditionList = tmpMetaDF.loc[selectRows, 'category'].tolist()
 
     labelEncoder = LabelEncoder()
