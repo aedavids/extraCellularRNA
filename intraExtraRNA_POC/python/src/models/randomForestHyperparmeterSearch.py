@@ -20,6 +20,7 @@ import pandas as pd
 from sklearn.ensemble        import RandomForestClassifier
 from sklearn.model_selection import  cross_validate
 from sklearn.metrics         import recall_score
+from sklearn.metrics         import roc_auc_score
 from sklearn.metrics         import make_scorer
 from sklearn.model_selection import RepeatedStratifiedKFold
 import sys
@@ -62,18 +63,21 @@ def evaluateModel(logger : logging.Logger,
 def createScoringMetricsDict(logger : logging.Logger) -> dict:
     '''
     https://stackoverflow.com/a/64540588/4586180
-    The specifity is basically the True Negative Rate which is the same as the True Positive Rate (Recall)
+    The specifity is the True Negative Rate which is the same as the True Positive Rate (Recall)
     but for the negative class
     !!! this assume we have a binary classifier.
     
     '''
     logger.info("BEGIN")
     specificity = make_scorer(recall_score, pos_label=0)
+    auc = make_scorer( roc_auc_score )
 
     scoringMetricsDict = {
         'accuracy' : 'accuracy', # TP
         'sensitivity' : 'recall',
         'specificity' : specificity,
+        'auc' : auc,
+
         #'f1' : 'f1'
     } 
 
@@ -244,7 +248,7 @@ def tunningFramework(logger : logging.Logger,
             resultsDict[metricName + "_std"].append(std)
 
             #logger.info(f'{parameters}={hyperparameterValue} {metricName}\tmean : %.3f std : %.3f)' % ( np.mean(values), np.std(values)))
-            
+        
         #print(f'scores.keys\n {scores.keys()}')
 
     logger.info("END")
@@ -362,7 +366,8 @@ def main(inCommandLineArgsList=None):
                        scoringMetricsDict)
 
     df = pd.DataFrame( resultsDict ) 
-    df = df.sort_values(by='sensitivity_mean', ascending=False)
+    # df = df.sort_values(by='sensitivity_mean', ascending=False)
+    df = df.sort_values(by='auc_mean', ascending=False)
     # parameters is a dictionary. split into columns
     expandedDictCols = df['parameters'].apply(pd.Series)
     logger.error(expandedDictCols.to_string())
@@ -371,8 +376,9 @@ def main(inCommandLineArgsList=None):
     df = df.drop('parameters', axis=1)
     #print(df.to_string())
 
-    print('*************\ntop 10 results sorted by sensitivity_mean')
-    print(df.head(n=10) )
+
+    logger.warning('*************\ntop 10 results sorted by auc_mean')
+    logger.warning(df.head(n=10) )
 
     outFile =  f'{outDir}/randomForestHyperparmeterSearch.csv'
     df.to_csv(outFile, index=False)
