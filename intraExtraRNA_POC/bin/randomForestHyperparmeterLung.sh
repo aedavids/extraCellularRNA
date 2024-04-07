@@ -56,6 +56,7 @@ logFile="${outDir}/${progName}.log"
 setsid sh -c "set -x; python -m models.randomForestHyperparmeterSearch \
                         --outDir ${outDir} \
                         --features Lung \
+                        --elife 'Healthy donor' 'Lung Cancer' \
                         " > $logFile 2>&1 & 
 
 sleep 10

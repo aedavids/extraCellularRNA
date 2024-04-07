@@ -55,7 +55,8 @@ printf "PYTHONPATH : $PYTHONPATH \n"
 logFile="${outDir}/${progName}.log"
 setsid sh -c "set -x; python -m models.randomForestHyperparmeterSearch \
                         --outDir ${outDir} \
-                        --features all \
+                        --features Lung LUAD LUSC \
+                        --elife 'Healthy donor' 'Lung Cancer' \
                         " > $logFile 2>&1 & 
 
 sleep 10
