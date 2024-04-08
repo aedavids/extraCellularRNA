@@ -2,7 +2,7 @@
 # randomForestHyperparmeterSearch.py
 # Andrew E. Davidson
 # aedavids@ucsc.edu
-# 02/01/2012
+# 02/01/2024
 #
 # ref: extracelluarRNA/intraExtraRNA_POC/jupyterNotebooks/elife/lungCancer/randomForestIntraCellularLungCancerBiomarkersOnExtracellularSamples.ipynb
 #
@@ -351,11 +351,19 @@ def main(inCommandLineArgsList=None):
     # create model for each set of parameters we which to evaluate
     #
     models = list()
+    # aedwip = 0
     for kwags in searchGridParameters:
         rf = RandomForestClassifier(**kwags) 
+        logger.error(f'AEDWIP creating rf with  parameters {kwags}')
+ 
+
         # make sure we know the models configuration
         rf.aedwipKwags = kwags
         models.append( rf )
+               
+        # aedwip = aedwip + 1
+        # if aedwip == 20:
+        #     break
 
     logger.warning(f'len(models) : {len(models)}')
 
@@ -379,6 +387,30 @@ def main(inCommandLineArgsList=None):
 
     logger.warning('*************\ntop 10 results sorted by auc_mean')
     logger.warning(df.head(n=10) )
+
+    # logger.error(f'AEDWIP df.info()\n {df.info()}')
+
+    # 
+    # If Pandas is writing integer columns as floats when you use the to_csv method,
+    # it's likely due to the presence of missing values (NaN) in those columns.
+    # In Pandas, NaN is considered a floating-point number, and since a column 
+    # can only have one data type, the entire column gets 
+    # cast to float if it contains any NaN values.
+    # Convert to Integers with Nullable Integer Type
+    #
+    # this cause problems with read_csv() the col will be type float not in
+    # we could put in a marker value like -99999. I do not know what scikitlearn
+    # will do?
+    #
+    # why do we care?
+    # some random forest parameters behave very differently is the
+    # value is float or an integer
+    #
+    df['max_depth'] = df['max_depth'].astype('Int32')
+    df['max_features'] = df['max_features'].astype('Int32')
+    df['n_estimators'] = df['n_estimators'].astype('Int32')
+
+    logger.error(f'AEDWIP df.info()\n {df.info()}')
 
     outFile =  f'{outDir}/randomForestHyperparmeterSearch.csv'
     df.to_csv(outFile, index=False)
