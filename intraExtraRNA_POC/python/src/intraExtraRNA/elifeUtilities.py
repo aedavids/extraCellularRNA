@@ -242,7 +242,7 @@ def searchForMissingMapGenes(countDF, genes, refSeq2ENSGDF):
     # logger.info(f'missing i : {i}')
     if len(missingGenesElife) > 0 :
         selectRows = refSeq2ENSGDF.loc[:, 'ENSG'].isin(missingGenesElife)
-        print( f'refSeq2ENSGDF.loc[selectRows, :] :\n{pp.pformat(refSeq2ENSGDF.loc[selectRows, :])}')
+        logger.info( f'refSeq2ENSGDF.loc[selectRows, :] :\n{pp.pformat(refSeq2ENSGDF.loc[selectRows, :])}')
 
         # we can ignore the decimal point. it encode the version number
         hackDict = { # key = v25 value = v39
