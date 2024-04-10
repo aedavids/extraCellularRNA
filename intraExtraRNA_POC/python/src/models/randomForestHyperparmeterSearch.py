@@ -127,7 +127,7 @@ def createMaxFeatures(logger : logging.Logger,
     if start < 1:
         start = 1
     end = medianNFeatures + bound
-    logger.error(f'AEDWIP start : {start} medianNFeatures: {medianNFeatures} bound : {bound} end : {end}')
+    logger.debug(f'AEDWIP start : {start} medianNFeatures: {medianNFeatures} bound : {bound} end : {end}')
     maxFeatures = tuple( it.product( ['max_features'], np.arange(start, end, 1) ) )
 
     logger.info(f'ret : {maxFeatures}')
@@ -354,7 +354,7 @@ def main(inCommandLineArgsList=None):
     # aedwip = 0
     for kwags in searchGridParameters:
         rf = RandomForestClassifier(**kwags) 
-        logger.error(f'AEDWIP creating rf with  parameters {kwags}')
+        logger.debug(f'AEDWIP creating rf with  parameters {kwags}')
  
 
         # make sure we know the models configuration
@@ -378,7 +378,7 @@ def main(inCommandLineArgsList=None):
     df = df.sort_values(by='auc_mean', ascending=False)
     # parameters is a dictionary. split into columns
     expandedDictCols = df['parameters'].apply(pd.Series)
-    logger.error(expandedDictCols.to_string())
+    logger.debug(expandedDictCols.to_string())
     # works but puts expand cols at end 
     df = df.join(expandedDictCols)
     df = df.drop('parameters', axis=1)
@@ -410,7 +410,7 @@ def main(inCommandLineArgsList=None):
     df['max_features'] = df['max_features'].astype('Int32')
     df['n_estimators'] = df['n_estimators'].astype('Int32')
 
-    logger.error(f'AEDWIP df.info()\n {df.info()}')
+    logger.debug(f'AEDWIP df.info()\n {df.info()}')
 
     outFile =  f'{outDir}/randomForestHyperparmeterSearch.csv'
     df.to_csv(outFile, index=False)
