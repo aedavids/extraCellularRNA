@@ -49,9 +49,9 @@ def evaluateModel(logger : logging.Logger,
     '''
     logger.info("BEGIN")
 
-    logger.error(f'AEDWIP model : {str(model)} {model}')
-    logger.error(f'AEDWIP yNP.shape : {yNP.shape} yNP[0:5]: {yNP[0:5]}')
-    logger.error(f'AEDWIP xNP.shape : {XNP.shape} xNP: \n{XNP}')
+    logger.debug(f'AEDWIP model : {str(model)} {model}')
+    logger.debug(f'AEDWIP yNP.shape : {yNP.shape} yNP[0:5]: {yNP[0:5]}')
+    logger.debug(f'AEDWIP xNP.shape : {XNP.shape} xNP: \n{XNP}')
     # define the evaluation procedure
     # crossValidationGenerator = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=meaningOfLife)
     crossValidationGenerator = RepeatedStratifiedKFold(n_splits=5, n_repeats=1, random_state=randomSeed)
@@ -263,7 +263,7 @@ def cleanWhiteSpace(logger,  args = list[str] ):
     for i in range(len(args)):
         c = args[i]
         cc = c.strip()
-        logger.info(f'AEDWIP c : xxx{c}xxx cc : xxx{cc}xxx')
+        logger.debug(f'AEDWIP c : xxx{c}xxx cc : xxx{cc}xxx')
         ret.append( cc)
 
     return ret
