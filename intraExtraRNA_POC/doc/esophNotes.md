@@ -34,5 +34,15 @@ $ grep ESCA $f | cut -d , -f 1,7 | grep '0.775\|0.685\|0.685\|0.631'
 ./best2CuratedDegree1_6457b56/training/best2CuratedDegree1.sh.out/metrics/metricsRounded.csv:ESCA,0.631
 ```
 
+# do our intracellular biomarkers work on elife ?
+ref: extraCellularRNA/intraExtraRNA_POC/jupyterNotebooks/elife/lungCancer/randomForestIntraCellularLungCancerBiomarkersOnExtracellularSamples.ipynb
+
+1. load data
+2. how many esoph and healthy control samples do we have?
+
 ## <span style="color:red;background-color:yellow">TODO</span>
 - consider using ESCA genes from best1CuratedDegree1_6457b56
+- intraExtraRNA.elifeUtilities.loadElifeLungTrainingData fix features argument
+  * ~~rename we made it generic, maybe wrapper it it new func is generic, Lung call new generic~~
+  * check yNP. should health control = zero?
+
