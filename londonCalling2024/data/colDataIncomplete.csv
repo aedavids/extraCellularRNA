@@ -1,0 +1,68 @@
+batchID,sample,sex,age,race,histology,barcode
+batch1,07dab69dfdd8e6518a7ff39b0669d029bbdce978598ce6a5ec3c81f1bbe82408,male,76.2,NA,adenocarcinoma,1
+batch1,3fff03c9f87217265b27301425821d28012ec9572f60666565d1d3dc802d1030,male,76.4,NA,adenocarcinoma,2
+batch1,493bf7322b8c18365466c43bf7a9e119bd4d7782147f9bc368bf4909539c43de,male,68.7,NA,adenocarcinoma,3
+batch1,71e1e767626b62a9dfb5321155050864a42c3bd00fe6d5264cb6e15d769abbe0,male,80.1,NA,adenocarcinoma,4
+batch1,,,,,,
+batch1,,,,,,
+batch1,55153c626632da62c806b937e843029d8ebdf443339f09ac71b664415520c248,male,85.3,NA,high grade dysplasia,5
+batch1,74ffea6045f9ff44c0e3b46fe32fa30de6e616cd174fa30d5349a362f51424dd,male,61.4,NA,high grade dysplasia,6
+batch1,c4e21ec2e0d0ddc2d67b423f88afbb70efbccfe6771696d9901b1d3b79873d9f,male,70.3,NA,high grade dysplasia,7
+batch1,fc8312805a7b522dd76f2fb66a10f680c19270dd7bda4e3919ac6c48504fcc51,male,64.5,NA,high grade dysplasia,8
+batch1,,,,,,
+batch1,,,,,,
+batch1,HMN1233843,male,72,,control,9
+batch1,HMN1233844,male,70,,control,10
+batch1,HMN1233846,male,74,,control,11
+batch1,HMN1233847,male,81,,control,12
+batch2,613201c27f7f7b32b6f8d66838c42485a4f3e5f317654ab0a83f05925de1f8f0,male,61.8,NA,adenocarcinoma,1
+batch2,ec3960b75b04a71a3556d04f59871aa6b5a6dd32c0738b859825533ede013b7e,male,56.5,NA,adenocarcinoma,2
+batch2,af0eb77c6832b4f37ab4df154af584c9fcc2d3e93cc6114e15ef320c5f04198c,female,82.1,NA,adenocarcinoma,3
+batch2,500e209e675095622f0c11d724c1e71803754f26b17e5fb6d9160e0c47269186,female,52.4,NA,adenocarcinoma,4
+batch2,,,,,,
+batch2,400db421ed7c66c4a261ed15f577554ba70775d05f7d43ae66a304d88a242e0b,male,49,NA,high grade dysplasia,5
+batch2,43586a1e8002a046a4c1ffd332f9b58363d2b9701036cedd5850b629aefb7291,male,68.4,NA,high grade dysplasia,6
+batch2,9547916b8c534eb0fa0c336d8cd1dc6282cfc8e62da0c5cfaf65e881e87bf799,male,82.8,NA,high grade dysplasia,7
+batch2,311b80003c6b111bff34ab3e670d9ce6ca92c561aae0a739abc91284d00f7538,male,67.9,NA,high grade dysplasia,8
+batch2,,,,,,
+batch2,HMN1233850,male,84,C,control,9
+batch2,HMN1233842,female,89,Caucasian,control,10
+batch2,HMN1233851,male,86,C,control,11
+batch2,HMN1233845,male,72,C,control,12
+batch3,0690f491108b0e56fd9901e02e68a918868ec8c5ab8772bcd8ae6ff931169d84,male,55.5,NA,adenocarcinoma,1
+batch3,d92bb881892667d0f040a8f57e87252e8d81acf47d87f8415d162bdc8d9decfd,female,78.4,NA,adenocarcinoma,2
+batch3,d32a6d6508ab20ce8c2443a5dc0c75ef4c125cf1167abd9c0b01af8502b06f7c,male,59.7,NA,adenocarcinoma,3
+batch3,c5f1b6f71cff5b5671d29e8bcea065d6f0819f64d7d98f0c181433b3a1979b3e,female,59.7,NA,adenocarcinoma,4
+batch3,f2936730d4ef6d186f39cc8df0473423f9ac61de206b7898cc69670bb862f363,male,58.6,NA,adenocarcinoma,5
+batch3,0b6e16480a9df4cfdc9562ca8549a632ba839f58292063191302f82e0420f15c,male,51,NA,adenocarcinoma,6
+batch3,ebb932c59054ee447e5bd540ab749bb91d641474bf38c2866bf2b99799cc6ac8,female,50.8,NA,adenocarcinoma,7
+batch3,,,,,,
+batch3,5c3fbbb17433f06e11f278956a2606d35d32d395119c97b85d8d110831d8a7c5,male,61.9,NA,high grade dysplasia,8
+batch3,,,,,,
+batch3,HMN1208751,male,60,Hispanic,control,9
+batch3,HMN1208743,male,52,Hispanic,control,10
+batch3,HMN1208728,female,57,Hispanic,control,11
+batch3,HMN1208750,,,,control,12
+batch3,,,,,,
+batch3,,,,,,
+batch3,,,,,,
+batch3,,,,,,
+batch3,,,,,,
+batch3,,,,,,
+batch4,bdef58ece52be566601ccfa096ce9a17f9c0eb099db049bd60f2065fa3e21aef,male,55.5,NA,adenocarcinoma,1
+batch4,9a498e8b17034fd8bb534f0e65e12c83a73aa65908fd41f4a13f86cf35b3e0cd,female,80.8,NA,adenocarcinoma,2
+batch4,da859c8e95cc5acefde4e70aaed8fc89449c2aa5d9a6cef6202041987840e0a3,male,75.3,NA,adenocarcinoma,3
+batch4,821888d3e72ad1b25a2b273c17246cfb3ba1b0239bf85be1b3aae38e36d38349,male,57.9,NA,adenocarcinoma,4
+batch4,63a0497187ba375f436e18a0d71d7e7bc81fc9f25466af72706a3123b10c195b,male,83.2,NA,adenocarcinoma,5
+batch4,,,,,,
+batch4,455c0ab83e59afbe8ceac9ccd9d5d40ef2ac6d47009b85c50a8ad40e227e6242,male,88.4,NA,high grade dysplasia,6
+batch4,8ad9e289767277eb9c958b8fd4f238c333e911843dd1db458bfa5cdc482beafe,male,59.2,NA,high grade dysplasia,7
+batch4,7bcf15855d6dabfeb33d7527eede20bc8ab4419192d5f66fd9afe972b397a4ec,male,42.6,NA,high grade dysplasia,8
+batch4,,,,,,
+batch4,HMN1233837,female,72,Black,control,9
+batch4,HMN1233838,female,80,Caucasian,control,10
+batch4,HMN1233848,male,82,H,control,11
+batch4,HMN1233849,male,82,H,control,12
+batch4,,,,,,
+batch4,,,,,,
+
