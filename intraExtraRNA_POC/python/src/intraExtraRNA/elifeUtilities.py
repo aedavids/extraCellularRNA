@@ -106,7 +106,7 @@ def loadElifeTrainingData(
         pipelineStageName : str,
         features : list[str],
         selectElifeCategories : list[str],
-    ) -> tuple[list[str], list[str], pd.DataFrame, pd.DataFrame, np.array, np.array]:
+    ) -> tuple[list[str], list[str], pd.DataFrame, pd.DataFrame, np.array, np.array, LabelEncoder]:
     '''
 
     raises: ValueError
@@ -122,7 +122,7 @@ def loadElifeTrainingData(
 
 
     returns
-        (HUGOGenes, elifeLungGenes, countDF, metaDF, XNP, yNP)
+        (HUGOGenes, elifeLungGenes, countDF, metaDF, XNP, yNP, labelEncoder)
     '''
     logger.info("BEGIN")
     logger.debug(f"AEDWIP pipelineStageName : {pipelineStageName}")
@@ -201,7 +201,7 @@ def loadElifeTrainingData(
     XNP = XDF.values
 
     logger.info("END")
-    return (HUGOGenes, elifeLungGenes, countDF, metaDF, XNP, yNP)
+    return (HUGOGenes, elifeLungGenes, countDF, metaDF, XNP, yNP, labelEncoder)
 
 ################################################################################
 def loadMetaData(
