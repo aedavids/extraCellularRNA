@@ -20,6 +20,7 @@ public functions:
     loadlist
     loadPipelineStageIntersectionDict
     saveDict
+    saveList
     saveSet
 '''
 
@@ -283,7 +284,16 @@ def saveDictionary(dictPath : str, d: dict):
         f.write(pp.pformat(d,  indent=4, sort_dicts=True)) 
         f.write("\n")
 
-
+################################################################################
+def saveList(listPath : str, l : list):
+    '''
+    TODO
+    '''
+    with open(listPath, "w") as f:
+        f.write(str(l))
+        # for value in l:
+        #     f.write(str(value) +"\n")
+    
 ################################################################################
 def saveSet(setPath : str, s: set):
     '''
