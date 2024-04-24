@@ -60,6 +60,7 @@ def loadCounts(
     '''
 
     countPath = f'{dataRoot}/{countFile}'
+    logger.info(f'countPath : {countPath}')
     countDF = pd.read_csv(countPath, index_col='gene').transpose()
     return countDF
 
@@ -121,7 +122,7 @@ def loadElifeTrainingData(
 
 
     returns
-        (HUGO_lungGenes, elifeLungGenes, countDF, metaDF, XNP, yNP)
+        (HUGOGenes, elifeLungGenes, countDF, metaDF, XNP, yNP)
     '''
     logger.info("BEGIN")
     logger.debug(f"AEDWIP pipelineStageName : {pipelineStageName}")
@@ -163,22 +164,23 @@ def loadElifeTrainingData(
 
     # HUGO_lungGenes = LUADGenes + LUSCGenes + controlGenes
         
-    HUGO_lungGenes = []
+    HUGOGenes = []
     for c in features :
         logger.debug(f'AEDWIP category : {c}')
         genes = findSignatureGenesForPipelineStage(c, pipelineStageName, )
         logger.debug(f'category : {c} genes:\n{genes}')
-        HUGO_lungGenes = HUGO_lungGenes + genes
+        HUGOGenes = HUGOGenes + genes
 
-    logger.info(f'len(HUGO_lungGenes) {len(HUGO_lungGenes)}')
+    logger.info(f'len(HUGOGenes) {len(HUGOGenes)}')
 
     # check for missing biomarkers
-    elifeLungGenes, missingElifeGenes = selectFeatures(countDF, HUGO_lungGenes)
+    elifeLungGenes, missingElifeGenes = selectFeatures(countDF, HUGOGenes)
     logger.warning( f'len(elifeLungGenes) : {len(elifeLungGenes)}' )
     logger.warning( f'missingElifeGenes\n : {missingElifeGenes}' )
 
     # for now just drop missing genes
     features = list( set(elifeLungGenes) - set(missingElifeGenes) )
+    # features is something like Colon_Sigmoid assert len(features) > 1, f'ERROR: loadElifeTrainingData() {HUGOGenes} do not map to ENSGO '
     # only all has 29 assert len(features) == 29, "ERROR removing missing elife genes"
 
     # select training data
@@ -199,7 +201,7 @@ def loadElifeTrainingData(
     XNP = XDF.values
 
     logger.info("END")
-    return (HUGO_lungGenes, elifeLungGenes, countDF, metaDF, XNP, yNP)
+    return (HUGOGenes, elifeLungGenes, countDF, metaDF, XNP, yNP)
 
 ################################################################################
 def loadMetaData(
@@ -225,6 +227,22 @@ def loadMetaData(
 
 ################################################################################
 def searchForMissingMapGenes(countDF, genes, refSeq2ENSGDF):
+    '''
+    elife complete seq count data uses ensembl ids
+
+    We can map the GTEx_TCGA HUGO gene ids to ensembl ids
+
+    The GTEx_TCGA complete seq counts where done using ref gencode.v35
+
+    Some of the gencode.v35 ids do not map to gencode.v39
+
+    linux hack find missing gencode.v35 ENSG00000253339.2 id
+    s=/private/groups/kimlab/alex/data/elife/elife_all_norm_counts_2023-05-18.csv
+    s.shape : (76556, 225)
+    $ grep ENSG00000253339 $s | cut -d , -f 1
+    ENSG00000253339.3
+
+    '''
     logger.info("BEGIN")
     cols = countDF.columns
 
@@ -245,10 +263,28 @@ def searchForMissingMapGenes(countDF, genes, refSeq2ENSGDF):
         logger.info( f'refSeq2ENSGDF.loc[selectRows, :] :\n{pp.pformat(refSeq2ENSGDF.loc[selectRows, :])}')
 
         # we can ignore the decimal point. it encode the version number
+        # TODO AEDWIP calculate the hackDict
+        # use pandas split(expand=true) https://pandas.pydata.org/docs/reference/api/pandas.Series.str.split.html
         hackDict = { # key = v25 value = v39
-                     'ENSG00000253339.2' : 'ENSG00000253339.3',
-                     'ENSG00000267107.8' : 'ENSG00000267107.9',
+                     'ENSG00000253339.2' : 'ENSG00000253339.3', # source elife Lung Cancer
+                     'ENSG00000267107.8' : 'ENSG00000267107.9', # source elife Lung Cancer
+
+                     'ENSG00000076770.14' : 'ENSG00000076770.15', # Source Colon_Sigmoid elife Colorectal Cancer
+                     'ENSG00000111554.14' : 'ENSG00000111554.15', # Source Colon_Sigmoid elife Colorectal Cancer
+                     'ENSG00000214944.9' : 'ENSG00000214944.10', # Source Colon_Sigmoid elife Colorectal Cancer
+
+                     'ENSG00000243701.7' : 'ENSG00000243701.8', # COAD elife Colorectal Cancer
+
+                     'ENSG00000137959.16' : 'ENSG00000137959.17', # READ, elife Colorectal Cancer
+                     'ENSG00000134202.11' : 'ENSG00000134202.12', # READ, elife Colorectal Cancer
+
+                     #'ENSG00000274031.1' : ' not found ????', # LUSC
+
+                     'ENSG00000225889.9' : 'ENSG00000225889.10', # Stomach
+                     'ENSG00000171840.12' : 'ENSG00000171840.13', #Stomach
+                     '' : '', # 
                      }
+        
         for missing in missingGenesElife:
             if missing in hackDict :
                 map2Id = hackDict[missing]
@@ -305,7 +341,9 @@ def selectFeatures(
             elifeGenes.append(k)        
 
     # assert len(elifeLungGenes) == 30, f'ERROR missing ids expected 30 got {len(elifeLungGenes) }'
-            
+
+    #  Some of the gencode.v35 ids do not map to gencode.v39
+    # searchForMissingMapGenes is a hack to correct for mapping issue
     elifeGenes, missingElifeGenes = searchForMissingMapGenes(countDF, elifeGenes, refSeq2ENSGDF)
 
     logger.info('END')

@@ -281,6 +281,8 @@ def saveDictionary(dictPath : str, d: dict):
     '''
     with open(dictPath, "w") as f: 
         f.write(pp.pformat(d,  indent=4, sort_dicts=True)) 
+        f.write("\n")
+
 
 ################################################################################
 def saveSet(setPath : str, s: set):
