@@ -226,6 +226,78 @@ def loadMetaData(
     return metaDF
 
 ################################################################################
+def DEPRECATED_searchForMissingMapGenes(countDF, genes, refSeq2ENSGDF):
+    '''
+    elife complete seq count data uses ensembl ids
+
+    We can map the GTEx_TCGA HUGO gene ids to ensembl ids
+
+    The GTEx_TCGA complete seq counts where done using ref gencode.v35
+
+    Some of the gencode.v35 ids do not map to gencode.v39
+
+    linux hack find missing gencode.v35 ENSG00000253339.2 id
+    s=/private/groups/kimlab/alex/data/elife/elife_all_norm_counts_2023-05-18.csv
+    s.shape : (76556, 225)
+    $ grep ENSG00000253339 $s | cut -d , -f 1
+    ENSG00000253339.3
+
+    '''
+    logger.info("BEGIN")
+    cols = countDF.columns
+
+    # make sure all genes exist in elife data
+    i = 0
+    missingGenesElife = []
+    geneSet = set(genes)
+    retGeneSet = geneSet.copy()
+    for k in  genes:
+        if not k in cols:
+            i += 1
+            logger.info(f'gencode.v35.ucsc.rmsk.tx.to.gene.csv {k} not found in elife gencode.v39.annotation.expanded.tx.to.gene.tsv')
+            missingGenesElife.append(k)
+    
+    # logger.info(f'missing i : {i}')
+    if len(missingGenesElife) > 0 :
+        selectRows = refSeq2ENSGDF.loc[:, 'ENSG'].isin(missingGenesElife)
+        logger.info( f'refSeq2ENSGDF.loc[selectRows, :] :\n{pp.pformat(refSeq2ENSGDF.loc[selectRows, :])}')
+
+        # we can ignore the decimal point. it encode the version number
+        # TODO AEDWIP calculate the hackDict
+        # use pandas split(expand=true) https://pandas.pydata.org/docs/reference/api/pandas.Series.str.split.html
+        hackDict = { # key = v25 value = v39
+                     'ENSG00000253339.2' : 'ENSG00000253339.3', # source elife Lung Cancer
+                     'ENSG00000267107.8' : 'ENSG00000267107.9', # source elife Lung Cancer
+
+                     'ENSG00000076770.14' : 'ENSG00000076770.15', # Source Colon_Sigmoid elife Colorectal Cancer
+                     'ENSG00000111554.14' : 'ENSG00000111554.15', # Source Colon_Sigmoid elife Colorectal Cancer
+                     'ENSG00000214944.9' : 'ENSG00000214944.10', # Source Colon_Sigmoid elife Colorectal Cancer
+
+                     'ENSG00000243701.7' : 'ENSG00000243701.8', # COAD elife Colorectal Cancer
+
+                     'ENSG00000137959.16' : 'ENSG00000137959.17', # READ, elife Colorectal Cancer
+                     'ENSG00000134202.11' : 'ENSG00000134202.12', # READ, elife Colorectal Cancer
+
+                     #'ENSG00000274031.1' : ' not found ????', # LUSC
+
+                     'ENSG00000225889.9' : 'ENSG00000225889.10', # Stomach
+                     'ENSG00000171840.12' : 'ENSG00000171840.13', #Stomach
+                     '' : '', # 
+                     }
+        
+        for missing in missingGenesElife:
+            if missing in hackDict :
+                map2Id = hackDict[missing]
+                logger.info(f'mapping {missing} to {map2Id}')
+                retGeneSet.add(map2Id)
+                retGeneSet.remove(missing)
+                missingGenesElife.remove(missing)
+    
+
+    logger.info("END")
+    return (list(retGeneSet), missingGenesElife)
+
+################################################################################
 def searchForMissingMapGenes(countDF, genes, refSeq2ENSGDF):
     '''
     elife complete seq count data uses ensembl ids
@@ -348,3 +420,97 @@ def selectFeatures(
 
     logger.info('END')
     return ( elifeGenes, missingElifeGenes )
+
+
+
+#############
+############# searchForMissingMapGenes prototype
+###############
+
+# if we can find a file like /private/groups/kimlab/genomes.annotations/gencode.35/gencode.v35.ucsc.rmsk.tx.to.gene.csv
+# for gencode v39 we could expand the ENSG and join on base. most mismapps are due to change in version number
+
+# genes
+# ['ENSG00000214944.9', 'ENSG00000111554.14', 'ENSG00000076770.14']
+# missingGenesDF = pd.DataFrame({"ENSG":genes})
+
+# missingGenesDF
+#                  ENSG
+# 0   ENSG00000214944.9
+# 1  ENSG00000111554.14
+# 2  ENSG00000076770.14
+# missingGenesDF[["base", "version"]] = missingGenesDF.loc[:,"ENSG"].str.split(".", expand=True)
+
+
+
+# missingGenesDF
+#                  ENSG             base version
+# 0   ENSG00000214944.9  ENSG00000214944       9
+# 1  ENSG00000111554.14  ENSG00000111554      14
+# 2  ENSG00000076770.14  ENSG00000076770      14
+
+
+
+#  refSeq2ENSGDF.head()
+#             HUGO                ENSG                  bioType
+# 64075   ARHGEF28   ENSG00000214944.9           protein_coding
+# 64081   ARHGEF28   ENSG00000214944.9          retained_intron
+# 64083   ARHGEF28   ENSG00000214944.9     processed_transcript
+# 139028      MDM1  ENSG00000111554.14  nonsense_mediated_decay
+# 139030      MDM1  ENSG00000111554.14           protein_coding
+
+
+
+
+
+# refSeq2ENSGDF[["base", "version"]] = refSeq2ENSGDF.loc[:,"ENSG"].str.split(".", expand=True)
+
+# refSeq2ENSGDF.head()
+#             HUGO                ENSG                  bioType             base version
+# 64075   ARHGEF28   ENSG00000214944.9           protein_coding  ENSG00000214944       9
+# 64081   ARHGEF28   ENSG00000214944.9          retained_intron  ENSG00000214944       9
+# 64083   ARHGEF28   ENSG00000214944.9     processed_transcript  ENSG00000214944       9
+# 139028      MDM1  ENSG00000111554.14  nonsense_mediated_decay  ENSG00000111554      14
+# 139030      MDM1  ENSG00000111554.14           protein_coding  ENSG00000111554      14
+
+
+
+# xxxDF = pd.merge
+
+# xxxDF = pd.merge(missingGenesDF,  refSeq2ENSGDF, on='base', how='inner')
+
+
+# xxx
+# Traceback (most recent call last):
+#   File "<string>", line 1, in <module>
+# NameError: name 'xxx' is not defined
+# xxxDF
+#                ENSG_x             base version_x      HUGO              ENSG_y                  bioType version_y
+# 0   ENSG00000214944.9  ENSG00000214944         9  ARHGEF28   ENSG00000214944.9           protein_coding         9
+# 1   ENSG00000214944.9  ENSG00000214944         9  ARHGEF28   ENSG00000214944.9          retained_intron         9
+# 2   ENSG00000214944.9  ENSG00000214944         9  ARHGEF28   ENSG00000214944.9     processed_transcript         9
+# 3  ENSG00000111554.14  ENSG00000111554        14      MDM1  ENSG00000111554.14  nonsense_mediated_decay        14
+# 4  ENSG00000111554.14  ENSG00000111554        14      MDM1  ENSG00000111554.14           protein_coding        14
+# 5  ENSG00000111554.14  ENSG00000111554        14      MDM1  ENSG00000111554.14          retained_intron        14
+# 6  ENSG00000111554.14  ENSG00000111554        14      MDM1  ENSG00000111554.14     processed_transcript        14
+# 7  ENSG00000076770.14  ENSG00000076770        14     MBNL3  ENSG00000076770.14           protein_coding        14
+# 8  ENSG00000076770.14  ENSG00000076770        14     MBNL3  ENSG00000076770.14     processed_transcript        14
+
+
+# missingGenesElife
+# ['ENSG00000214944.9']
+
+# missingGenesElife
+# ['ENSG00000214944.9', 'ENSG00000111554.14', 'ENSG00000076770.14']
+
+# xxxDF
+#                ENSG_x             base version_x      HUGO              ENSG_y                  bioType version_y
+# 0   ENSG00000214944.9  ENSG00000214944         9  ARHGEF28   ENSG00000214944.9           protein_coding         9
+# 1   ENSG00000214944.9  ENSG00000214944         9  ARHGEF28   ENSG00000214944.9          retained_intron         9
+# 2   ENSG00000214944.9  ENSG00000214944         9  ARHGEF28   ENSG00000214944.9     processed_transcript         9
+# 3  ENSG00000111554.14  ENSG00000111554        14      MDM1  ENSG00000111554.14  nonsense_mediated_decay        14
+# 4  ENSG00000111554.14  ENSG00000111554        14      MDM1  ENSG00000111554.14           protein_coding        14
+# 5  ENSG00000111554.14  ENSG00000111554        14      MDM1  ENSG00000111554.14          retained_intron        14
+# 6  ENSG00000111554.14  ENSG00000111554        14      MDM1  ENSG00000111554.14     processed_transcript        14
+# 7  ENSG00000076770.14  ENSG00000076770        14     MBNL3  ENSG00000076770.14           protein_coding        14
+# 8  ENSG00000076770.14  ENSG00000076770        14     MBNL3  ENSG00000076770.14     processed_transcript        14
