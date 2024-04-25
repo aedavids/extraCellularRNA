@@ -288,7 +288,6 @@ def DEPRECATED_searchForMissingMapGenes(countDF, genes, refSeq2ENSGDF):
         for missing in missingGenesElife:
             if missing in hackDict :
                 map2Id = hackDict[missing]
-                logger.info(f'mapping {missing} to {map2Id}')
                 retGeneSet.add(map2Id)
                 retGeneSet.remove(missing)
                 missingGenesElife.remove(missing)
@@ -338,33 +337,66 @@ def searchForMissingMapGenes(countDF, genes, refSeq2ENSGDF):
         # TODO AEDWIP calculate the hackDict
         # use pandas split(expand=true) https://pandas.pydata.org/docs/reference/api/pandas.Series.str.split.html
         hackDict = { # key = v25 value = v39
-                     'ENSG00000253339.2' : 'ENSG00000253339.3', # source elife Lung Cancer
-                     'ENSG00000267107.8' : 'ENSG00000267107.9', # source elife Lung Cancer
+                    'ENSG00000253339.2' : 'ENSG00000253339.3', # source elife Lung Cancer
+                    'ENSG00000267107.8' : 'ENSG00000267107.9', # source elife Lung Cancer
 
-                     'ENSG00000076770.14' : 'ENSG00000076770.15', # Source Colon_Sigmoid elife Colorectal Cancer
-                     'ENSG00000111554.14' : 'ENSG00000111554.15', # Source Colon_Sigmoid elife Colorectal Cancer
-                     'ENSG00000214944.9' : 'ENSG00000214944.10', # Source Colon_Sigmoid elife Colorectal Cancer
+                    'ENSG00000076770.14' : 'ENSG00000076770.15', # Source Colon_Sigmoid elife Colorectal Cancer
+                    'ENSG00000111554.14' : 'ENSG00000111554.15', # Source Colon_Sigmoid elife Colorectal Cancer
+                    'ENSG00000214944.9' : 'ENSG00000214944.10', # Source Colon_Sigmoid elife Colorectal Cancer
 
-                     'ENSG00000243701.7' : 'ENSG00000243701.8', # COAD elife Colorectal Cancer
+                    'ENSG00000243701.7' : 'ENSG00000243701.8', # COAD elife Colorectal Cancer
 
-                     'ENSG00000137959.16' : 'ENSG00000137959.17', # READ, elife Colorectal Cancer
-                     'ENSG00000134202.11' : 'ENSG00000134202.12', # READ, elife Colorectal Cancer
+                    'ENSG00000137959.16' : 'ENSG00000137959.17', # READ, elife Colorectal Cancer
+                    'ENSG00000134202.11' : 'ENSG00000134202.12', # READ, elife Colorectal Cancer
 
-                     #'ENSG00000274031.1' : ' not found ????', # LUSC
+                    #'ENSG00000274031.1' : ' not found ????', # LUSC
 
-                     'ENSG00000225889.9' : 'ENSG00000225889.10', # Stomach
-                     'ENSG00000171840.12' : 'ENSG00000171840.13', #Stomach
-                     '' : '', # 
+                    'ENSG00000225889.9' : 'ENSG00000225889.10', # Stomach
+                    'ENSG00000171840.12' : 'ENSG00000171840.13', #Stomach
+
+                    # hack for 
+                    # /private/groups/kimlab/vikas/nanopore/promethion/barretts/analysis/complete-seq/R_results//normalized_counts_for_andy.csv
+                    # see /private/groups/kimlab/aedavids/londonCalling2024/data/mapHack.sh
+                    'ENSG00000169299.14' : 'ENSG00000169299.14',
+                    'ENSG00000051596.10' : 'ENSG00000051596.10',
+                    'ENSG00000157379.14' : 'ENSG00000157379.14',
+                    'ENSG00000165914.15' : 'ENSG00000165914.15',
+                    'ENSG00000129235.11' : 'ENSG00000129235.11',
+                    'ENSG00000160703.16' : 'ENSG00000160703.16',
+                    'ENSG00000148429.14' : 'ENSG00000148429.15',
+                    'ENSG00000129219.14' : 'ENSG00000129219.14',
+                    'ENSG00000180667.10' : 'ENSG00000180667.11',
+                    'ENSG00000082269.16' : 'ENSG00000082269.17',
                      }
-        
-        for missing in missingGenesElife:
+
+        logger.info(f'AEDWIP BEING are there dups? missingGenesElife\n{missingGenesElife}')
+        logger.info(f'AEDWIP hackDict:\n{pp.pformat(hackDict, indent=4)}')
+        logger.info(f'AEDWIP BEING len(missingGenesElife) : {len(missingGenesElife)}')
+        logger.info(f'AEDWIP BEING len(retGeneSet) : {len(retGeneSet)}')
+        logger.info(f'AEDWIP BEING retGeneSet : {pp.pformat(retGeneSet, indent=4) }')
+
+        i = 0
+        tmpGenes = missingGenesElife.copy()
+        for missing in tmpGenes:
+            missing = missing.strip()
+            logger.info(f'AEDWIP i: {i} test missing {missing} is in hack')
+            i = i + 1
             if missing in hackDict :
                 map2Id = hackDict[missing]
+                map2Id = map2Id.strip()
                 logger.info(f'mapping {missing} to {map2Id}')
-                retGeneSet.add(map2Id)
-                retGeneSet.remove(missing)
+                if missing != map2Id:
+                    logger.info(f'{missing} != {map2Id}')
+                    retGeneSet.add(map2Id)
+                    retGeneSet.remove(missing)
                 missingGenesElife.remove(missing)
+            else:
+                logger.info('AEDWIP unable find mapping for {missing}')
     
+        logger.info(f'AEDWIP END missingGenesElife\n{missingGenesElife}')
+        logger.info(f'AEDWIP END retGeneSet\n{retGeneSet}')
+        logger.info(f'AEDWIP END list(retGeneSet)\n{list(retGeneSet)}')
+
 
     logger.info("END")
     return (list(retGeneSet), missingGenesElife)
@@ -429,6 +461,7 @@ def selectFeatures(
 
 # if we can find a file like /private/groups/kimlab/genomes.annotations/gencode.35/gencode.v35.ucsc.rmsk.tx.to.gene.csv
 # for gencode v39 we could expand the ENSG and join on base. most mismapps are due to change in version number
+# does gencode.v39.annotation.expanded.tx.to.gene.tsv exist?
 
 # genes
 # ['ENSG00000214944.9', 'ENSG00000111554.14', 'ENSG00000076770.14']

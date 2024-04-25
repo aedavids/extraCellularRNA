@@ -321,9 +321,10 @@ def main(inCommandLineArgsList=None):
     # load training data
 
     # HUGO_lungGenes, elifeLungGenes, countDF, metaDF, XNP, yNP = loadElifeLungTrainingData(pipelineStageName, features)
-    HUGO_lungGenes, elifeLungGenes, countDF, metaDF, XNP, yNP = loadElifeTrainingData(pipelineStageName, 
-                                                                                      features, 
-                                                                                      selectElifeCategories)
+    tt = loadElifeTrainingData(pipelineStageName, 
+                                features, 
+                                selectElifeCategories)
+    HUGO_lungGenes, elifeLungGenes, countDF, metaDF, XNP, yNP, labelEncoder = tt
 
     parameterKwags= createSearchParameters(logger, XNP, debug=False)
 
