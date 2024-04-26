@@ -174,7 +174,7 @@ def loadElifeTrainingData(
     logger.info(f'len(HUGOGenes) {len(HUGOGenes)}')
 
     # check for missing biomarkers
-    elifeLungGenes, missingElifeGenes = selectFeatures(countDF, HUGOGenes)
+    elifeLungGenes, missingElifeGenes = selectFeatures(transposedCountsDF, HUGOGenes)
     logger.warning( f'len(elifeLungGenes) : {len(elifeLungGenes)}' )
     logger.warning( f'missingElifeGenes\n : {missingElifeGenes}' )
 
