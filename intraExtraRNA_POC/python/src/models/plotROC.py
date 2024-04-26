@@ -5,6 +5,12 @@
 # 04/07/2024
 #
 
+#
+# calculateAUC()
+# plotROCWrapper()
+# plotROCWrapper()
+#
+
 import matplotlib.pyplot as plt
 import numpy as np
 import scikitplot as skplt
@@ -95,3 +101,49 @@ def plotROC(
     retDict = calculateAUC( y, yProbability )
 
     return retDict
+
+################################################################################
+def plotROCWrapper(XNP :np.array, 
+                yNP :np.array, 
+                model,
+                title:str,
+                 classesToPlot=None ) -> tuple[plt.figure, plt.axes, dict[int, float]]:
+    '''
+    arguments:
+        XNP :
+            samples to create prediction for
+        y : 
+            ground truth labels
+    
+        model:
+            trained model 
+
+    returns 
+        fig:
+
+        panel :
+        
+        dictionary :
+            key = yProbability column idx
+            value = area under ROC curve
+ 
+    '''
+    predictions  = model.predict(XNP)
+    yProbability = model.predict_proba(XNP)
+
+    fig, axs = plt.subplots(nrows=1, ncols=1, figsize=(4, 4), ) #sharey=True
+    
+    #yProbability = yProbability[:,1]
+    print(f'yNP.shape : {yNP.shape}')
+    print(f'yProbability.shape : {yProbability.shape}' )
+    
+    classesToPlot = [1]
+    aucDict = plotROC(
+            axs, 
+            yNP,
+            yProbability,
+            title,
+            classesToPlot
+    ) 
+
+    return (fig, axs, aucDict)
