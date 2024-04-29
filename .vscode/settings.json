@@ -7,5 +7,25 @@
         "PYTHONPATH":"/Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/deconvolutionAnalysis/python:/Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/src:/Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/intraExtraRNA_POC/python/src"
     },
 
-    "python.terminal.executeInFileDir": true
+    "python.terminal.executeInFileDir": true,
+
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/bower_components": true,
+        "**/env": true,
+        "**/venv": true
+      },
+      "files.watcherExclude": {
+         "**/.git/objects/**": true,
+         "**/.git/subtree-cache/**": true,
+         "**/node_modules/*/**": true,
+        "**/.cache/**": true,
+        "**/.conda/**": true,
+        "**/.local/**": true,
+        "**/.nextflow/**": true,
+        "**/env/**": true,
+        "**/venv/**": true,
+        "**/work/**": true,
+        "**/private/groups/**": true
+      }
 }
