@@ -62,6 +62,10 @@ class VolcanoPlotCommandLine( object ):
         
         self.parser.add_argument( '-v', '--version', action='version', version=self.program_version_message )
         
+        # add a boolean argument
+        # if present print gene name
+        self.parser.add_argument( '-l', "--label", action="store_true", 
+                                help="plot colored gene names") 
 
         self.requiredArg = self.parser.add_argument_group( 'required arguments' )
 
