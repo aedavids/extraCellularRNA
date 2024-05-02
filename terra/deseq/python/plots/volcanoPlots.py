@@ -153,7 +153,7 @@ class VolcanoPlot( object ):
             # of all other planes 
             zorder = 1           
             if volcanoPlotData.isTE[i]:
-                color = 'red'
+                color = '#3b528b' #https://waldyrious.net/viridis-palette-generator/
                 markersize= markersize + markersize * 0.25 #2,  # diameter of mark
                 alpha = 0.8 
                 zorder = 1
