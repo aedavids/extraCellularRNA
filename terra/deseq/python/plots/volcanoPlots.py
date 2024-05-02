@@ -103,7 +103,10 @@ class VolcanoPlot( object ):
         # make sure all points are plotted
         xMin = np.floor( np.min( xList ) )
         xMax = np.ceil( np.max( xList ) )
-        panel.set_xlim( xMin, xMax )
+
+        # want the x axis to be balanced. It is posible min = -10 and max = 5
+        limit = np.max( np.abs([xMin, xMax]) )
+        panel.set_xlim( limit * -1  , limit )
 
         # make sure all points are plotted
         yMin = np.floor( np.min( yList ) )
