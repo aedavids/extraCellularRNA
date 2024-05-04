@@ -1,7 +1,7 @@
 {
     "deseq_one_vs_all.one_vs_all.memoryGb": "64",
     "deseq_one_vs_all.one_vs_all.runTimeCpu": "2",
-    "deseq_one_vs_all.one_vs_all.colData": "/private/groups/kimlab/aedavids/londonCalling2024/data/colData.csv", 
+    "deseq_one_vs_all.one_vs_all.colData": "/private/groups/kimlab/aedavids/londonCalling2024/data/colData.high.adenocarcinoma.control.csv", 
     "deseq_one_vs_all.one_vs_all.isCSV": "true",
     "deseq_one_vs_all.one_vs_all.isDebug": "true",
     "deseq_one_vs_all.one_vs_all.referenceLevel": "control",
@@ -9,5 +9,5 @@
     "deseq_one_vs_all.one_vs_all.design": "~  sex + histology",
     "deseq_one_vs_all.one_vs_all.dockerImg": "aedavids/edu_ucsc_kim_lab-1vsall_1.0",
     "deseq_one_vs_all.one_vs_all.runTimePreemptible": "1",
-    "deseq_one_vs_all.one_vs_all.countMatrix": "/private/groups/kimlab/vikas/nanopore/promethion/barretts/analysis/complete-seq/R_results/normalized_counts_for_andy.csv"
+    "deseq_one_vs_all.one_vs_all.countMatrix": "/private/groups/kimlab/aedavids/londonCalling2024/data/normalizedCounts.high.adenocarcinoma.control.csv"
 }
