@@ -48,6 +48,7 @@ def calculateAUC (
         # truePositiveRate = sensitivity
         prob = yProbability[:,i]
         fpr, tpr, thresholds = roc_curve(y, prob)
+        #print(f'fpr : {fpr} tpr : {tpr} : thresholds : {thresholds}')
         
         #area under the curve
         auc = roc_auc_score(y, prob)
