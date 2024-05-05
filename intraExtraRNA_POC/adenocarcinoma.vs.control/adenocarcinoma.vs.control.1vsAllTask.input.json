@@ -4,7 +4,7 @@
     "deseq_one_vs_all.one_vs_all.colData": "/private/groups/kimlab/aedavids/londonCalling2024/data/colData.high.adenocarcinoma.control.csv", 
     "deseq_one_vs_all.one_vs_all.isCSV": "true",
     "deseq_one_vs_all.one_vs_all.isDebug": "true",
-    "deseq_one_vs_all.one_vs_all.referenceLevel": "control",
+    "deseq_one_vs_all.one_vs_all.referenceLevel": "adenocarcinoma",
     "deseq_one_vs_all.one_vs_all.diskSpaceGb": "80",
     "deseq_one_vs_all.one_vs_all.design": "~  sex + histology",
     "deseq_one_vs_all.one_vs_all.dockerImg": "aedavids/edu_ucsc_kim_lab-1vsall_1.0",
