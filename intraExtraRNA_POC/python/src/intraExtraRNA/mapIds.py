@@ -25,30 +25,6 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-# ################################################################################
-# def dropDuplicates(mapDF  : pd.DataFrame) -> aedwip :
-#     '''
-#     dataFrames returned by mapHUGO_2_ENSG() have lots of duplicate base values
-
-#     drop duplicates 
-#     '''
-#     logger.info("BEGIN")
-
-#     logger.info(f'genes: {genes}')
-#     selectGeneRows = mapDF.loc[:, "HUGO"].isin(genes)
-#     logger.info(f'sum(selectGeneRows): {sum(selectGeneRows)}')
-
-#     mapDF = mapDF.loc[selectGeneRows.values, ['HUGO', 'ENSG', 'bioType']].drop_duplicates()
-#     logger.info(f'mapDF.shape : {mapDF.shape}')
-#     logger.debug(f'mapDF\n{mapDF.head()}')
-
-#     mapDF_Genes = mapDF.loc[:, "ENSG"].drop_duplicates().tolist()
-#     logger.info(f'len(mapDF_Genes) : {len(mapDF_Genes)}')
-#     logger.info(f'mapDF_Genes : {mapDF_Genes}')
-
-#     logger.info("END")
-#     return aedwip
-
 ################################################################################
 def mapENSG_2_HUGO(
             txt2GeneFilePath : pl.Path,
