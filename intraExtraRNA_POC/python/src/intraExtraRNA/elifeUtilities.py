@@ -97,16 +97,21 @@ def loadElifeLungTrainingData(
     selectElifeCategories =  ["Healthy donor", "Lung Cancer"]
 
     logger.info("END")
-    return loadElifeTrainingData(pipelineStageName,
+    t = loadElifeTrainingData(pipelineStageName,
                                  categories,
                                  selectElifeCategories)
+
+    HUGOGenes, elifeLungGenes, missingGenes, countDF, metaDF, XNP, yNP, labelEncoder, mapDF = t
+
+    # for backwards compatibility do not return missing Genes
+    return (HUGOGenes, elifeLungGenes, countDF, metaDF, XNP, yNP, labelEncoder, mapDF)
 
 ################################################################################
 def loadElifeTrainingData(
         pipelineStageName : str,
         features : list[str],
         selectElifeCategories : list[str],
-    ) -> tuple[list[str], list[str], pd.DataFrame, pd.DataFrame, np.array, np.array, LabelEncoder]:
+    ) -> tuple[list[str], list[str], list[str], pd.DataFrame, pd.DataFrame, np.array, np.array, LabelEncoder, pd.DataFrame]:
     '''
 
     raises: ValueError
@@ -122,7 +127,9 @@ def loadElifeTrainingData(
 
 
     returns
-        (HUGOGenes, elifeLungGenes, countDF, metaDF, XNP, yNP, labelEncoder)
+        (HUGOGenes, elifeLungGenes, missingGenes, countDF, metaDF, XNP, yNP, labelEncoder, mapDF)
+
+        mapDF shows how v35 HUGO names where mapped to v39 ENSG names
     '''
     logger.info("BEGIN")
     logger.debug(f"AEDWIP pipelineStageName : {pipelineStageName}")
@@ -174,9 +181,10 @@ def loadElifeTrainingData(
     logger.info(f'len(HUGOGenes) {len(HUGOGenes)}')
 
     # check for missing biomarkers
-    elifeLungGenes, missingElifeGenes = selectFeatures(transposedCountsDF, HUGOGenes)
-    logger.warning( f'len(elifeLungGenes) : {len(elifeLungGenes)}' )
-    logger.warning( f'missingElifeGenes\n : {missingElifeGenes}' )
+    elifeLungGenes, missingElifeGenes, mapDF = selectFeatures(transposedCountsDF, HUGOGenes)
+    logger.info( f'len(elifeLungGenes) : {len(elifeLungGenes)}' )
+    if len(missingElifeGenes) > 0:
+        logger.warning( f'missingElifeGenes\n : {missingElifeGenes}' )
 
     # for now just drop missing genes
     features = list( set(elifeLungGenes) - set(missingElifeGenes) )
@@ -201,7 +209,7 @@ def loadElifeTrainingData(
     XNP = XDF.values
 
     logger.info("END")
-    return (HUGOGenes, elifeLungGenes, transposedCountsDF, metaDF, XNP, yNP, labelEncoder)
+    return (HUGOGenes, elifeLungGenes, missingElifeGenes, transposedCountsDF, metaDF, XNP, yNP, labelEncoder, mapDF)
 
 ################################################################################
 def loadMetaData(
@@ -226,75 +234,75 @@ def loadMetaData(
     return metaDF
 
 ################################################################################
-def DEPRECATED_searchForMissingMapGenes(countDF, genes, refSeq2ENSGDF):
-    '''
-    elife complete seq count data uses ensembl ids
+# def DEPRECATED_v35biomarkerGeneMapDF(countDF, genes, refSeq2ENSGDF):
+#     '''
+#     elife complete seq count data uses ensembl ids
 
-    We can map the GTEx_TCGA HUGO gene ids to ensembl ids
+#     We can map the GTEx_TCGA HUGO gene ids to ensembl ids
 
-    The GTEx_TCGA complete seq counts where done using ref gencode.v35
+#     The GTEx_TCGA complete seq counts where done using ref gencode.v35
 
-    Some of the gencode.v35 ids do not map to gencode.v39
+#     Some of the gencode.v35 ids do not map to gencode.v39
 
-    linux hack find missing gencode.v35 ENSG00000253339.2 id
-    s=/private/groups/kimlab/alex/data/elife/elife_all_norm_counts_2023-05-18.csv
-    s.shape : (76556, 225)
-    $ grep ENSG00000253339 $s | cut -d , -f 1
-    ENSG00000253339.3
+#     linux hack find missing gencode.v35 ENSG00000253339.2 id
+#     s=/private/groups/kimlab/alex/data/elife/elife_all_norm_counts_2023-05-18.csv
+#     s.shape : (76556, 225)
+#     $ grep ENSG00000253339 $s | cut -d , -f 1
+#     ENSG00000253339.3
 
-    '''
-    logger.info("BEGIN")
-    cols = countDF.columns
+#     '''
+#     logger.info("BEGIN")
+#     cols = countDF.columns
 
-    # make sure all genes exist in elife data
-    i = 0
-    missingGenesElife = []
-    geneSet = set(genes)
-    retGeneSet = geneSet.copy()
-    for k in  genes:
-        if not k in cols:
-            i += 1
-            logger.info(f'gencode.v35.ucsc.rmsk.tx.to.gene.csv {k} not found in elife gencode.v39.annotation.expanded.tx.to.gene.tsv')
-            missingGenesElife.append(k)
+#     # make sure all genes exist in elife data
+#     i = 0
+#     missingGenesElife = []
+#     geneSet = set(genes)
+#     retGeneSet = geneSet.copy()
+#     for k in  genes:
+#         if not k in cols:
+#             i += 1
+#             logger.info(f'gencode.v35.ucsc.rmsk.tx.to.gene.csv {k} not found in elife gencode.v39.annotation.expanded.tx.to.gene.tsv')
+#             missingGenesElife.append(k)
     
-    # logger.info(f'missing i : {i}')
-    if len(missingGenesElife) > 0 :
-        selectRows = refSeq2ENSGDF.loc[:, 'ENSG'].isin(missingGenesElife)
-        logger.info( f'refSeq2ENSGDF.loc[selectRows, :] :\n{pp.pformat(refSeq2ENSGDF.loc[selectRows, :])}')
+#     # logger.info(f'missing i : {i}')
+#     if len(missingGenesElife) > 0 :
+#         selectRows = refSeq2ENSGDF.loc[:, 'ENSG'].isin(missingGenesElife)
+#         logger.info( f'refSeq2ENSGDF.loc[selectRows, :] :\n{pp.pformat(refSeq2ENSGDF.loc[selectRows, :])}')
 
-        # we can ignore the decimal point. it encode the version number
-        # TODO AEDWIP calculate the hackDict
-        # use pandas split(expand=true) https://pandas.pydata.org/docs/reference/api/pandas.Series.str.split.html
-        hackDict = { # key = v25 value = v39
-                     'ENSG00000253339.2' : 'ENSG00000253339.3', # source elife Lung Cancer
-                     'ENSG00000267107.8' : 'ENSG00000267107.9', # source elife Lung Cancer
+#         # we can ignore the decimal point. it encode the version number
+#         # TODO AEDWIP calculate the hackDict
+#         # use pandas split(expand=true) https://pandas.pydata.org/docs/reference/api/pandas.Series.str.split.html
+#         hackDict = { # key = v25 value = v39
+#                      'ENSG00000253339.2' : 'ENSG00000253339.3', # source elife Lung Cancer
+#                      'ENSG00000267107.8' : 'ENSG00000267107.9', # source elife Lung Cancer
 
-                     'ENSG00000076770.14' : 'ENSG00000076770.15', # Source Colon_Sigmoid elife Colorectal Cancer
-                     'ENSG00000111554.14' : 'ENSG00000111554.15', # Source Colon_Sigmoid elife Colorectal Cancer
-                     'ENSG00000214944.9' : 'ENSG00000214944.10', # Source Colon_Sigmoid elife Colorectal Cancer
+#                      'ENSG00000076770.14' : 'ENSG00000076770.15', # Source Colon_Sigmoid elife Colorectal Cancer
+#                      'ENSG00000111554.14' : 'ENSG00000111554.15', # Source Colon_Sigmoid elife Colorectal Cancer
+#                      'ENSG00000214944.9' : 'ENSG00000214944.10', # Source Colon_Sigmoid elife Colorectal Cancer
 
-                     'ENSG00000243701.7' : 'ENSG00000243701.8', # COAD elife Colorectal Cancer
+#                      'ENSG00000243701.7' : 'ENSG00000243701.8', # COAD elife Colorectal Cancer
 
-                     'ENSG00000137959.16' : 'ENSG00000137959.17', # READ, elife Colorectal Cancer
-                     'ENSG00000134202.11' : 'ENSG00000134202.12', # READ, elife Colorectal Cancer
+#                      'ENSG00000137959.16' : 'ENSG00000137959.17', # READ, elife Colorectal Cancer
+#                      'ENSG00000134202.11' : 'ENSG00000134202.12', # READ, elife Colorectal Cancer
 
-                     #'ENSG00000274031.1' : ' not found ????', # LUSC
+#                      #'ENSG00000274031.1' : ' not found ????', # LUSC
 
-                     'ENSG00000225889.9' : 'ENSG00000225889.10', # Stomach
-                     'ENSG00000171840.12' : 'ENSG00000171840.13', #Stomach
-                     '' : '', # 
-                     }
+#                      'ENSG00000225889.9' : 'ENSG00000225889.10', # Stomach
+#                      'ENSG00000171840.12' : 'ENSG00000171840.13', #Stomach
+#                      '' : '', # 
+#                      }
         
-        for missing in missingGenesElife:
-            if missing in hackDict :
-                map2Id = hackDict[missing]
-                retGeneSet.add(map2Id)
-                retGeneSet.remove(missing)
-                missingGenesElife.remove(missing)
+#         for missing in missingGenesElife:
+#             if missing in hackDict :
+#                 map2Id = hackDict[missing]
+#                 retGeneSet.add(map2Id)
+#                 retGeneSet.remove(missing)
+#                 missingGenesElife.remove(missing)
     
 
-    logger.info("END")
-    return (list(retGeneSet), missingGenesElife)
+#     logger.info("END")
+#     return (list(retGeneSet), missingGenesElife)
 
 ################################################################################
 def searchForMissingMapGenes(countDF : pd.DataFrame, 
@@ -425,59 +433,121 @@ def selectFeatures(
                     countDF : pd.DataFrame,
                     genes : list[str],
                     txt2GeneFilePath : str =  "/private/groups/kimlab/genomes.annotations/gencode.35/gencode.v35.ucsc.rmsk.tx.to.gene.csv"
-
-                   ):
+                   ) -> tuple[list[str], list[str], pd.DataFrame]:
     '''
     TODO
     convert list of HUGO gene ids to ENSG is
 
     example:
         genes = ['AC011944.1', 'ATP13A4-AS1', 'AC090004.1', 'GXYLT1P3', 'AC126323.6']
+
+    returns 
+     ( elifeGenes, missingElifeGenes, retMapDF )
     '''
     logger.info("BEGIN")
-
-    # mapHUGO_2_ENSG is a poor name
-    # GTEx_TCGA data set was quantified using HUGO names from gencode.v35.ucsc.rmsk.tx.to.gene.csv
-    # new versions of complete-seq use ENSG names from v39
-    # see function's doc string for details
-    v35biomarkerGeneMapDF = mapHUGO_2_ENSG(txt2GeneFilePath)
-    logger.info(f'v35biomarkerGeneMapDF.shape : {v35biomarkerGeneMapDF.shape }')
-
     logger.info(f'genes: {genes}')
-    selectGeneRows = v35biomarkerGeneMapDF.loc[:, "HUGO"].isin(genes)
+
+    #
+    # load v35 mapping file and select genes of interest
+    #
+    # mapHUGO_2_ENSG returns a data frame with columns [HUGO ENSG bioType base version]
+    # the data frame returns has denormalized entries for repeat gene name
+    #  repeats do not have ENSG name we just use what ever name was provide in the 
+    # rmask portion of the mapping file
+    #
+    # denormalization allows use to search for HUGO, ENSG and repeats using the same data frame
+    # see mapHUGO_2_ENSG doc string for details
+    v35GeneMapDF = mapHUGO_2_ENSG(txt2GeneFilePath)
+    logger.info(f'v35GeneMapDF.shape : {v35GeneMapDF.shape }')
+    selectGeneRows = v35GeneMapDF.loc[:, "HUGO"].isin(genes)
     logger.info(f'sum(selectGeneRows): {sum(selectGeneRows)}')
-
-    v35RefBiomarkersDF = v35biomarkerGeneMapDF.loc[selectGeneRows.values, ['HUGO', 'ENSG', 'bioType']].drop_duplicates()
+    v35RefBiomarkersDF = v35GeneMapDF.loc[selectGeneRows, :]
     logger.info(f'v35RefBiomarkersDF.shape : {v35RefBiomarkersDF.shape}')
-    logger.info(f'v35RefBiomarkersDF\n{v35RefBiomarkersDF}')
 
-    v35Biomarker_Genes = v35RefBiomarkersDF.loc[:, "ENSG"].drop_duplicates().tolist()
-    logger.info(f'len(v35Biomarker_Genes) : {len(v35Biomarker_Genes)}')
-    logger.info(f'v35Biomarker_Genes : {v35Biomarker_Genes}')
+    # elife transcripts counts where create using v39 repeat mask
+    # load v39 mapping file and select genes of interest
+    # i.e the v35 ENSG base == v39 ENSG base
+    logger.error(f'AEDWIP do not hard code ')
+    aedwip = "/private/groups/kimlab/genomes.annotations/genomes.annotations/gencode.39/gencode.v39.ucsc.rmsk.tx.to.gene.csv"
+    v39GeneMapDF= mapHUGO_2_ENSG(aedwip)
+    logger.info(f'v39GeneMapDF.shape : {v39GeneMapDF.shape}')
 
-    # check for missing gene loci ids
-    missingV35IdsSet = set(genes) - set(v35RefBiomarkersDF.loc[:, 'HUGO'])
-    logger.warning(f'missingV35IdsSet HUGO or repeat ids from {txt2GeneFilePath}\n{missingV35IdsSet}')
+    v35ENSGBaseGeneName = v35RefBiomarkersDF.loc[:,"base"]
+    logger.info(f'v35ENSGBaseGeneName + repeats.shape: {v35ENSGBaseGeneName.shape}')
+    selectV39Rows = v39GeneMapDF.loc[:,"base"].isin( v35ENSGBaseGeneName)
+    v39RefBiomarkersDF = v39GeneMapDF.loc[selectV39Rows, :]
+    logger.info(f'v39RefBiomarkersDF.shape : {v39RefBiomarkersDF.shape}')
 
-    # make sure missing ids exist in elife count data and add to elifeLungGenes
-    allElifeGeneSet = set(countDF.columns)
-    # missing = set(lungGenes) - set( refSeq2ENSGDF['refSeq'] )
-    # logger.info(f'missing :\n{missing}')
-    for k in  missingV35IdsSet:
-        if not k in allElifeGeneSet:
-            logger.info(f'{k} not found')
-        else :
-            logger.info(f'adding {k} to elifeLungGenes ')    
-            v35Biomarker_Genes.append(k)        
 
-    # assert len(elifeLungGenes) == 30, f'ERROR missing ids expected 30 got {len(elifeLungGenes) }'
+    # Because of biotype, starting with a list of 10 genes
+    # v35RefBiomarkersDF and v39RefBiomarkersDF with have shapes around (40k, 5)
+    # join takes for ever. drop duplicate caused by biotypes to reduce size
+    v35MapDF = v35RefBiomarkersDF.loc[:, ['HUGO', 'ENSG', 'base', 'version'] ].drop_duplicates()
+    logger.info(f'v35MapDF.shape : {v35MapDF.shape}')
+    v39MapDF = v39RefBiomarkersDF.loc[:, ['HUGO', 'ENSG', 'base', 'version'] ].drop_duplicates()
+    logger.info(f'v39MapDF.shape : {v39MapDF.shape}')
 
-    #  Some of the gencode.v35 ids do not map to gencode.v39
-    # searchForMissingMapGenes is a hack to correct for mapping issue
-    elifeGenes, missingElifeGenes = searchForMissingMapGenes(countDF, v35Biomarker_Genes, v35RefBiomarkersDF)
+    #mapDF = pd.merge( v35RefBiomarkersDF, v39RefBiomarkersDF, how='inner', on="base", suffixes=('_v35', '_v39') )
+    mapDF = pd.merge( v35MapDF, v39MapDF, how='inner', on="base", suffixes=('_v35', '_v39') )
 
+    # get a list of input genes in HUGO mapped to ENSG 
+    elifeGenes = list( mapDF.loc[:, 'ENSG_v39'].drop_duplicates() )
+
+    # search for unmapped, i.e missing genes case 1:  gene is not in ENSG_v35
+    missingInV35Set = set(genes) - set(v35RefBiomarkersDF.loc[:,'HUGO'])
+    if len(missingInV35Set) > 0 :
+        logger.warning(f"missingInV35Set: {missingInV35Set}")
+
+    # search for unmapped, i.e missing genes case 2 : gene in ENSG_v35 not in ENSG_v39
+    missingInV39Set = set(v35RefBiomarkersDF.loc[:,'base']) - set(v39RefBiomarkersDF.loc[:,'base'])
+    if len(missingInV39Set) > 0 :
+        logger.warning(f"missingInV39Set: {missingInV39Set}")
+
+    missingElifeGenes = list( missingInV35Set.union(missingInV39Set) )
+
+
+    # #v35RefBiomarkersDF = v35biomarkerGeneMapDF.loc[selectGeneRows.values, ['HUGO', 'ENSG', 'bioType']].drop_duplicates()
+    # # drop duplicate rows
+    # #v35RefBiomarkersDF = v35biomarkerGeneMapDF.loc[selectGeneRows.values, ['HUGO', 'ENSG', 'bioType', 'base', 'version']].drop_duplicates()
+    # logger.info(f'v35RefBiomarkersDF.shape : {v35RefBiomarkersDF.shape}')
+    # #logger.info(f'v35RefBiomarkersDF\n{v35RefBiomarkersDF}')
+
+
+    # v35ENSG_BiomarkerGeneNames = v35RefBiomarkersDF.loc[:, "ENSG"].drop_duplicates().tolist()
+    # logger.info(f'len(v35ENSG_BiomarkerGeneNames) : {len(v35ENSG_BiomarkerGeneNames)}')
+    # logger.info(f'v35ENSG_BiomarkerGeneNames : {v35ENSG_BiomarkerGeneNames}')
+
+    # # check for missing gene loci ids
+    # missingV35HUGONamesSet = set(genes) - set(v35RefBiomarkersDF.loc[:, 'HUGO'])
+    # logger.warning(f'missingV35HUGO HUGO or repeat ids from {txt2GeneFilePath}\n{missingV35HUGONamesSet}')
+
+
+    # logger.error(f'AEDWIP do not hard code ')
+    # aedwip = "/private/groups/kimlab/genomes.annotations/genomes.annotations/gencode.39/gencode.v39.ucsc.rmsk.tx.to.gene.csv"
+    # v39RefBiomarkersDF = mapHUGO_2_ENSG(aedwip)
+    # logger.info(f'v39RefBiomarkersDF.shape : {v39RefBiomarkersDF.shape}')
+
+
+    # # make sure missing ids exist in elife count data and add to elifeLungGenes
+    # allElifeGeneSet = set(countDF.columns)
+    # # missing = set(lungGenes) - set( refSeq2ENSGDF['refSeq'] )
+    # # logger.info(f'missing :\n{missing}')
+    # for k in  missingV35IdsSet:
+    #     if not k in allElifeGeneSet:
+    #         logger.info(f'{k} not found')
+    #     else :
+    #         logger.info(f'adding {k} to elifeLungGenes ')    
+    #         v35Biomarker_Genes.append(k)        
+
+    # # assert len(elifeLungGenes) == 30, f'ERROR missing ids expected 30 got {len(elifeLungGenes) }'
+
+    # #  Some of the gencode.v35 ids do not map to gencode.v39
+    # # searchForMissingMapGenes is a hack to correct for mapping issue
+    # elifeGenes, missingElifeGenes = searchForMissingMapGenes(countDF, v35Biomarker_Genes, v35RefBiomarkersDF)
+
+    retMapDF = mapDF.loc[:, ["HUGO_v35", "ENSG_v35", "ENSG_v39"]]
     logger.info('END')
-    return ( elifeGenes, missingElifeGenes )
+    return ( elifeGenes, missingElifeGenes, retMapDF )
 
 
 

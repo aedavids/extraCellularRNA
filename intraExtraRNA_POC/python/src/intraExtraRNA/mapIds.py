@@ -25,6 +25,30 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
+# ################################################################################
+# def dropDuplicates(mapDF  : pd.DataFrame) -> aedwip :
+#     '''
+#     dataFrames returned by mapHUGO_2_ENSG() have lots of duplicate base values
+
+#     drop duplicates 
+#     '''
+#     logger.info("BEGIN")
+
+#     logger.info(f'genes: {genes}')
+#     selectGeneRows = mapDF.loc[:, "HUGO"].isin(genes)
+#     logger.info(f'sum(selectGeneRows): {sum(selectGeneRows)}')
+
+#     mapDF = mapDF.loc[selectGeneRows.values, ['HUGO', 'ENSG', 'bioType']].drop_duplicates()
+#     logger.info(f'mapDF.shape : {mapDF.shape}')
+#     logger.debug(f'mapDF\n{mapDF.head()}')
+
+#     mapDF_Genes = mapDF.loc[:, "ENSG"].drop_duplicates().tolist()
+#     logger.info(f'len(mapDF_Genes) : {len(mapDF_Genes)}')
+#     logger.info(f'mapDF_Genes : {mapDF_Genes}')
+
+#     logger.info("END")
+#     return aedwip
+
 ################################################################################
 def mapENSG_2_HUGO(
             txt2GeneFilePath : pl.Path,
@@ -212,20 +236,25 @@ def mapHUGO_2_ENSG(
     and below the first repeat
 
     returns
-        sample data frame
-                        HUGO               ENSG                           bioType
-        79436      PRELID1P1  ENSG00000217325.2              processed_transcript
-        79437      PRELID1P1  ENSG00000217325.2  transcribed_processed_pseudogene
-        157254       GOLGA8S  ENSG00000261739.2                   retained_intron
-        157255       GOLGA8S  ENSG00000261739.2                    protein_coding
-        179749       UBE2SP2  ENSG00000224126.2              processed_pseudogene
-        195120    AC012615.3  ENSG00000267125.2                            lncRNA
-        196526    AC010336.3  ENSG00000268120.1                            lncRNA
-        227013       CCDC160  ENSG00000203952.9                    protein_coding
-        230512         (TA)n              (TA)n                        repeatMask
-        234711        LTR106             LTR106                        repeatMask
-        238552         MER5C              MER5C                        repeatMask
-        245986  HERVFH19-int       HERVFH19-int                        repeatMask
+        sample data frame. 
+        Note: due to alternative splicing, 'base' may not be uniqu. ie it can not be the 
+        dataframe index
+
+        retDF.head()
+                HUGO               ENSG                             bioType             base version
+        0      DDX11L1  ENSG00000223972.5                processed_transcript  ENSG00000223972       5
+        1      DDX11L1  ENSG00000223972.5  transcribed_unprocessed_pseudogene  ENSG00000223972       5
+        2       WASH7P  ENSG00000227232.5              unprocessed_pseudogene  ENSG00000227232       5
+        3    MIR6859-1  ENSG00000278267.1                               miRNA  ENSG00000278267       1
+        4  MIR1302-2HG  ENSG00000243485.5                              lncRNA  ENSG00000243485       5
+
+        retDF.tail()
+                    HUGO       ENSG     bioType    base      version
+        5837313   Tigger5b   Tigger5b  repeatMask  Tigger5b   None
+        5837314  ALR/Alpha  ALR/Alpha  repeatMask  ALR/Alpha   None
+        5837315      L1PA3      L1PA3  repeatMask  L1PA3      None
+        5837316      L1PA3      L1PA3  repeatMask  L1PA3      None
+        5837317  ALR/Alpha  ALR/Alpha  repeatMask  ALR/Alpha  None
     '''
 
     logger.info(f"BEGIN")
@@ -237,6 +266,15 @@ def mapHUGO_2_ENSG(
     # we can use this to separate the genecode and the repeat mask porition of the data frame
     geneCodeMapDF = tx2GeneDF.loc[:, 'uberId'].str.split('|', expand=True).loc[:, [5, 1, 7]]
     geneCodeMapDF.columns = ['HUGO', 'ENSG', 'bioType']
+
+    ############ aedwip Begin
+    versionDF = geneCodeMapDF.loc[:,'ENSG'].str.split('.', expand=True)
+    versionDF.columns = ['base', 'version']
+    
+    # axis = columns = 1 == unix past
+    byCol = 1
+    geneCodeMapDF = pd.concat([geneCodeMapDF, versionDF], axis=byCol)
+    ######## aedwip END
 
     # if HUGO, ENSG, and bioType == None, the row is part of the repeat mask
     selectRepeatMapRows = (geneCodeMapDF.loc[:,"HUGO"].isna()) & \
@@ -265,13 +303,18 @@ def mapHUGO_2_ENSG(
     bioTypes = ["repeatMask"]*nRows
     reapeatMaskDF.loc[:, "bioType"] = bioTypes
 
+    reapeatMaskDF['base'] = reapeatMaskDF['geneId']
+    reapeatMaskDF['version'] = [None]*nRows
+
     reapeatMaskDF = reapeatMaskDF.rename( columns={'geneId' : 'ENSG'} )
     reapeatMaskDF = reapeatMaskDF.drop( columns=['uberId'] )
 
     # reorder the columns to match geneCode dataframe
-    reapeatMaskDF = reapeatMaskDF.loc[:, ['HUGO', 'ENSG', 'bioType']]
+    reapeatMaskDF = reapeatMaskDF.loc[:, ['HUGO', 'ENSG', 'bioType', 'base', 'version']]
 
     retDF = pd.concat( [geneCodeMapDF, reapeatMaskDF] )
+
+    retDF.set_index("base")
 
     logger.info(f"END")
     return retDF
