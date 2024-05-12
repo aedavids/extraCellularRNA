@@ -237,6 +237,9 @@ def selectFeatures(
                     genes : list[str],
                     oldTxt2GeneFilePath : str =  "/private/groups/kimlab/genomes.annotations/gencode.35/gencode.v35.ucsc.rmsk.tx.to.gene.csv",
                     newTxt2GeneFilePath : str =  "/private/groups/kimlab/genomes.annotations/genomes.annotations/gencode.39/gencode.v39.ucsc.rmsk.tx.to.gene.csv",
+                    mapDict : dict = { 
+                                        'LTR106' : 'LTR106_Mam' #nanopore ESCA
+                                        },
                    ) -> tuple[list[str], list[str], pd.DataFrame]:
     '''
     TODO
@@ -300,12 +303,23 @@ def selectFeatures(
     if len(missingInV35Set) > 0 :
         logger.warning(f"missingInV35Set: {missingInV35Set}")
 
+
     # search for unmapped, i.e missing genes case 2 : gene in ENSG_v35 not in ENSG_v39
     missingInV39Set = set(v35RefBiomarkersDF.loc[:,'base']) - set(v39RefBiomarkersDF.loc[:,'base'])
     if len(missingInV39Set) > 0 :
         logger.warning(f"missingInV39Set: {missingInV39Set}")
 
     missingElifeGenes = list( missingInV35Set.union(missingInV39Set) )
+
+    if len(missingElifeGenes) > 0 :
+        # we can not iterate and modify the same list
+        tmpList = missingElifeGenes.copy()
+        for name in tmpList:
+            if name in mapDict:
+                elifeGenes.append( mapDict[name] )
+                missingElifeGenes.remove( name )
+            else:
+                logger.warning(f"missingElifeGenes: {missingInV35Set}")
 
     retMapDF = mapDF.loc[:, ["HUGO_v35", "ENSG_v35", "ENSG_v39"]]
     logger.info('END')
