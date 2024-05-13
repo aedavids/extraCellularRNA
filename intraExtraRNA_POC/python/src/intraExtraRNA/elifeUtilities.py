@@ -186,7 +186,7 @@ def loadElifeTrainingData(
         logger.warning( f'missingElifeGenes\n : {missingElifeGenes}' )
 
     # for now just drop missing genes
-    features = list( set(elifeLungGenes) - set(missingElifeGenes) )
+    #features = list( set(elifeLungGenes) - set(missingElifeGenes) )
     # features is something like Colon_Sigmoid assert len(features) > 1, f'ERROR: loadElifeTrainingData() {HUGOGenes} do not map to ENSGO '
     # only all has 29 assert len(features) == 29, "ERROR removing missing elife genes"
 
@@ -196,7 +196,8 @@ def loadElifeTrainingData(
     # display( tmpMetaDF.head() )
     XDF = selectSamples(tmpMetaDF, transposedCountsDF, selectElifeCategories)
 
-    XDF = XDF.loc[:, features]
+    # XDF = XDF.loc[:, features]
+    XDF = XDF.loc[:, elifeLungGenes]
     logger.info(f'XDF.shape : {XDF.shape}')
 
     # create labels
@@ -311,16 +312,19 @@ def selectFeatures(
 
     missingElifeGenes = list( missingInV35Set.union(missingInV39Set) )
 
+    retMapDF = mapDF.loc[:, ["HUGO_v35", "ENSG_v35", "ENSG_v39"]]
     if len(missingElifeGenes) > 0 :
         # we can not iterate and modify the same list
         tmpList = missingElifeGenes.copy()
-        for name in tmpList:
-            if name in mapDict:
-                elifeGenes.append( mapDict[name] )
-                missingElifeGenes.remove( name )
+        for oldName in tmpList:
+            if oldName in mapDict:
+                newName = mapDict[oldName]
+                elifeGenes.append( newName )
+                missingElifeGenes.remove( oldName )
+                #add a row to mapDF
+                retMapDF.loc[len(retMapDF.index)] = [oldName, newName, newName ] 
             else:
                 logger.warning(f"missingElifeGenes: {missingInV35Set}")
 
-    retMapDF = mapDF.loc[:, ["HUGO_v35", "ENSG_v35", "ENSG_v39"]]
     logger.info('END')
     return ( elifeGenes, missingElifeGenes, retMapDF )
