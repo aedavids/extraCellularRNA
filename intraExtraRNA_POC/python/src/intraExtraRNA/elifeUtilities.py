@@ -126,7 +126,9 @@ def loadElifeTrainingData(
 
 
     returns
-        (HUGOGenes, elifeLungGenes, missingGenes, countDF, metaDF, XNP, yNP, labelEncoder, mapDF)
+        (HUGOGenes, elifeGenes, missingGenes, countDF, metaDF, XNP, yNP, labelEncoder, mapDF)
+
+        The columns of XNP are same as the elifeGenes list
 
         mapDF shows how v35 HUGO names where mapped to v39 ENSG names
     '''
