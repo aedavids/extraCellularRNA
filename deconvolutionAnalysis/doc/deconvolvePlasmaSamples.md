@@ -6,6 +6,19 @@ aedavids@ucsc.edu
 
 Reverse engineer deconvolution hyperparameter tunning pipeline.
 
+**<span style="color:red;background-color:yellow">Brain fart: Can we use k-way classifier softmax to deconvole plasma samples ?</span>**
+- traditional biologic deconvolution uses linear models. This falls out of cell theory. All bulk expression counts are linear combinations of the cells in the bulk sample. Linear models are explain able how ever not as powerful as non-linear methods
+
+- can we use non-linear k-way classifiers?
+  - instead of using hard max predictions use softmax. (ie predict prob distribution vector)
+  - random forest is explain able. we know what the features are.
+  
+- use bootstrapping (sampling with replacement)
+  + unlink traditional bootstrapping. we create random combinations of plasma samples
+  + we can think of this as a form of data augmentation. ie upside down img of cat is still a cat
+
+- we maybe able to use deep models. ie we can generate an infinite number of mixture samples.
+
 
 ## Overview
 
@@ -51,10 +64,22 @@ name	ACC	Adipose_Subcutaneous	Vagina	Whole_Blood
     +  <span style="color:red;background-color:yellow">How do we scale the plasma samples?</span>
        - elife counts where already normalized. 
        - for new esoph samples complete seq will normalize counts.
-       - typically in machine learn you learn your feature scaling factors on your training set. You apply the same factors on your hold out. You do not recalculate scaling factors on hold out set. It is assume the hold out is drawn from the same population as the training set. Our plasma samples are not from the same population as our training samples. Our hypothesis is that the biomarkers we discover using bulk tissue will work in plasma how ever the distributions , ie the weights, will be different. <span style="color:red;background-color:yellow">lets just see what happens. ie we will not recacluation normalization </span>. Our assumption is the mixture will still be a linear combination of the bulk signature matrix. **PlanB** can we use low rank matrix factorization to calculate the weight of the signature matrix?
+       
+       - typically in machine learn you learn your feature scaling factors on your training set. You apply the same factors on your hold out. You do not recalculate scaling factors on hold out set. It is assume the hold out is drawn from the same population as the training set. Our plasma samples are not from the same population as our training samples. Our hypothesis is that the biomarkers we discover using bulk tissue will work in plasma how ever the distributions , ie the weights, will be different. <span style="color:red;background-color:yellow">lets just see what happens. ie we will not recacluation normalization </span>. Our assumption is the mixture will still be a linear combination of the bulk signature matrix. **PlanB** can we use low rank matrix factorization to calculate the weight of the signature matrix? **We should use NMF**. we have count data. It can not be negative
        ![Marked logo](file:////Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/deconvolutionAnalysis/doc/img/plasmaLRMF_signatureMatrix.png)
          * <span style="color:red;background-color:yellow">create dumby scaling factor. [1,1,1,...] so we can reuse code</span>
+         
+         * **how to test if we can learn "plasma" signature matrix**
+           +  test deconvolution using plasma signature matrix and mixture matrix composed of elife samples + linear combinations of elife samples
+           + create a set of elife combinations we can use a hold out set.
+           + metrics
+             - k-way classifiers predict a probablity distribution. 
+             - use hard max to call class
+             - for our mixtures do not use hard max, use softmax (ie the probability distribution across all classes). 
+             - use Anova, F-score to evaluate the distributions
+           
    + colData is used to create 'labels'
+   
    + <span style="color:red;background-color:yellow"> need to map gencode 37 -> 39</span> see intraExtraRNA_POC/python/src/models/randomForestHyperparmeterSearch.py, and elifeUtilities.py
    + _select()
      - will select the normalized subset of genes that comprise the signature matrix
