@@ -3,12 +3,21 @@ Andrew E. Davidson
 aedavids@ucsc.edu  
 1/10/24   
 
+see addDegree2Genes.md  
+
 **<span style="color:red">See comments in bestCuratedGeneConfig.py. algo may not match discription bellow</span>**
 
 ## Big idea
-The best discriminators will be genes from degree1 interesections. I.e. genes that are unique to a single category. If we where to search for the degree1 genes in the best 'n' results the larger n the more likely the degree 1 genes is a good discriminator. For example consider n = 1 all 83 genes will be degree 1. There is a good chance in diease cases like cancer that these genes will be differntial expressed in other cancer types.
+The best discriminartors are onces that created the widest margins between different class. Support Vector Machine exploit this idea.  I good starting point for finding signature genes is to select genes from degree1 interesections. I.e. genes that are unique to a single category. If we where to search for the degree1 genes in the best 'n' results the larger n the more likely the degree 1 genes is a good discriminator. For example consider n = 1 all 83 genes will be degree 1. There is a good chance in diease classes like cancer that these genes will be differntial expressed in other cancer types.
 
-keep in mind that the top/best 1 vs. all genes are not guaranteed to be unique. They are differentially signifigant comparted to the average of the remain 82 classes. 
+**The top/best 1 vs. all genes are not guaranteed to be unique or good discriminators for our mixture matrix. **  
+
+a)  They are differentially signifigant comparted to the average of the remain 82 classes in the this window of length n.  
+
+b) Our gene signature matrix combines the degree 1 genes for each class. A gene "x" in class "A" might not appear in the top list for class "B" due to better biomarkers in class "B" \
+
+c) If the expressed value of "x" in classes "A" and "B" is close to and on either side of the signifigance selection threshold, the expression value of "x" will be marginally different.
+
 
 our pipeline is as follows 
 

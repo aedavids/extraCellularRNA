@@ -3,8 +3,28 @@ Andrew E. Davidson
 aedavids@ucsc.edu  
 5/15/24  
 
+ref: 
+- [bestCuratedNotes.md](file:///./bestCuratedNotes.md)
+- deconvolutionAnalysis/jupyterNotebooks/hyperParameterTunning/findCandidateEnrichmentBiomarkers.ipynb
+
+
+**<span style="color:red;background-color:yellow">TODO best10CuratedDegree1_ce467ff</span>**  
+what is senstivity of stomic, STAD, ESCA, and GTEx Mucosa? we have some of these values already
+
+```
+/private/groups/kimlab/aedavids/deconvolution/1vsAll-~gender_category/best10CuratedDegree1_ce467ff/training/best10CuratedDegree1.sh.out/metrics
+
+$ cut -d , -f 1,6,7 t
+id,               specificity, sensitivity
+ESCA,             0.999,       0.369
+Esophagus_Mucosa, 0.996,       0.991
+STAD,             0.999,       0.409
+Stomach,          0.999,       0.749
+```
+
+
 ## Overview
- hyperparameterTunningResults5.html](file:///Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/deconvolutionAnalysis/jupyterNotebooks/hyperParameterTunning/hyperparameterTunningResults5.html)
+[hyperparameterTunningResults5.html](file:///Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/deconvolutionAnalysis/jupyterNotebooks/hyperParameterTunning/hyperparameterTunningResults5.html)
  
 over winter break, dec 2023 - jan 2024, I did a lot of deconvolution hyper parmeter tunning. The best results where from run best10LFC_CuratedDegree1. 
 
@@ -12,12 +32,18 @@ specificity is really good
 ```
 mean_specificity  std_specificity median_specificity numGenes numTypes numDegree1 numAboveThreshold
 0.997542	      0.003030	      0.998	             716	  83	   83	      83
+
+LUAD	LUSC	COAD	READ	ESCA	LIHC	STAD	Whole_Blood
+1.000	0.994	0.993	0.991	0.998	0.999	1.000	1.000
 ```
  
-sensitivity was not great  
+elife candidate biomarker sensitivity was not great  
 ```
 mean_sensitivity std_sensitivity median_sensitivity	numGenes numTypes numDegree1 numAboveThreshold
 0.786482	     0.206089	     0.833	            716	     83	      83	     62	
+
+LUAD	LUSC	COAD	READ	ESCA	LIHC	STAD	Whole_Blood
+0.485	0.595	0.627	0.679	0.396	0.906	0.271	0.987
 ```
 
 
@@ -97,4 +123,107 @@ hyperParameterSearchResultsPath:
 best hyperparameter search results
 accuracy_mean accuracy_std	sensitivity_mean sensitivity_std specificity_mean specificity_std auc_mean	auc_std
 0	          0.620952	    0.092807	     0.716667	     0.102665	      0.485714	      0.280346	0.60119
+```
+
+
+search decon search resutls for estimate of how to improve these classes
+
+find our estimate of num features notes
+
+
+### Explore deconvolution upset plots and metrics
+ref: deconvolutionAnalysis/jupyterNotebooks/hyperParameterTunning/findCandidateEnrichmentBiomarkers.ipynb
+
+0) Are there any unused degree genes?
+
+1) Look for degree 2 genes in upset plot we can add.
+deconvolutionAnalysis/bin/1vsAll-~gender_category/best10CuratedDegree1.sh
+```
+/private/groups/kimlab/aedavids/deconvolution/1vsAll-~gender_category/best500LFC_FindAllDegree1_wl500/training/best500LFC_FindAllDegree1_wl500.sh.out/upsetPlot.out/best500LFC_findAllDegree1_wl500.intersection.dict
+```
+
+
+
+2) Compare Differential Expression Values
+
+3) look at miss classification errors
+see metrics
+
+```
+/private/groups/kimlab/aedavids/deconvolution/1vsAll-~gender_category/best10CuratedDegree1_ce467ff/training/best10CuratedDegree1.sh.out/metrics
+
+ $ grep 'trueCat\|ESCA\|Esophagus_Mucosa\|STAD\|Stomach' classificationErrors.csv  | cut -d , -f 2,3,4
+trueCat,predCat,errorCount
+Adipose_Visceral_Omentum,Stomach,1
+BRCA,Esophagus_Mucosa,3
+CESC,Esophagus_Mucosa,5
+COAD,STAD,1
+ESCA,BLCA,3
+ESCA,Brain_Nucleus_accumbens_basal_ganglia,1
+ESCA,Brain_Substantia_nigra,1
+ESCA,CESC,2
+ESCA,COAD,6
+ESCA,Cells_Cultured_fibroblasts,1
+ESCA,Colon_Sigmoid,2
+ESCA,Colon_Transverse,1
+ESCA,Esophagus_Mucosa,11
+ESCA,Esophagus_Muscularis,2
+ESCA,HNSC,10
+ESCA,LUSC,6
+ESCA,PAAD,4
+ESCA,READ,3
+ESCA,STAD,13
+ESCA,Skin_Not_Sun_Exposed_Suprapubic,2
+ESCA,Stomach,1
+ESCA,UCS,1
+Esophagus_Mucosa,Adipose_Subcutaneous,1
+Esophagus_Mucosa,Esophagus_Gastroesophageal_Junction,1
+Esophagus_Mucosa,Minor_Salivary_Gland,1
+HNSC,Esophagus_Mucosa,7
+KIRP,ESCA,1
+LUSC,Esophagus_Mucosa,1
+Lung,Stomach,1
+Minor_Salivary_Gland,Esophagus_Mucosa,10
+OV,ESCA,1
+STAD,Adipose_Subcutaneous,2
+STAD,Artery_Aorta,1
+STAD,Artery_Coronary,3
+STAD,BLCA,7
+STAD,Brain_Nucleus_accumbens_basal_ganglia,1
+STAD,Brain_Substantia_nigra,1
+STAD,Breast_Mammary_Tissue,2
+STAD,CHOL,2
+STAD,COAD,28
+STAD,Cells_Cultured_fibroblasts,1
+STAD,Colon_Sigmoid,16
+STAD,ESCA,17
+STAD,Esophagus_Gastroesophageal_Junction,1
+STAD,Esophagus_Mucosa,2
+STAD,HNSC,2
+STAD,LUAD,1
+STAD,Lung,2
+STAD,PAAD,24
+STAD,READ,9
+STAD,Stomach,7
+STAD,UCS,4
+Stomach,Adipose_Subcutaneous,3
+Stomach,Adipose_Visceral_Omentum,2
+Stomach,Bladder,1
+Stomach,Cells_Cultured_fibroblasts,1
+Stomach,Colon_Sigmoid,27
+Stomach,Esophagus_Gastroesophageal_Junction,19
+Stomach,Esophagus_Muscularis,1
+Vagina,Esophagus_Mucosa,16
+```
+
+adding ESCA and STAD biomarkers may fix 50 miss classification errors.  
+adding stomach might fix 70 miss classificaiton errors  
+```
+trueCat,predCat,errorCount
+ESCA,Esophagus_Mucosa,11
+ESCA,STAD,13
+
+STAD,ESCA,17
+STAD,Esophagus_Mucosa,2
+STAD,Stomach,7
 ```
