@@ -34,7 +34,7 @@ class RandomForestHyperparmeterSearchCLI( BBaseCommandLine ):
         #
 
         self.parser.add_argument( '-p', '--pipelineStageName', default="best10CuratedDegree1_ce467ff", metavar="", type=str, action="store", 
-                                  help="save output files with prefix")
+                                  help="select biomarkers from run. default = best10CuratedDegree1_ce467ff")
 
         # allow zero or more var args. ie user defined args
         #self.parser.add_argument('vargs', nargs="*", action='store')

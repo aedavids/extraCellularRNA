@@ -324,7 +324,12 @@ def main(inCommandLineArgsList=None):
     tt = loadElifeTrainingData(pipelineStageName, 
                                 features, 
                                 selectElifeCategories)
-    HUGO_lungGenes, elifeLungGenes, countDF, metaDF, XNP, yNP, labelEncoder, mapDF = tt
+    #HUGO_lungGenes, elifeLungGenes, countDF, metaDF, XNP, yNP, labelEncoder, mapDF = tt
+    HUGOGenes, elifeLungGenes, missingElifeGenes, transposedCountsDF, metaDF, XNP, yNP, labelEncoder, mapDF  = tt 
+
+    if len(missingElifeGenes) > 0:
+        logger.warning( f'missingElifeGenes\n : {missingElifeGenes}' )
+
 
     parameterKwags= createSearchParameters(logger, XNP, debug=False)
 
