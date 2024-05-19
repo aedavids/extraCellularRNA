@@ -103,6 +103,7 @@ class BestCuratedGeneConfig(SignatureGeneConfiguration):
         self.logger.info(f'BEGIN')
 
         self.interesectionDictPath = interesectionDictPath;
+        self.logger.info(f'self.interesectionDictPath:\n{self.interesectionDictPath}')
         self.intersectionDict = loadDictionary( self.interesectionDictPath )
         self.degree1Dict = findIntersectionsWithDegree( self.intersectionDict, degree=1 )
 
@@ -135,6 +136,11 @@ class BestCuratedGeneConfig(SignatureGeneConfiguration):
         self.logger.info("BEGIN")
 
         key = fileNameToDictKey(fileName)
+        self.logger.debug(f'AEDWIP fileName : {fileName} key: {key}')
+        self.logger.info(f'key: {self.degree1Dict.keys()}')
+
+        # make sure values are sorted by baseMean
+        deseqDF = deseqDF.sort_values(by="baseMean", ascending=False)
 
         retDF = None
         if key not in self.degree1Dict:

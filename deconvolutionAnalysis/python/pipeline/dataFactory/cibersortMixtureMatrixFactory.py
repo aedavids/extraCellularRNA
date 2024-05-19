@@ -285,9 +285,31 @@ class CibersortMixtureFactory( object ):
         self.geneSignatureDF = pd.read_csv(self.signatueGeneFilePath, sep="\t" )
         self.logger.info("\ngeneSignatureDF.shape:{}".format(self.geneSignatureDF.shape))
         self.logger.debug("geneSignatureDF.iloc[0:3, :]")
-        self.logger.debug(self.geneSignatureDF.iloc[0:3, :])
+        self.logger.debug(self.geneSignatureDF.iloc[0:3, :])        
         
-        self.groupedByGeneDF = pd.read_csv(self.groupByGeneCountFilePath, sep=",")
+        # 5/18/24
+        # pandas 2.2.0 
+        # we started getting future proof warnings from _normalize
+        # FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future 
+        # error of pandas. Value '[7.43549 0.      0.      ... 0.      0.      0.     ]' has 
+        # dtype incompatible with int64, please explicitly cast to a compatible dtype first.  
+        #  this was becuase by default the groupBy DF is int64
+        # The scaling factors are float64
+        # 
+        # work around all the columns except geneId are numeric
+        # set dtype
+        # 
+        # the rest of the code assumes geneId is column. Use reset() to make it a column again
+        #
+        self.groupedByGeneDF = pd.read_csv(self.groupByGeneCountFilePath, 
+                                            sep=",",
+                                            index_col="geneId",
+                                            # index_col=0,
+                                            # dtype="float64"
+                                            )
+        self.groupedByGeneDF = self.groupedByGeneDF.astype('float64')
+        self.groupedByGeneDF = self.groupedByGeneDF.reset_index()
+
         self.logger.info("\ngroupByGeneDF.shape:{}".format(self.groupedByGeneDF.shape))
         self.logger.debug("groupByGeneDF.iloc[0:3, 0:3]")
         self.logger.debug(self.groupedByGeneDF.iloc[0:3, 0:3])
@@ -314,6 +336,15 @@ class CibersortMixtureFactory( object ):
 
         countsDF = self.groupedByGeneDF.loc[:, cols]
         normalizedCountsDF = countsDF * self.scalingFactorDF.transpose().values
+
+        # FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future 
+        # error of pandas. Value '[7.43549 0.      0.      ... 0.      0.      0.     ]' has 
+        # dtype incompatible with int64, please explicitly cast to a compatible dtype first.
+        self.logger.error(f'AEDWIP !!! groupedByGeneDF.dtypes:\n{self.groupedByGeneDF.dtypes}')
+        self.logger.error(f'AEDWIP !!! normalizedCountsDF.dtypes:\n{normalizedCountsDF.dtypes}')
+        # groupedByGeneDF dtypes == int64
+        # normalizedCountsDF dtypes == float64
+
         self.groupedByGeneDF.loc[:, cols] = normalizedCountsDF
         self.logger.debug(f'normalized \n{self.groupedByGeneDF}')
 

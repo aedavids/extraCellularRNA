@@ -147,16 +147,12 @@ class TestByRankSignatureGeneConfig(unittest.TestCase):
         self.logger.info(f'selectedGeneSetsDict :\n{pp.pformat(selectedGeneSetsDict)}')
 
         expectedRankedDict = {
-            'Whole_Blood': ['V_W', 'W_CCC', 'UVM_V_W', 'ALAS2', 'CXCR1', 'HBG2', 'HBD', 'AC104389.6'], 
-            'Vagina': ['C1orf61', 'ARPP21', 'OLIG1', 'OLIG2', 'SILC1', 'UGT2A3', 'UVM_V', 'V_BBB'], 
-            'UVM': ['AC114812.1', 'UVM_V_W.1', 'UVM_AAA', 'LINC02612', 'AC090150.1', 'ANO1-AS1', 'PCSEAT']
+            ('Whole_Blood',): ['V_W', 'W_CCC', 'UVM_V_W', 'ALAS2', 'CXCR1', 'HBG2', 'HBD', 'AC104389.6'], 
+            ('Vagina',): ['C1orf61', 'ARPP21', 'OLIG1', 'OLIG2', 'SILC1', 'UGT2A3', 'UVM_V', 'V_BBB'], 
+            #('UVM',): ['AC114812.1', 'UVM_V_W.1', 'UVM_AAA', 'LINC02612', 'AC090150.1', 'ANO1-AS1', 'PCSEAT']
+            ('UVM',): ['AC114812.1', 'UVM_V_W.1', 'UVM_AAA', 'LINC02612', 'AC090150.1', 'ANO1-AS1', 'PCSEAT', 'AC244102.4']            
             }
 
-        expectedRankedDict = {
-            'Whole_Blood': ['V_W', 'W_CCC', 'UVM_V_W', 'ALAS2', 'CXCR1', 'HBG2', 'HBD', 'AC104389.6'], 
-            'Vagina': ['C1orf61', 'ARPP21', 'OLIG1', 'OLIG2', 'SILC1', 'UGT2A3', 'UVM_V', 'V_BBB'], 
-            'UVM': ['AC114812.1', 'UVM_V_W.1', 'UVM_AAA', 'LINC02612', 'AC090150.1', 'ANO1-AS1', 'PCSEAT', 'AC244102.4']
-        }
         self.logger.info(f'sgc.rankedDict : \n {sgc.rankedDict}')
         self.assertDictEqual(expectedRankedDict, sgc.rankedDict)
 
