@@ -144,6 +144,9 @@ class BestCuratedGeneConfig(SignatureGeneConfiguration):
 
         retDF = None
         if key not in self.degree1Dict:
+            # use case 2
+            self.logger.info(f'BEGIN use case 2: automatically add genes')
+
             #
             # method 1
             # return desqDF did not provide vest over all results
@@ -180,8 +183,13 @@ class BestCuratedGeneConfig(SignatureGeneConfiguration):
             # intersectionDict="${upsetOut}/best${upstreamTopN}_findAllDegree${degree}_wl${upstreamTopN}.intersection.dict"
 
             retDF = deseqDF.head(n=self.n)
+            self.logger.info(f'END use case 2: automatically add genes')
+
 
         else :
+            self.logger.info(f'BEGIN use case 1: hand crafted signature matrix')
+            # use case 1:
+
             # the stage that created the degree1 intersection dictionary was probably 
             # best500FindAllDegree1_wl500Degree1. It filtered by lfc and padj and sorted by baseMean
             # It is possible that the degree1 genes are outside of the lfc and padj ranges
@@ -192,11 +200,12 @@ class BestCuratedGeneConfig(SignatureGeneConfiguration):
 
             # we want to select degree1 genes that have the strongest signal
             # if we think about how we fit models. large baseMean should make
-            # linear regresion miss classifcation error residual greatly. This should improve model
+            # linear regresion miss classifcation error residual greater. This should improve model
             # results.
             sortedD1DF = d1DF.sort_values(by='baseMean', ascending=False)
             retDF = sortedD1DF.head(n=self.n)
 
+            self.logger.info(f'END use case 1: hand crafted signature matrix')
                       
 
         self.logger.info("END")

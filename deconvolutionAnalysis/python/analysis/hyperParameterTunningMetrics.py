@@ -61,8 +61,17 @@ elifePluseGTexCols = elifeCols + ["Colon_Sigmoid", "Colon_Transverse",
                                     "Stomach", ]
 
 ################################################################################
-def findSummaryMetricsCols(metric : str) :
+def findSummaryMetricsCols(metric : str) -> list[str] :
     '''
+
+    arguments:
+        metric:
+            example "sensitivity"
+
+    returns a list of columns
+        example
+            ['mean_specificity', 'std_specificity',	'median_specificity', 
+            "numGenes", "numTypes", "numDegree1", "numAboveThreshold"]
     '''
 
     # mean_sensitivity	std_sensitivity
