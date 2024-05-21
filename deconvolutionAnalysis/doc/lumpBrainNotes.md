@@ -39,11 +39,51 @@ a. create new colData. We can use sed
    1585 Brain
     ```
 b. create a new 1vsAllLumpBrain dir
-    - copy /private/groups/kimlab/GTEx_TCGA/1vsAll 
+    - symbolically link  /private/groups/kimlab/GTEx_TCGA/1vsAll/* 
     - delete results startingn with "Brain"
+    
+        ```
+        $ cd /private/groups/kimlab/GTEx_TCGA
+        $ mkdir 1vsAllLumpBrain
+        $ cd 1vsAllLumpBrain
+    
+        $ ln -s ../1vsAll/*.results .
+        
+        $ rm Brain*
+        ```
     
 c. create a driver scripts
     - ref : extraCellularRNA/intraExtraRNA_POC/adenocarcinoma.vs.control/run.adenocarcinoma.vs.control.sh
+      ```
+      $ d=/private/home/aedavids/extraCellularRNA/intraExtraRNA_POC/adenocarcinoma.vs.control
+      $ cp $d/adenocarcinoma.vs.control.1vsAllTask.input.json brain.vs.all.input.json
+      $ cp /private/home/aedavids/extraCellularRNA/intraExtraRNA_POC/adenocarcinoma.vs.control/adenocarcinoma.cromwellOptions.json .
+      $  mv adenocarcinoma.cromwellOptions.json brain.cromwellOption.json
+      $ cp $d/adenocarcinoma.vs.control/run.adenocarcinoma.vs.control.sh run.brain.vs.all.sh
+      ```
+      
+   - edit
+     *  brain.cromwellOption.json: 
+        _ change final_workflow_outputs_dir
+    *  brain.vs.all.input.json
+       - deseq_one_vs_all.one_vs_all.referenceLevel : Brain
+       - deseq_one_vs_all.one_vs_all.colData
+         + /private/groups/kimlab/GTEx_TCGA/groupbyGeneTrainingSets/GTEx_TCGA_TrainLumpBrain.colData.csv
+       - deseq_one_vs_all.one_vs_all.design
+         + "~  sex + tissue_id"
+       - deseq_one_vs_all.one_vs_all.countMatrix
+         + "/private/groups/kimlab/GTEx/GTExTrainGroupByGenesCountMatrix.csv"
+   * run.brain.vs.all.sh
+     - --inputs
+       +  brain.vs.all.input.json
+     - --options
+       + brain.cromwellOption.json
+     
+ d. execute run.brain.vs.all.sh
+   ```
+   cd /private/home/aedavids/extraCellularRNA/deconvolutionAnalysis/lumpBrain
+   $ setsid sh -c 'set -x;run.brain.vs.all.sh' > run.brain.vs.all.sh.out 2>&1 &
+   ```
     
 ## Step 2. run  deconvolution hyper parameter tunning pipeline model best500FindAllDegree1_wl500
 
