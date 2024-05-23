@@ -117,8 +117,9 @@ class BestCuratedGeneConfig(SignatureGeneConfiguration):
 
         arguments:
             deseqDF:
-                results of DESeq2 as a pandas dataframe            
-
+                results of DESeq2 as a pandas dataframe  
+                this argument is not used. It is preserved so that we can use this
+                class with the driver.py module         
                 
             fileName:
                 useful for logging, debugging, and addition down stream processing   
@@ -139,13 +140,13 @@ class BestCuratedGeneConfig(SignatureGeneConfiguration):
         self.logger.debug(f'AEDWIP fileName : {fileName} key: {key}')
         self.logger.info(f'key: {self.degree1Dict.keys()}')
 
-        # make sure values are sorted by baseMean
-        deseqDF = deseqDF.sort_values(by="baseMean", ascending=False)
+        #  we do not use deseqDF see method3 bellow
+        #deseqDF = deseqDF.sort_values(by="baseMean", ascending=False)
 
         retDF = None
         if key not in self.degree1Dict:
             # use case 2
-            self.logger.info(f'BEGIN use case 2: automatically add genes')
+            self.logger.info(f'BEGIN no degree 1 keys for {key}')
 
             #
             # method 1
@@ -167,7 +168,7 @@ class BestCuratedGeneConfig(SignatureGeneConfiguration):
             # method 3
             #
             # retDF = super().findGenes(deseqDF, fileName)        
-            # sortedD1DF = d1DF.sort_values(by='baseMean')
+            # sortedD1DF = d1DF.sort_values(by='baseMean', ascending=False)
             # retDF = sortedD1DF.head(n=self.n)
 
             #
@@ -182,9 +183,12 @@ class BestCuratedGeneConfig(SignatureGeneConfiguration):
             # upsetOut="${upstream}/training/${upstreamRun}.sh.out/upsetPlot.out"
             # intersectionDict="${upsetOut}/best${upstreamTopN}_findAllDegree${degree}_wl${upstreamTopN}.intersection.dict"
 
-            retDF = deseqDF.head(n=self.n)
-            self.logger.info(f'END use case 2: automatically add genes')
+            # 5/21/24 I think the next line is a bug. it makes assumptions about the deseq results file
+            # that are probably not true in general. I think this line is part of method 3 and should be c
+            # commented out. method3 calls super().findGenes()
+            # retDF = deseqDF.head(n=self.n)
 
+            self.logger.info(f'END no degree 1 keys for {key}')
 
         else :
             self.logger.info(f'BEGIN use case 1: hand crafted signature matrix')
