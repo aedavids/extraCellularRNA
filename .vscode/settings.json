@@ -27,5 +27,6 @@
         "**/venv/**": true,
         "**/work/**": true,
         "**/private/groups/**": true
-      }
+    },
+    "r.lsp.promptToInstall": false
 }
