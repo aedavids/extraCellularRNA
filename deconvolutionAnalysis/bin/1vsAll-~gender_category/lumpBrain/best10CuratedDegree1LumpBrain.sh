@@ -1,7 +1,7 @@
 #!/bin/bash
 # Andrew Davidson
 # aedavids@ucsc.edu
-# 01/09/2024
+# 05/26/2024
 # 
 # runs BestCuratedGeneConfig
 # select top n genes sorted by base mean from the degree1 intersections
@@ -36,14 +36,20 @@ set -x
 ciberSortSecurityToken=$1
 ciberSortUser=$2
 
+dataSet="GTEx_TCGA"
+
 # rootDir="/private/home/aedavids/extraCellularRNA/deconvolutionAnalysis/python"
-rootDir="/private/groups/kimlab/GTEx_TCGA"
+# rootDir="/private/groups/kimlab/GTEx_TCGA"
+rootDir="/private/groups/kimlab/${dataSet}"
 
 # colData="${rootDir}/pipeline/dataFactory/test/data/testIntegration/colData.csv"
-colData="${rootDir}/groupbyGeneTrainingSets/GTEx_TCGA_TrainColData.csv"
+# colData="${rootDir}/groupbyGeneTrainingSets/GTEx_TCGA_TrainColData.csv"
+colData="${rootDir}/groupbyGeneTrainingSets/${dataSet}_TrainLumpBrain.colData.csv"
+
 
 # countData="${rootDir}/pipeline/dataFactory/test/data/testIntegration/geneCounts.csv"
-countData="${rootDir}/groupbyGeneTrainingSets/GTEx_TCGA_TrainGroupby.csv"
+# countData="${rootDir}/groupbyGeneTrainingSets/GTEx_TCGA_TrainGroupby.csv"
+countData="${rootDir}/groupbyGeneTrainingSets/${dataSet}_TrainGroupby.csv"
 
 # deseqResultsDir="${rootDir}/pipeline/dataFactory/test/data/testSignatureGenes/1vsAll" 
 # ~gender + category 
@@ -122,7 +128,8 @@ topN=10
 upstreamTopN=500
 degree=1
 windowLength=500
-upstreamRun="best${upstreamTopN}FindAllDegree${degree}_wl${windowLength}"
+#upstreamRun="best${upstreamTopN}FindAllDegree${degree}_wl${windowLength}"
+upstreamRun="best${upstreamTopN}LumpBrainFindAllDegree${degree}_wl${windowLength}"
 title=` printf "best%s_from_%s" $topN $upstreamRun` # do not uses spaces, title will be part of file paths
 
 # example:
@@ -138,7 +145,7 @@ intersectionDict="${upsetOut}/best${upstreamTopN}_findAllDegree${degree}_wl${ups
 vargs=" --design tilda_gender_category \
         --padjThreshold 0.001 \
         --lfcThreshold 2.0 \
-        --dataSetName GTEx_TCGA \
+        --dataSetName ${dataSet} \
         --number  $topN \
         --title ${title} \
         --localCacheRoot ${outDir} \
