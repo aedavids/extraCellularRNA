@@ -76,7 +76,7 @@ def findSummaryMetricsCols(metric : str) -> list[str] :
 
     # mean_sensitivity	std_sensitivity
     metricCols = [f'{m}_{metric}' for m in ['mean', 'std', 'median'] ]
-    retList = metricCols + ["numGenes", "numTypes", "numDegree1", "numAboveThreshold"]
+    retList = metricCols + ["numGenes", "numTypes", "numDegree1", "numAboveThreshold", "percentAboveThreshold"]
 
     return retList
 
@@ -206,6 +206,8 @@ def _loadMetrics(rootDirPath: str,
         bellowThresholdDF = findClassesBellowThreshold(valuesDF, threshold)
         #print(f'\nclasses < threshold:\n{bellowThresholdDF}')
 
+        percentAboveThreshold = numAboveThreshold / numTypes
+
         # add metrics to valuesDF
         valuesDF.loc[:, [f'mean_{metrics}'] ] = rowAverage
         valuesDF.loc[:, [f'std_{metrics}'] ] = rowStd
@@ -214,6 +216,7 @@ def _loadMetrics(rootDirPath: str,
         valuesDF.loc[:, ['numTypes'] ] = numTypes   
         valuesDF.loc[:, ['numDegree1'] ] = len( degree1Sets ) 
         valuesDF.loc[:, ['numAboveThreshold'] ] = numAboveThreshold
+        valuesDF.loc[:, ['percentAboveThreshold'] ] = percentAboveThreshold
         
         retDF = pd.concat( [retDF, valuesDF] )
         retBellowDF = pd.concat( [retBellowDF, bellowThresholdDF])
