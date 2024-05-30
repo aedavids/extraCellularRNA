@@ -113,7 +113,21 @@ done
 printf "vargs: $vargs\n"
 
 
-    
+#
+# 5/29/24
+# pipeline.upstreamPipeline.py createSignatureMatrix() has an extra boolean flag argument
+# if true use mean, else use mean to calculate expected count values for each gene in a category
+# for backwards compatiblity the default value is False and we use an environmental variable
+# to pass the flag
+if [[ -z "${USE_MEDIAN}" ]]; then
+    # True if the length of string is zero
+    useMedia=""
+else
+  MY_SCRIPT_VARIABLE="${DEPLOY_ENV}"
+  useMedian="--useMedian"
+fi
+
+printf "useMedian : ${useMedian}\n"
 
 # see bash man page "SHELL BUILTIN COMMANDS" for details
 # ref: https://gist.github.com/vncsna/64825d5609c146e80de8b1fd623011ca 
@@ -158,6 +172,7 @@ python -m pipeline.upstreamPipeline \
             --estimatedScalingFactors "${estimatedScalingFactors}" \
             --findModule "${findModule}" \
             --outDir "${outDir}" \
+            "${useMedian}" \
             --vargs ${vargs}
 
 printf "END upstream pipeline  \n"

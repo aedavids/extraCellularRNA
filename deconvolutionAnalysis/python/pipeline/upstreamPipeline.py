@@ -249,6 +249,13 @@ def main(inCommandLineArgsList=None):
     outDir          = cli.args.outDir
     vargs           = cli.args.vargs
 
+    if cli.args.useMedian:
+        useMedian = True
+    else :
+        useMedian = False
+    logger.info(f' useMedian : {useMedian}')
+
+
     logger.info(f"vargs: {vargs}")
 
     #
@@ -275,7 +282,8 @@ def main(inCommandLineArgsList=None):
         localCacheDir= outDir, 
         outdir = "ciberSortInput", 
         testSize = None, 
-        verbose = False
+        verbose = False,
+        useMedian=useMedian, 
     )
         
     signatureGeneDF = csmf.getCiberSortSignatueDF()

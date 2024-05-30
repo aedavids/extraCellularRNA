@@ -35,6 +35,12 @@ class UpstreamPipelineCommandLine( BBaseCommandLine ):
         # optional arguments
         #
 
+        self.parser.add_argument( '-u', '--useMedian', 
+                                                      action='store_true', # if flag is present returns true else false
+                                                      help="boolean, default = false. "
+                                                      + "if true use mean, else use mean to calculate expected count values for each gene in a category"
+        )
+
         # self.parser.add_argument( '-p', '--prefix', default=None, metavar="", type=str, action="store", 
         #                           help="save output files with prefix")
 
