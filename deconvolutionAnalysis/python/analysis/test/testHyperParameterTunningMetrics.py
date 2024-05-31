@@ -29,7 +29,7 @@ import numpy as np
 import pandas as pd
 import unittest
 
-from analysis.hyperParameterTunningMetrics import adjacentRowSort
+from analysis.hyperParameterTunningMetrics import symetricRowSort
 
 ################################################################################
 class TestFractions(unittest.TestCase):
@@ -77,7 +77,7 @@ class TestFractions(unittest.TestCase):
         
         df = pd.DataFrame( inputDict )
 
-        retDF1, retDF2 = adjacentRowSort(df, "trueCat", "predCat", "numericCol", verbose=False)
+        retDF1, retDF2 = symetricRowSort(df, "trueCat", "predCat", "numericCol", verbose=False)
         #print(retDF1.to_dict() )
         print(retDF2.to_dict() )
 
@@ -104,7 +104,7 @@ class TestFractions(unittest.TestCase):
 
         self.logger.info(f'retDF1:\n{retDF1}')
         pd.testing.assert_frame_equal(expectedDF1, retDF1)
-        
+
         self.logger.info(f'retDF2:\n{retDF2}')
         pd.testing.assert_frame_equal(expectedDF2, retDF2)
 
