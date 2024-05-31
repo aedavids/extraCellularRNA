@@ -68,12 +68,14 @@ def adjacentRowSort(
         col1 : str,
         col2 : str,
         numericCol : str,
-        verbose : bool=False):
+        verbose : bool=False) -> (pd.DataFrame, pd.DataFrame):
 
     '''
     give a data frame with 2 key columns and a numeric column return a data frame
     where rows with the same key are adjacent to each other and the sum of the adjacent 
     numeric columns are sum
+
+    ref: testHyperParameterTunningMetrics.py
 
     example input DataFrame col1=trueCat, col2=predCat, sumCol="errorCount
 
@@ -87,7 +89,7 @@ def adjacentRowSort(
 
     return a DataFrame of the form
 
-    trueCat	                                predCat	                                errorCount_x errorCount_y
+    trueCat	                                predCat	                                errorCount errorCount_sum
     Brain_Nucleus_accumbens_basal_ganglia	Brain_Caudate_basal_ganglia	            10		    55
     Brain_Caudate_basal_ganglia	            Brain_Nucleus_accumbens_basal_ganglia   45		    55
     Brain_Putamen_basal_ganglia	            Brain_Caudate_basal_ganglia	            27		    41
@@ -105,6 +107,21 @@ def adjacentRowSort(
         verbose :
             if True will leave the "sortKey" column in the return dataFrame
             this can make debugging easier
+
+    returns
+        two DataFrames.
+
+            first dataFrame:
+                is of the form shown in the example
+
+            second dataFrame
+                rows that do not have an adjacent key
+
+            example:
+                trueCat               predCat               errorCount
+                Breast_Mammary_Tissue Adipose_Subcutaneous   84
+                Colon_Transverse      Colon_Sigmoid          90
+
     '''
     logger.info("BEGIN")
 
@@ -119,7 +136,7 @@ def adjacentRowSort(
 
     # Sort the dataframe by the sort key
     sortedDF = df.sort_values(by='sortKey')
-    logger.info(f'sortedDF:\n{sortedDF}')
+    logger.debug(f'sortedDF:\n{sortedDF}')
 
     # select rows that have the same sortKey and are adjacent
     # https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.shift.html
@@ -129,12 +146,15 @@ def adjacentRowSort(
 
     # return both rows
     adjDF = sortedDF.loc[ maskSeries | maskSeries.shift(1), : ] 
-    logger.error(f'AEDWIP aedwip return not')
-    logger.info(f'adjDF:\n{adjDF}')
+    logger.debug(f'adjDF:\n{adjDF}')
+
+    # return rows that do not have an adjacent key
+    ret2DF = sortedDF.loc[ ~ (maskSeries | maskSeries.shift(1)), : ] 
+    logger.debug(f'ret2DF:\n{ret2DF}')
 
     # group adj rows and sum the numeric columns group
     sumDF = adjDF.groupby(by="sortKey")[numericCol].sum().reset_index()
-    logger.info(f'sumDF:\n{sumDF}')
+    logger.debug(f'sumDF:\n{sumDF}')
 
 
     # left join or outer join
@@ -142,17 +162,19 @@ def adjacentRowSort(
     # If there are no matching records in the right table, the result will include NULL values 
     # in the right columns for the records in the left table. Records from the right table that are 
     # not in the left table will not be included in the result
-    resultDF = adjDF.merge(sumDF, on='sortKey', how='left', suffixes=(f'_{col1}', f'_{col2}'))
-    logger.info(f'resultDF:\n{resultDF}')
+    resultDF = adjDF.merge(sumDF, on='sortKey', how='left', suffixes=(f'', f'_sum') ) #, )
+    logger.debug(f'resultDF:\n{resultDF}')
 
-    leftCol = f'{numericCol}_{col1}'
+    leftCol = f'{numericCol}_sum'
+    # we want the highest sums to be on top
     sortedResultsDF = resultDF.sort_values(by=[leftCol, 'sortKey'], ascending=False)    
 
     if not verbose:
-        sortedResultsDF.drop(columns='sortKey', inplace=True)
+        sortedResultsDF = sortedResultsDF.drop(columns='sortKey')
+        ret2DF = ret2DF.drop(columns='sortKey')
 
     logger.info("END")
-    return sortedResultsDF
+    return (sortedResultsDF, ret2DF)
 
 ################################################################################
 def adjacentRowSortKey(

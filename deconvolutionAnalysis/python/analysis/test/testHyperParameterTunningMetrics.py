@@ -77,8 +77,36 @@ class TestFractions(unittest.TestCase):
         
         df = pd.DataFrame( inputDict )
 
-        retDF = adjacentRowSort(df, "trueCat", "predCat", "numericCol", verbose=False)
-        self.logger.info(f'retDF:\n{retDF}')
+        retDF1, retDF2 = adjacentRowSort(df, "trueCat", "predCat", "numericCol", verbose=False)
+        #print(retDF1.to_dict() )
+        print(retDF2.to_dict() )
+
+        expectedDF1 = pd.DataFrame(
+                    {'trueCat': {2: 'Skin_Sun_Exposed_Lower_leg', 
+                                3: 'Skin_Not_Sun_Exposed_Suprapubic', 
+                                0: 'Esophagus_Muscularis', 
+                                1: 'Esophagus_Gastroesophageal_Junction'},
+
+                    'predCat': {2: 'Skin_Not_Sun_Exposed_Suprapubic', 
+                                3: 'Skin_Sun_Exposed_Lower_leg', 
+                                0: 'Esophagus_Gastroesophageal_Junction', 
+                                1: 'Esophagus_Muscularis'},
+
+                    'numericCol': {2: 116, 3: 82, 0: 67, 1: 66}, 
+                    'numericCol_sum': {2: 198, 3: 198, 0: 133, 1: 133}}
+        )
+
+        expectedDF2 = pd.DataFrame(
+            {'trueCat': {2: 'Breast_Mammary_Tissue', 1: 'Colon_Transverse'}, 
+             'predCat': {2: 'Adipose_Subcutaneous', 1: 'Colon_Sigmoid'}, 
+             'numericCol': {2: 84, 1: 90}}
+        )
+
+        self.logger.info(f'retDF1:\n{retDF1}')
+        pd.testing.assert_frame_equal(expectedDF1, retDF1)
+        
+        self.logger.info(f'retDF2:\n{retDF2}')
+        pd.testing.assert_frame_equal(expectedDF2, retDF2)
 
         self.logger.info("END\n")            
 
