@@ -25,6 +25,9 @@ from analysis.utilities import findFile
 from analysis.utilities import findSetsWithDegree
 from analysis.utilities import loadDictionary
 
+import logging
+logger = logging.getLogger( __file__ )
+
 lungCols = ['Lung', 'LUAD', 'LUSC']
 
 #
@@ -59,6 +62,123 @@ elifePluseGTexCols = elifeCols + ["Colon_Sigmoid", "Colon_Transverse",
                                     "Esophagus_Gastroesophageal_Junction", "Esophagus_Mucosa", "Esophagus_Muscularis",
                                     "Liver", 
                                     "Stomach", ]
+################################################################################
+def adjacentRowSort(
+        df : pd.DataFrame,
+        col1 : str,
+        col2 : str,
+        numericCol : str,
+        verbose : bool=False):
+
+    '''
+    give a data frame with 2 key columns and a numeric column return a data frame
+    where rows with the same key are adjacent to each other and the sum of the adjacent 
+    numeric columns are sum
+
+    example input DataFrame col1=trueCat, col2=predCat, sumCol="errorCount
+
+    trueCat                             predCat	                            errorCount	
+    Skin_Sun_Exposed_Lower_leg	        Skin_Not_Sun_Exposed_Suprapubic	    116
+    Colon_Transverse	                Colon_Sigmoid	                    90
+    Breast_Mammary_Tissue	            Adipose_Subcutaneous	            84
+    Skin_Not_Sun_Exposed_Suprapubic	    Skin_Sun_Exposed_Lower_leg	        82
+    Esophagus_Muscularis	            Esophagus_Gastroesophageal_Junction	67
+    Esophagus_Gastroesophageal_Junction	Esophagus_Muscularis	            66
+
+    return a DataFrame of the form
+
+    trueCat	                                predCat	                                errorCount_x errorCount_y
+    Brain_Nucleus_accumbens_basal_ganglia	Brain_Caudate_basal_ganglia	            10		    55
+    Brain_Caudate_basal_ganglia	            Brain_Nucleus_accumbens_basal_ganglia   45		    55
+    Brain_Putamen_basal_ganglia	            Brain_Caudate_basal_ganglia	            27		    41
+    Brain_Caudate_basal_ganglia	            Brain_Putamen_basal_ganglia	            14		    41
+    Brain_Frontal_Cortex_BA9	            Brain_Anterior_cingulate_cortex_BA24	3		    38
+    Brain_Anterior_cingulate_cortex_BA24	Brain_Frontal_Cortex_BA9	            35		    38
+
+    arguments 
+        df: a dataFrame with at least 2 columns.
+
+        col1, col2: the key column names  
+
+        numericCol : the column of numeric values to sum
+
+        verbose :
+            if True will leave the "sortKey" column in the return dataFrame
+            this can make debugging easier
+    '''
+    logger.info("BEGIN")
+
+    uniqClassNamesSet = set(df[col1]).union( set(df[col2]) )
+    classNames = sorted( list(uniqClassNamesSet) )
+    # start count = 1, prevent errors. example 0 + 3 == 1 + 2
+    keyToGroupDict = {key: idx + 1 for idx, key in enumerate( classNames )}
+
+
+    # add a key columns
+    df.loc[:, 'sortKey'] = df.apply(adjacentRowSortKey, axis=1, args=(col1,col2, keyToGroupDict) )
+
+    # Sort the dataframe by the sort key
+    sortedDF = df.sort_values(by='sortKey')
+    logger.info(f'sortedDF:\n{sortedDF}')
+
+    # select rows that have the same sortKey and are adjacent
+    # https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.shift.html
+    maskSeries = sortedDF['sortKey'] == sortedDF['sortKey'].shift(-1)
+    # print( maskSeries[0:5] )
+    # print(sum(maskSeries))
+
+    # return both rows
+    adjDF = sortedDF.loc[ maskSeries | maskSeries.shift(1), : ] 
+    logger.error(f'AEDWIP aedwip return not')
+    logger.info(f'adjDF:\n{adjDF}')
+
+    # group adj rows and sum the numeric columns group
+    sumDF = adjDF.groupby(by="sortKey")[numericCol].sum().reset_index()
+    logger.info(f'sumDF:\n{sumDF}')
+
+
+    # left join or outer join
+    # returns all records from the left table, along with any matching records from the right table.
+    # If there are no matching records in the right table, the result will include NULL values 
+    # in the right columns for the records in the left table. Records from the right table that are 
+    # not in the left table will not be included in the result
+    resultDF = adjDF.merge(sumDF, on='sortKey', how='left', suffixes=(f'_{col1}', f'_{col2}'))
+    logger.info(f'resultDF:\n{resultDF}')
+
+    leftCol = f'{numericCol}_{col1}'
+    sortedResultsDF = resultDF.sort_values(by=[leftCol, 'sortKey'], ascending=False)    
+
+    if not verbose:
+        sortedResultsDF.drop(columns='sortKey', inplace=True)
+
+    logger.info("END")
+    return sortedResultsDF
+
+################################################################################
+def adjacentRowSortKey(
+        row : pd.Series, 
+        col1 : str, 
+        col2 : str, 
+        keyToGroupDict : dict ):
+    
+    keyA = row[col1]
+    keyB = row[col2]
+
+    # print(f'keyA : {keyA} keyB : {keyB}')
+    
+    # Use the minimum of the indices of key_a and key_b as the primary sort key
+    # This groups rows based on the keys
+    defaultValue = len(keyToGroupDict)
+    valueA = keyToGroupDict.get(keyA, defaultValue)
+    valueB = keyToGroupDict.get(keyB, defaultValue)
+    # groupKey = valueA + valueB error 4 + 1 == 3 + 2
+    sortedList = sorted( (valueA, valueB) )
+
+    # use hash value might not be str
+    groupKey = hash( tuple(sortedList) )
+    #print(f'a: {keyA}, b: {keyB} valueA : {valueA} valueB : {valueB} ret : {groupKey}\n')
+    
+    return groupKey
 
 ################################################################################
 def findSummaryMetricsCols(metric : str) -> list[str] :
