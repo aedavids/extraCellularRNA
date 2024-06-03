@@ -340,8 +340,8 @@ class CibersortMixtureFactory( object ):
         # FutureWarning: Setting an item of incompatible dtype is deprecated and will raise in a future 
         # error of pandas. Value '[7.43549 0.      0.      ... 0.      0.      0.     ]' has 
         # dtype incompatible with int64, please explicitly cast to a compatible dtype first.
-        self.logger.error(f'AEDWIP !!! groupedByGeneDF.dtypes:\n{self.groupedByGeneDF.dtypes}')
-        self.logger.error(f'AEDWIP !!! normalizedCountsDF.dtypes:\n{normalizedCountsDF.dtypes}')
+        self.logger.debug(f'AEDWIP !!! groupedByGeneDF.dtypes:\n{self.groupedByGeneDF.dtypes}')
+        self.logger.debug(f'AEDWIP !!! normalizedCountsDF.dtypes:\n{normalizedCountsDF.dtypes}')
         # groupedByGeneDF dtypes == int64
         # normalizedCountsDF dtypes == float64
 
