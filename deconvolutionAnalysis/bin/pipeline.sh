@@ -121,9 +121,9 @@ printf "vargs: $vargs\n"
 # to pass the flag
 if [[ -z "${USE_MEDIAN}" ]]; then
     # True if the length of string is zero
-    useMedia=""
+    useMedian=""
 else
-  MY_SCRIPT_VARIABLE="${DEPLOY_ENV}"
+  #MY_SCRIPT_VARIABLE="${DEPLOY_ENV}"
   useMedian="--useMedian"
 fi
 

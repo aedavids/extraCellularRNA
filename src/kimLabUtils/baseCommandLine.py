@@ -65,7 +65,21 @@ class BBaseCommandLine( object ):
     def parse( self, inOpts=None ):
         self._build()
         if inOpts is None:
-            self.args = self.parser.parse_args()
+            #self.args = self.parser.parse_args()
+            args, unknown = self.parser.parse_known_args()
+ 
         else:
-            self.args = self.parser.parse_args( inOpts )
+            #self.args = self.parser.parse_args( inOpts )
+            args, unknown = self.parser.parse_known_args(inOpts)
+
+        self.args = args
+        self.unknown = unknown
+
+        # self.logger.error(f' AEDWIP type(args) : {type(args)}')
+        # self.logger.error(f'AEDWIP args: {args}')
+        # self.logger.error(f' AEDWIP type(unknown) : {type(unknown)}')
+        # self.logger.error(f'AEDWIP args: {unknown}')
+
+        if len(unknown) > 0:
+            self.logger.error(f'unknow arguments : {unknown}')
         

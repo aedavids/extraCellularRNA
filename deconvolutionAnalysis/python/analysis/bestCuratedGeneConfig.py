@@ -82,6 +82,14 @@ class BestCuratedGeneConfig(SignatureGeneConfiguration):
                     localCacheRootPath : str, 
                     title : str,
                     interesectionDictPath : str,
+
+                    # ascending default = False for backwards compatiblity
+                    # best1CuratedDegree1_ce467ff has best perforamance
+                    # we are unable to reproduce results
+                    # I think there was a bug in best1CuratedDegree1_ce467ff 
+                    # we sorted using ascending=True
+                    # this caused findGenes() to return genes with the smallest base mean
+                    ascending : bool = False,   
                     )  :
         super().__init__(
                     dataSetName=dataSetName,
@@ -106,6 +114,7 @@ class BestCuratedGeneConfig(SignatureGeneConfiguration):
         self.logger.info(f'self.interesectionDictPath:\n{self.interesectionDictPath}')
         self.intersectionDict = loadDictionary( self.interesectionDictPath )
         self.degree1Dict = findIntersectionsWithDegree( self.intersectionDict, degree=1 )
+        self.ascending = ascending
 
         self.logger.info(f'END')
 
@@ -142,6 +151,7 @@ class BestCuratedGeneConfig(SignatureGeneConfiguration):
 
         #  we do not use deseqDF see method3 bellow
         #deseqDF = deseqDF.sort_values(by="baseMean", ascending=False)
+        #deseqDF = deseqDF.sort_values(by="baseMean", ascending=self.ascending)
 
         retDF = None
         if key not in self.degree1Dict:
@@ -169,6 +179,7 @@ class BestCuratedGeneConfig(SignatureGeneConfiguration):
             #
             # retDF = super().findGenes(deseqDF, fileName)        
             # sortedD1DF = d1DF.sort_values(by='baseMean', ascending=False)
+            # sortedD1DF = d1DF.sort_values(by='baseMean', ascending=self.ascending)
             # retDF = sortedD1DF.head(n=self.n)
 
             #
@@ -206,7 +217,8 @@ class BestCuratedGeneConfig(SignatureGeneConfiguration):
             # if we think about how we fit models. large baseMean should make
             # linear regresion miss classifcation error residual greater. This should improve model
             # results.
-            sortedD1DF = d1DF.sort_values(by='baseMean', ascending=False)
+            #sortedD1DF = d1DF.sort_values(by='baseMean', ascending=False)
+            sortedD1DF = d1DF.sort_values(by='baseMean', ascending=self.ascending)
             retDF = sortedD1DF.head(n=self.n)
 
             self.logger.info(f'END use case 1: hand crafted signature matrix')
