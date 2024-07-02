@@ -10,3 +10,20 @@ see readme.md
 - debugBest20GTEx_TCGA.sh.out_LUAD_LUSC.ipynb
 - fractionsDebug.ipynb
 - createSampleTestIntegrationData.ipynb
+
+
+**signatureMatrixHeatMap.ipynb**
+- signature matrix exploration
+- creates heat maps of signature matrices
+
+**./randomForestGeneSignatureDeconvolutionPOC.ipynb**  
+- trained a random forest model using default parameters on bulk tissue training set
+- RepeatedStratifiedKFold() and cross_validate() out performance CIBERSORTx
+
+- <span style="color:red;background-color:yellow">TODO verify results</span>
+    * for each class calculate prediction metrics
+    * caluclate number of classes with specificity and sensitivity above threshold
+    
+    
+
+
