@@ -61,3 +61,8 @@ aedwip
     
     
     
+** ascending-vs.-DescendingBaseMeanGeneSignatureSelection.ipynb**  
+- best10CuratedDegree1_ce467ff has best results. 
+- potential bug: sorted base mean in ascending order. this picks potentiall weak signals
+- best10CuratedDegree1 is sorted in desecnding order.
+- create box plots and histograms of base means to decide if best10CuratedDegree1_ce467ff is valid
