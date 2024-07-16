@@ -26,6 +26,94 @@ logger = logging.getLogger(__name__)
 validElifeCategories = {"Colorectal Cancer", "Esophagus Cancer", "Healthy donor", "Liver Cancer", "Lung Cancer", "Stomach Cancer"}
 
 ################################################################################
+def fixBest10CuratedDegree1_ce467ff(
+        elifeLungGenes : list[str], 
+        missingElifeGenes : list[str] ) -> tuple[ list[str], list[str] ]:
+    '''
+    best10CuratedDegree1_ce467f has 716 genes. for unknow reason our current v35 to v39 mapping
+    has trouble with a few of these genes. We can not make predictions on elife sample that
+    are missing features our random forest was trained on
+
+    ref: intraExtraRNA_POC/jupyterNotebooks/elife/randomForestGTEx_TCGAGeneSignature.ipynb
+    
+    missing genes we correct for
+    ['ENSG00000263264', 'ENSG00000244693', 'ENSG00000288380', 'ENSG00000274031', 'ENSG00000182378.15_PAR_Y']
+
+
+    returns adjusted version of elifeLungGenes and missingElifeGenes
+
+    '''
+    # missingGenes:
+    # ['ENSG00000263264', 'ENSG00000244693', 'ENSG00000288380', 'ENSG00000274031', 'ENSG00000182378.15_PAR_Y']
+
+    # (extraCellularRNA) aedavids@mustard $ pwd
+    # /private/groups/kimlab/genomes.annotations/gencode.35
+
+    #  $ echo $grepPattern 
+    # ENSG00000263264\|ENSG00000244693\|ENSG00000288380\|ENSG00000274031\|ENSG00000182378
+
+    #  grep $grepPattern gencode.v35.ucsc.rmsk.tx.to.gene.csv
+
+    # 'ENSG00000263264'
+    # ENST00000576789.1|ENSG00000263264.2|OTTHUMG00000177340.5|OTTHUMT00000436334.2|AC119396.1-201|AC119396.1|1558|protein_coding|,AC119396.1
+    # ENST00000671891.1|ENSG00000263264.2|OTTHUMG00000177340.5|OTTHUMT00000529342.1|AC119396.1-202|AC119396.1|1347|protein_coding|,AC119396.1
+
+    # 'ENSG00000244693'
+    # ENST00000487179.1|ENSG00000244693.1|OTTHUMG00000158009.1|OTTHUMT00000349996.1|CTAGE8-201|CTAGE8|2588|protein_coding|,CTAGE8
+
+    # 'ENSG00000288380'
+    # ENST00000324803.6|ENSG00000288380.1|OTTHUMG00000195956.1|-|AC118281.1-201|AC118281.1|4441|protein_coding|,AC118281.1
+
+    # 'ENSG00000274031'
+    # ENST00000618027.1|ENSG00000274031.1|OTTHUMG00000186939.1|OTTHUMT00000474055.1|AC092140.2-201|AC092140.2|521|lncRNA|,AC092140.2
+
+
+    # 'ENSG00000182378.15_PAR_Y'
+    # mapDF
+    # idx   HUGO_v35	ENSG_v35	ENSG_v39
+    # 670	PLCXD1	ENSG00000182378.14	ENSG00000182378.15
+    # 671	PLCXD1	ENSG00000182378.14	ENSG00000182378.15_PAR_Y
+
+    mappingBugDict = {
+        'ENSG00000263264' : 'ENSG00000263264.2',
+        "ENSG00000244693" : "ENSG00000269693.1", 
+        'ENSG00000288380' : 'ENSG00000288380.1',
+        'ENSG00000274031' : 'ENSG00000274031.1',
+        "ENSG00000182378.15_PAR_Y" : "ENSG00000182378.15",
+    }
+
+    for k in mappingBugDict.keys():
+        fix = mappingBugDict[k]
+
+        if k in elifeLungGenes:
+            logger.warning(f'elifeLungGenes replacing {k} with {fix} elifeLungGenes')
+            elifeLungGenes.remove(k) 
+            elifeLungGenes.append(fix)         
+
+        if k in missingElifeGenes:
+            missingElifeGenes.remove( k )  
+            elifeLungGenes.append(fix)  
+
+    # aedwip
+    # AEDWIP_BUG_GENE = 'ENSG00000182378.15_PAR_Y'
+    # AEDWIP_BUG_GENE_FIX = 'ENSG00000182378.15'
+    # if  AEDWIP_BUG_GENE in elifeLungGenes:
+    #     # mapDF
+    #     # idx   HUGO_v35	ENSG_v35	ENSG_v39
+    #     # 670	PLCXD1	ENSG00000182378.14	ENSG00000182378.15
+    #     # 671	PLCXD1	ENSG00000182378.14	ENSG00000182378.15_PAR_Y
+
+    #     aedwip 589	AC010422.6	ENSG00000269693.1	ENSG00000269693.1
+    #     aedwip 124	LMOD3	ENSG00000163380.16	ENSG00000163380.16
+
+    #     logger.warning(f'elifeLungGenes replacing {AEDWIP_BUG_GENE} with {AEDWIP_BUG_GENE_FIX} elifeLungGenes')
+    #     elifeLungGenes.remove(AEDWIP_BUG_GENE) 
+    #     elifeLungGenes.append(AEDWIP_BUG_GENE_FIX)
+    #     #missingElifeGenes.append( AEDWIP_BUG_GENE )
+
+    return (elifeLungGenes, missingElifeGenes)
+
+################################################################################
 def loadCounts(
         dataRoot : str = "/private/groups/kimlab/alex/data/elife",
         countFile : str = "elife_all_norm_counts_2023-05-18.csv"
@@ -183,6 +271,9 @@ def loadElifeTrainingData(
 
     # check for missing biomarkers
     elifeLungGenes, missingElifeGenes, mapDF = selectFeatures( HUGOGenes)
+
+    elifeLungGenes, missingElifeGenes = fixBest10CuratedDegree1_ce467ff(elifeLungGenes, missingElifeGenes )
+
     logger.info( f'len(elifeLungGenes) : {len(elifeLungGenes)}' )
     if len(missingElifeGenes) > 0:
         logger.warning( f'missingElifeGenes\n : {missingElifeGenes}' )
@@ -197,6 +288,11 @@ def loadElifeTrainingData(
     tmpMetaDF = metaDF.rename( columns={ "diagnosis" : "category"} )
     # display( tmpMetaDF.head() )
     XDF = selectSamples(tmpMetaDF, transposedCountsDF, selectElifeCategories)
+    logger.info(f'AEDWIP XDF.shape : {XDF.shape}')
+    logger.info(f'AEDWIP elifeLungGenes : \n{elifeLungGenes}')
+    # 77k columns do not log logger.info(f'AEDWIP XDF.columns : \n{XDF.columns}')
+
+ 
 
     # XDF = XDF.loc[:, features]
     XDF = XDF.loc[:, elifeLungGenes]
