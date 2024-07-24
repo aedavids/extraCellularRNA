@@ -25,6 +25,8 @@ logger = logging.getLogger(__name__)
 
 validElifeCategories = {"Colorectal Cancer", "Esophagus Cancer", "Healthy donor", "Liver Cancer", "Lung Cancer", "Stomach Cancer"}
 
+
+
 ################################################################################
 def fixBest10CuratedDegree1_ce467ff(
         elifeLungGenes : list[str], 
@@ -75,10 +77,14 @@ def fixBest10CuratedDegree1_ce467ff(
     # 671	PLCXD1	ENSG00000182378.14	ENSG00000182378.15_PAR_Y
 
     mappingBugDict = {
-        'ENSG00000263264' : 'ENSG00000263264.2',
-        "ENSG00000244693" : "ENSG00000269693.1", 
-        'ENSG00000288380' : 'ENSG00000288380.1',
-        'ENSG00000274031' : 'ENSG00000274031.1',
+        #
+        # AEDWIP TODO figure out how to map the v35 to v39
+        #
+
+        # 'ENSG00000263264' : 'ENSG00000263264.2',
+        # "ENSG00000244693" : "ENSG00000269693.1", 
+        # 'ENSG00000288380' : 'ENSG00000288380.1',
+        # 'ENSG00000274031' : 'ENSG00000274031.1',
         "ENSG00000182378.15_PAR_Y" : "ENSG00000182378.15",
     }
 
@@ -156,7 +162,7 @@ def loadCounts(
 def loadElifeLungTrainingData(
         pipelineStageName : str = "best10CuratedDegree1_ce467ff",
         features : str = "all",
-    ) -> tuple[list[str], list[str], pd.DataFrame, pd.DataFrame, np.array, np.array]:
+    ) -> tuple[list[str], list[str], pd.DataFrame, pd.DataFrame, pd.DataFrame, np.array]:
     '''
     Easy of use class. Makes it easy to select lung releated samples from eLife, GTex, and TCGA
     wrapper around loadElifeTrainingData()
@@ -171,7 +177,7 @@ def loadElifeLungTrainingData(
             choices=['LUAD', 'LUSC', 'Lung', "all"]
 
     returns
-        (HUGO_lungGenes, elifeLungGenes, countDF, metaDF, XNP, yNP)
+        (HUGO_lungGenes, elifeLungGenes, countDF, metaDF, XDF, yNP)
     '''
     logger.info("BEGIN")
     if features == "all":# TODO AEDWIP do not hard code
@@ -188,17 +194,17 @@ def loadElifeLungTrainingData(
                                  categories,
                                  selectElifeCategories)
 
-    HUGOGenes, elifeLungGenes, missingGenes, countDF, metaDF, XNP, yNP, labelEncoder, mapDF = t
+    HUGOGenes, elifeLungGenes, missingGenes, countDF, metaDF, XDF, yNP, labelEncoder, mapDF = t
 
     # for backwards compatibility do not return missing Genes
-    return (HUGOGenes, elifeLungGenes, countDF, metaDF, XNP, yNP, labelEncoder, mapDF)
+    return (HUGOGenes, elifeLungGenes, countDF, metaDF, XDF, yNP, labelEncoder, mapDF)
 
 ################################################################################
 def loadElifeTrainingData(
         pipelineStageName : str,
         features : list[str],
         selectElifeCategories : list[str],
-    ) -> tuple[list[str], list[str], list[str], pd.DataFrame, pd.DataFrame, np.array, np.array, LabelEncoder, pd.DataFrame]:
+    ) -> tuple[list[str], list[str], list[str], pd.DataFrame, pd.DataFrame, pd.DataFrame, np.array, LabelEncoder, pd.DataFrame]:
     '''
 
     raises: ValueError
@@ -288,11 +294,9 @@ def loadElifeTrainingData(
     tmpMetaDF = metaDF.rename( columns={ "diagnosis" : "category"} )
     # display( tmpMetaDF.head() )
     XDF = selectSamples(tmpMetaDF, transposedCountsDF, selectElifeCategories)
-    logger.info(f'AEDWIP XDF.shape : {XDF.shape}')
-    logger.info(f'AEDWIP elifeLungGenes : \n{elifeLungGenes}')
+    logger.debug(f'AEDWIP XDF.shape : {XDF.shape}')
+    logger.debug(f'AEDWIP elifeLungGenes : \n{elifeLungGenes}')
     # 77k columns do not log logger.info(f'AEDWIP XDF.columns : \n{XDF.columns}')
-
- 
 
     # XDF = XDF.loc[:, features]
     XDF = XDF.loc[:, elifeLungGenes]
@@ -304,10 +308,14 @@ def loadElifeTrainingData(
 
     labelEncoder = LabelEncoder()
     yNP = labelEncoder.fit_transform(conditionList)
-    XNP = XDF.values
+    # return a data frame. It makes it easier to train model and remove missing features 
+    # as needed
+    # models trained with dataframes will have the attribute
+    # .feature_names_in_ contained the ordered list of features
+    #XNP = XDF.values
 
     logger.info("END")
-    return (HUGOGenes, elifeLungGenes, missingElifeGenes, transposedCountsDF, metaDF, XNP, yNP, labelEncoder, mapDF)
+    return (HUGOGenes, elifeLungGenes, missingElifeGenes, transposedCountsDF, metaDF, XDF, yNP, labelEncoder, mapDF)
 
 ################################################################################
 def loadMetaData(

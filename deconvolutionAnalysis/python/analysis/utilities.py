@@ -198,7 +198,7 @@ def findSignatureGenesForPipelineStage(
     resultFile = os.path.join(deseqResultsDir, category + '_vs_all.results')
     logger.info(f'resultFile : {resultFile}')
     numRowsToSkip = _countExtraHeaderLines(resultFile)
-    logger.info(f'numRowsToSkip : {numRowsToSkip}')
+    logger.debug(f'numRowsToSkip : {numRowsToSkip}')
 
     deseqDF = pd.read_csv(resultFile, skiprows=numRowsToSkip)
     retList = deseqDF.loc[:, colName].tolist()
@@ -223,7 +223,7 @@ def loadDictionary(intersectionDictPath : str) -> dict:
 ################################################################################
 def loadList(listPath : str) -> list:
     '''
-    TODO
+    TODO does not work with SaveList( isSingleItemLine=True )
     '''
     with open(listPath, "r") as f: 
         data = f.read() 
@@ -233,7 +233,7 @@ def loadList(listPath : str) -> list:
     # we would need to pad the dictionary values
     ret = ast.literal_eval(data)
 
-    return ret
+    return data
 
 ################################################################################
 def loadPipelineStageIntersectionDict(
