@@ -178,6 +178,9 @@ def loadElifeLungTrainingData(
 
     returns
         (HUGO_lungGenes, elifeLungGenes, countDF, metaDF, XDF, yNP)
+
+    example use case:
+        intraExtraRNA_POC/jupyterNotebooks/elife/elifeBinaryRandomForestResults.ipynb
     '''
     logger.info("BEGIN")
     if features == "all":# TODO AEDWIP do not hard code
