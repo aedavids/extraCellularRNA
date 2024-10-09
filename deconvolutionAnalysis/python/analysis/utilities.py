@@ -223,7 +223,7 @@ def loadDictionary(intersectionDictPath : str) -> dict:
 ################################################################################
 def loadList(listPath : str) -> list:
     '''
-    TODO does not work with SaveList( isSingleItemLine=True )
+    TODO
     '''
     with open(listPath, "r") as f: 
         data = f.read() 
@@ -233,7 +233,7 @@ def loadList(listPath : str) -> list:
     # we would need to pad the dictionary values
     ret = ast.literal_eval(data)
 
-    return data
+    return ret
 
 ################################################################################
 def loadPipelineStageIntersectionDict(
