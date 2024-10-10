@@ -64,11 +64,16 @@ def loadCountData(
         logger.info( f'localCacheDir undefined loading from private')
         retTuple = loadCountDataImpl( HUGO_featuresNames )
 
+        # if we do not set index. name pca.fit_transform fails
+        XDF, metaDF, elifeLungGenes, missingElifeGenes, mapDF
+        XDF.index.name = "sampleId"
+
+
     else :
         if os.path.isfile(XDFPath):
             logger.info( f'loading from {localCacheDir}' )
             # read everything from local cache
-            XDF = pd.read_csv( XDFPath )
+            XDF = pd.read_csv( XDFPath, index_col=0 )
             metaDF = pd.read_csv( metaDFPath )
             mapDF = pd.read_csv( mapDFPath )
             
@@ -86,6 +91,7 @@ def loadCountData(
             # save
             os.makedirs( localCacheDir, exist_ok=True )
 
+            XDF.index.name = "sampleId"
             XDF.to_csv( XDFPath)
             metaDF.to_csv( metaDFPath )
 
