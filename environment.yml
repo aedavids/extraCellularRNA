@@ -51,6 +51,7 @@ dependencies:
   - findspark
   - multiqc
   - cromwell
+  - openjdk # use this version of java to run cromwell
   - firecloud # google cloud fissc
   - umap-learn # https://umap-learn.readthedocs.io/en/latest/
   - python-louvain
@@ -60,7 +61,25 @@ dependencies:
   - ipynbname
   - esri::scikit-plot # https://scikit-plot.readthedocs.io/en/stable/index.html
   - pytables # required by pandas.DataFrame.to_hdf
-  #- pip
+  #- pip:
   #  - dumper # debug gcp/terra fissc error
+  #
+  # plasmaGAN dependencies
+  #- tensorflow
+  - h5py
+  - pydot
+  - graphviz
+  #- keras=3.4.*  # tensorflow 2.17.0  has keras 3.6.0  bundled in. it does not work use colab version
+  #jason does not support python 3.11 - tensorflow=2.3.0
+  #jason does not support python 3.11- keras=2.4.3
+  # does nto work - tensorflow=2.17
+  # fail - pip:
+  #       - tensorflow==2.17
+
+
+  # install pytorch https://pytorch.org/get-started/locally/
+  # linux: conda install pytorch torchvision torchaudio cpuonly -c pytorch
+  # https://keras.io/getting_started/
+  # pip install --upgrade keras
 
 prefix: /public/home/aedavids/miniconda3/envs/extraCellularRNA
