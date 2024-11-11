@@ -1,4 +1,3 @@
-
 # TOC
 
 - clusterAnalysis.ipynb
@@ -14,3 +13,7 @@ contains code needed to get gene names needed to select real training examples f
 
 **TODO**  
 rename. this is really not plasma specific. 
+
+
+- WGAN_GP
+replaced the discriminator in basicPytorchGAN.ipynb with a Wasserstien critic 
