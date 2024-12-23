@@ -63,6 +63,7 @@ def createSignatureMatrix(
             if False use the mean to calculate the signature gene mean value for each category
         
     returns:
+        pd.DataFrame with index name 'gene_id'. the column names are the list of categories
 
     ref:
         extraCellularRNA/deconvolutionAnalysis/python/tempus/test/testCreateCiberSortInputMatrices.py
