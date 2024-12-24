@@ -11,6 +11,7 @@
 findBiomarkers.py TODO doc string for cli
 '''
 
+from analysis.bestSignatureGeneConfig import BestSignatureGeneConfig
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
 from kimLabUtils.baseCommandLine import BBaseCommandLine
@@ -59,49 +60,25 @@ class findBiomarkersCommandLine( BBaseCommandLine ):
 
         self.parser.add_argument( '-b', '--bioType', default=None, metavar="",
                                                       action='store', 
-                                                      required=True,
+                                                      required=False,
                                                       help="select biomarkers from biotype. Default is to select from, all genes"
         )        
        
         self.parser.add_argument( '-c', '--countFilePath', default=None, 
                                                         metavar="",
-                                                      action='store', 
-                                                      required=False, # only required if biotype is specified
-                                                      help="path to a csv file with gene counts and bio type. "
-                                                        + "ex. '/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv'"
-                                                        + "1st 3 column are gene_id, gene_name, gene_biotype there is a column for each sample"
+                                                        action='store', 
+                                                        required=False, # only required if biotype is specified
+                                                        help="path to a csv file with gene counts and bio type. "
+                                                            + "ex. '/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv'"
+                                                            + "1st 3 column are gene_id, gene_name, gene_biotype there is a column for each sample"
         )
         
 
-        # self.parser.add_argument( '-o', '--outDir', default=".", metavar="",
-        #                                               action='store', 
-        #                                               help="locaiton to write output files"
-        # )
-
-    
         #
         # group required arguments. This will create a better help message
         # make sure to set required=True
         #
         self.requiredArg = self.parser.add_argument_group( 'required arguments' )
-
-        # self.requiredArg.add_argument( '-o', '--outDir', default=".", metavar="",
-        #                                               action='store', 
-        #                                               help="locaiton to write output files mixture.tsv and signatureGenes.tsv"
-        # )        
-
-      
-        # self.requiredArg.add_argument( '-m', '--metaDataFilePath', required=True, default=None, metavar="",
-        #                                               action='store', 
-        #                                               help="path to a csv file containing sample meta data in DESeq format"
-        #                                               + "ex. /private/groups/kimlab/data/tempus/illumina/20241107/raw/metadata.csv"
-        #                                               + "this file should not have a header, the first column should be sampleId, the second the sample type"
-        # )
-
-        # self.requiredArg.add_argument( '-g', '--genesOfInterest', required=True, nargs='+', metavar="",
-        #                           action='store', 
-        #                           help="list of genes of interest"
-        # )
 
         self.requiredArg.add_argument( '-l', '--lfcThreshold', required=True, default=".", metavar="",   
                                             action='store', 
@@ -121,6 +98,14 @@ class findBiomarkersCommandLine( BBaseCommandLine ):
                                             help="adjust p-value cut off"
         )   
 
+        self.parser.add_argument( '-d', '--deseq2ResultsFilePath', default=None, 
+                                                        metavar="",
+                                                        action='store', 
+                                                        required=False, # only required if biotype is specified
+                                                        help="path to a csv file with gene counts and bio type. "
+                                                            + "ex. '/private/groups/kimlab/data/tempus/illumina/20241107/create/results/data/Control_vs_UD_deseq_results.csv'"
+        )
+ 
 
 ###############################################################################
 def main(inCommandLineArgsList=None):
@@ -161,15 +146,38 @@ def main(inCommandLineArgsList=None):
 
     logger.warning(f'command line arguments : {cli.args}')
 
-    bioType       = cli.args.bioType
-    countFilePath = cli.args.countFilePath
-    padjThreshold = cli.args.padjThreshold
-    lfcThreshold  = cli.args.lfcThreshold
-    number        = cli.args.number  
+    bioType                 = cli.args.bioType
+    countFilePath           = cli.args.countFilePath
+    padjThreshold           = cli.args.padjThreshold
+    lfcThreshold            = cli.args.lfcThreshold
+    number                  = cli.args.number  
+    deseq2ResultsFilePath   = cli.args.deseq2ResultsFilePath
 
     if not bioType is None and countFilePath is None:
         logger.error(f'--biotype requires --countFilePath')
         sys.exit(1)
+
+    # load the deseq2 results file
+    deseqDF = pd.read_csv(deseq2ResultsFilePath)
+    if 'gene_biotype' in deseqDF.columns:
+        deseqDF['gene_biotype'] = deseqDF['gene_biotype'].astype('category')
+
+    logger.info(f'deseqDF.head()\n{deseqDF.head()}')
+
+    # set arguments we do not need to deprecated to make debugging easier
+    # in the event we really need these arguments
+    bsgc = BestSignatureGeneConfig(  
+                            dataSetName="AEDWIP_deprecated", 
+                            design="AEDWIP_deprecated", 
+                            padjThreshold=padjThreshold, 
+                            lfcThreshold=lfcThreshold,
+                            n=number, 
+                            localCacheRootPath="AEDWIP_deprecated", 
+                            title="AEDWIP_deprecated"
+        ) 
+
+    biomarkerDF = bsgc.findGenes(deseqDF, "AEDWIP_deprecated")
+    logger.info(f'best biomarkerDF\n{biomarkerDF}')
 
     logger.warning(f'END')
     sys.exit(0)
@@ -178,10 +186,12 @@ def main(inCommandLineArgsList=None):
 if __name__ == '__main__':
     debugCommandLineArgsList=[
         #"--help",
-        "--bioType", "protein_coding",
+        # "--bioType", "protein_coding",
+        # "--countFilePath", "/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv",
         "--padjThreshold", "0.001",
         "--lfcThreshold", "2.0",
         "--number" , "10",
+        "--deseq2ResultsFilePath", "/private/groups/kimlab/data/tempus/illumina/20241107/create/results/data/Control_vs_UD_deseq_results.csv"
     ]    
     main(debugCommandLineArgsList)
 
