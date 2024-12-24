@@ -63,17 +63,7 @@ class findBiomarkersCommandLine( BBaseCommandLine ):
                                                       required=False,
                                                       help="select biomarkers from biotype. Default is to select from, all genes"
         )        
-       
-        self.parser.add_argument( '-c', '--countFilePath', default=None, 
-                                                        metavar="",
-                                                        action='store', 
-                                                        required=False, # only required if biotype is specified
-                                                        help="path to a csv file with gene counts and bio type. "
-                                                            + "ex. '/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv'"
-                                                            + "1st 3 column are gene_id, gene_name, gene_biotype there is a column for each sample"
-        )
         
-
         #
         # group required arguments. This will create a better help message
         # make sure to set required=True
@@ -147,15 +137,11 @@ def main(inCommandLineArgsList=None):
     logger.warning(f'command line arguments : {cli.args}')
 
     bioType                 = cli.args.bioType
-    countFilePath           = cli.args.countFilePath
     padjThreshold           = cli.args.padjThreshold
     lfcThreshold            = cli.args.lfcThreshold
     number                  = cli.args.number  
     deseq2ResultsFilePath   = cli.args.deseq2ResultsFilePath
 
-    if not bioType is None and countFilePath is None:
-        logger.error(f'--biotype requires --countFilePath')
-        sys.exit(1)
 
     # load the deseq2 results file
     deseqDF = pd.read_csv(deseq2ResultsFilePath)
@@ -163,6 +149,16 @@ def main(inCommandLineArgsList=None):
         deseqDF['gene_biotype'] = deseqDF['gene_biotype'].astype('category')
 
     logger.info(f'deseqDF.head()\n{deseqDF.head()}')
+
+    expectedBioTypes = ['Coding', 'DNA', 'LINE', 'LTR', 'Microsatellite', 'Other', 'SINE', 'lncRNA']
+    if bioType is not expectedBioTypes:
+        logger.warning(f'bioType: {bioType} is not in {expectedBioTypes}')
+
+    #logger.info(f'deseqDF.loc[:, "gene_biotype"].cat.categories: {deseqDF.loc[:, "gene_biotype"].cat.categories}')
+
+    if bioType is not None:
+        deseqDF = deseqDF[ deseqDF['gene_biotype'] == bioType ]
+        logger.info(f'deseqDF.head()\n{deseqDF.head()}')
 
     # set arguments we do not need to deprecated to make debugging easier
     # in the event we really need these arguments
@@ -186,8 +182,7 @@ def main(inCommandLineArgsList=None):
 if __name__ == '__main__':
     debugCommandLineArgsList=[
         #"--help",
-        # "--bioType", "protein_coding",
-        # "--countFilePath", "/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv",
+        "--bioType", "Coding",
         "--padjThreshold", "0.001",
         "--lfcThreshold", "2.0",
         "--number" , "10",
