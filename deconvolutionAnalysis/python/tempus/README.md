@@ -83,36 +83,23 @@ upstreamPipeline.py  _step3() create signature matrix
     ALDOA 116311.7735104082 26562.637044600327 22489.62560500435
     ```
 
-* _createSignatureMatrix(self)
-  * transposeGroupByDF = self.groupByCountDF.transpose(copy=True)
+    ```
+    aedavids@mustard $ wc -l mixture.txt 
+    137 mixture.txt
 
-    ```python
-    # join the colData, we need the 'category' col so we can
-    # calculate the  signature gene mean value for each category 
-    joinDF =  pd.merge(left=normalizedDF, 
-                        right=self.colDataDF.loc[:,["sample_id", "category"]], 
-                        how='inner', 
-                        left_index=True, 
-                        right_on="sample_id")      
-    self.logger.debug(f'joinDF:\n{joinDF}')
+    aedavids@mustard $ head -n 1 mixture.txt | tab2newLine | wc -l
+    15802
 
-    # calculate the expected values for each category      
-    genesDF = joinDF.loc[ :,self.geneListsorted + ["category"] ] 
-    if self.useMedian :
-        # weird duplicated log so I can set debugger break points
-        self.logger.info(f'useMedian : {self.useMedian} calling median()')
-        signatureDF = genesDF.groupby("category").median()
-    else:
-        self.logger.info(f'useMedian : {self.useMedian} calling mean()')
-        signatureDF = genesDF.groupby("category").mean()
-    
-    # convert to cibersort expected upload format
-    ciberSortSignatueDF = signatureDF.transpose(copy=True)
-    ciberSortSignatueDF.index.name = "name"
-    
-    self.ciberSortSignatueDF = ciberSortSignatueDF
-    # weird. cciberSortSignatueDF.columns.name = 'category'. This name is not
-    # saved by pd.to_csv(). Set to none to make it easier to write unit test
-    self.ciberSortSignatueDF.columns.name = None
+    aedavids@mustard $ head mixture.txt | cut -f 1,2,3
+    sampleTitle	GTEX-1117F-0226-SM-5GZZ7	GTEX-1117F-0526-SM-5EGHJ
+    A2M	13958.893226398635	57957.76714851816
+    ACSL1	3812.7540388156785	756.2916782588303
+    ACTA2	8625.168399834383	53611.99355736693
+    ACTB	73150.3506185954	79749.48861321727
+    ACTG2	1022.7929577581386	6378.947967391779
+    ADH1B	66625.29506094292	17860.64439450822
+    AHNAK	43081.22905917278	33061.628894290494
+    ALB	233.80485221773282	263.02827111982805
+    ALDOA	22525.403871789702	33384.09472278025
     ```
 
