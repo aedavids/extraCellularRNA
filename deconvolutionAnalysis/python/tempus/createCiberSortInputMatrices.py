@@ -292,7 +292,7 @@ def main(inCommandLineArgsList=None):
     # save output file
     os.makedirs(outDir, exist_ok=True)
     outPath = f'{outDir}/signatureMatrix.csv'
-    retDF.to_csv(outPath, index=False)
+    retDF.to_csv(outPath, index=True)
 
     print(f'saved signature matrix to {outPath}')
 
