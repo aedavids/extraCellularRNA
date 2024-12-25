@@ -8,7 +8,9 @@
 
 # findBiomarkers display the doc string 
 '''
-findBiomarkers.py TODO doc string for cli
+findBiomarkers: \n
+select best biomarkers from a DESeq2 results file. The best biomarkers are selected based on the log fold change and adjusted p-value. The best biomarkers are written to biomarkerDESeq2Results.csv file.
+
 '''
 
 from analysis.bestSignatureGeneConfig import BestSignatureGeneConfig
@@ -88,15 +90,21 @@ class findBiomarkersCommandLine( BBaseCommandLine ):
                                             help="adjust p-value cut off"
         )   
 
-        self.parser.add_argument( '-d', '--deseq2ResultsFilePath', default=None, 
+        self.requiredArg.add_argument( '-d', '--deseq2ResultsFilePath', default=None, 
                                                         metavar="",
                                                         action='store', 
-                                                        required=False, # only required if biotype is specified
+                                                        required=True, # only required if biotype is specified
                                                         help="path to a csv file with gene counts and bio type. "
                                                             + "ex. '/private/groups/kimlab/data/tempus/illumina/20241107/create/results/data/Control_vs_UD_deseq_results.csv'"
         )
  
-
+        self.requiredArg.add_argument( '-o', '--outDir', default=None, 
+                                                        metavar="",
+                                                        action='store', 
+                                                        required=True, # only required if biotype is specified
+                                                        help="path to directory to write the biomarkerDESeq2Results.csv file to"
+        )
+ 
 ###############################################################################
 def main(inCommandLineArgsList=None):
     '''
@@ -141,6 +149,7 @@ def main(inCommandLineArgsList=None):
     lfcThreshold            = cli.args.lfcThreshold
     number                  = cli.args.number  
     deseq2ResultsFilePath   = cli.args.deseq2ResultsFilePath
+    outDir                  = cli.args.outDir
 
 
     # load the deseq2 results file
@@ -175,18 +184,24 @@ def main(inCommandLineArgsList=None):
     biomarkerDF = bsgc.findGenes(deseqDF, "AEDWIP_deprecated")
     logger.info(f'best biomarkerDF\n{biomarkerDF}')
 
+    os.makedirs(outDir, exist_ok=True)
+    biomarkerPath = f'{outDir}/biomarkerDESeq2Results.csv'
+    pd.to_csv(biomarkerPath, index=False)
+
     logger.warning(f'END')
     sys.exit(0)
 
 ################################################################################
 if __name__ == '__main__':
-    debugCommandLineArgsList=[
-        #"--help",
-        "--bioType", "Coding",
-        "--padjThreshold", "0.001",
-        "--lfcThreshold", "2.0",
-        "--number" , "10",
-        "--deseq2ResultsFilePath", "/private/groups/kimlab/data/tempus/illumina/20241107/create/results/data/Control_vs_UD_deseq_results.csv"
-    ]    
-    main(debugCommandLineArgsList)
+    # debugCommandLineArgsList=[
+    #     #"--help",
+    #     "--bioType", "Coding",
+    #     "--padjThreshold", "0.001",
+    #     "--lfcThreshold", "2.0",
+    #     "--number" , "10",
+    #     "--deseq2ResultsFilePath", "/private/groups/kimlab/data/tempus/illumina/20241107/create/results/data/Control_vs_UD_deseq_results.csv"
+    # ]    
+    # main(debugCommandLineArgsList)
+
+    main()
 
