@@ -8,10 +8,10 @@
 # extraCellularRNA/terra/jupyterNotebooks/cibersort/createCiberSortGeneSignatureMatrix.ipynb
 # extraCellularRNA/deconvolutionAnalysis/python/pipeline/dataFactory/cibersortMixtureMatrixFactory.py
 
-# createCiberSortInputMatrices display the doc string 
+# createCiberSortInputMatrices cli the doc string 
 '''
-Functions to create input matrices for CiberSort from count data created by 
-"Crate" , formally known as 'Complete Seq'
+create signatureMatrix.csv file for cbersortx from count data created by 
+"Create", formally known as 'Complete Seq'
     
 ref:
     extraCellularRNA/terra/jupyterNotebooks/cibersort/createCiberSortGeneSignatureMatrix.ipynb
@@ -95,7 +95,7 @@ class CreateSignatureMatrixCommandLine( BBaseCommandLine ):
         self.requiredArg.add_argument( '-m', '--metaDataFilePath', required=True, default=None, metavar="",
                                                       action='store', 
                                                       help="path to a csv file containing sample meta data in DESeq format"
-                                                      + "ex. /private/groups/kimlab/data/tempus/illumina/20241107/raw/metadata.csv"
+                                                      + "ex. /private/groups/kimlab/data/tempus/illumina/20241107/raw/metaDataWithHeader.csv"
                                                       + "this file should not have a header, the first column should be sampleId, the second the sample type"
         )
 
@@ -153,13 +153,16 @@ def createSignatureMatrix(
         extraCellularRNA/deconvolutionAnalysis/python/tempus/test/testCreateCiberSortInputMatrices.py
     '''
     logger.info("BEGIN")
+    logger
 
     # sort the gene list and remove any duplicates
-    sortedGeneList = sorted( set(genesOfInterest) ) 
+    logger.info(f'normalizedCountDF.shape : {normalizedCountDF.shape}')   
+    logger.info(f'metaDF.shape : {metaDF.shape}')   
 
 
     transposedDF = normalizedCountDF.transpose(copy=True)
-    logger.info(f'transposeGroupByDF\n{transposedDF}')   
+    logger.info(f'transposedDF.shape : {transposedDF.shape}')   
+    logger.debug(f'transposedDF\n{transposedDF}')   
 
     # join the metaDF, we need the 'category' col so we can
     # calculate the  signature gene mean value for each category 
@@ -168,10 +171,14 @@ def createSignatureMatrix(
                         how='inner', 
                         left_index=True, 
                         right_on="sample_id")      
-    logger.info(f'joinDF:\n{joinDF}')
+    logger.info(f'joinDF.shape : {joinDF.shape}')
+    logger.info(f'joinDF.head():\n{joinDF.head()}')
 
     # calculate the expected values for each category  
+    sortedGeneList = sorted( set(genesOfInterest) ) 
     genesDF = joinDF.loc[ :, sortedGeneList + ["category"] ] 
+    logger.info(f'genesDF.shape : {genesDF.shape}')
+
     if useMedian :
         # weird duplicated log so I can set debugger break points
         logger.info(f'useMedian : {useMedian} calling median()')
@@ -182,6 +189,7 @@ def createSignatureMatrix(
     
     # convert to cibersort expected upload format
     ciberSortSignatueDF = signatureDF.transpose(copy=True)
+    logger.info(f'ciberSortSignatueDF.shape : {ciberSortSignatueDF.shape}')
     ciberSortSignatueDF.index.name = "gene_id"
     
     # weird. cciberSortSignatueDF.columns.name = 'category'. This name is not
@@ -236,7 +244,7 @@ def main(inCommandLineArgsList=None):
     outDir = cli.args.outDir
     normalizedCountFilePath = cli.args.normalizedCountFilePath
     metaDataFilePath = cli.args.metaDataFilePath
-    genesOfInterest = cli
+    genesOfInterest = cli.args.genesOfInterest
 
     if cli.args.useMedian:
         useMedian = True
@@ -251,8 +259,15 @@ def main(inCommandLineArgsList=None):
     # load the normalized counts and get rid of any extra columns
     #
     normalizedCountDF = pd.read_csv(normalizedCountFilePath)
+
     normalizedCountDF.set_index("gene_id", inplace=True)
-    normalizedCountDF.drop(columns=["gene_name", "biotype"], inplace=True)
+    
+    if "gene_name" in normalizedCountDF.columns:
+        normalizedCountDF.drop(columns=["gene_name"], inplace=True)
+
+    if "gene_biotype" in normalizedCountDF.columns:
+        normalizedCountDF.drop(columns=["gene_biotype"], inplace=True)
+
     logger.info(f'normalizedCountDF.shape : {normalizedCountDF.shape}')
 
     #
@@ -262,10 +277,38 @@ def main(inCommandLineArgsList=None):
     logger.info(f'metaDataDF.shape : {metaDataDF.shape}')
     logger.info(f'metaDataDF :\n {metaDataDF}')
 
+    #
+    # create the cibersort signature matrix
+    #
+    retDF = createSignatureMatrix(
+            genesOfInterest, 
+            normalizedCountDF,
+            metaDataDF,
+            useMedian
+        )
+
+    logger.info(f'retDF.shape():\n{retDF.shape}')
+
+    # save output file
+    os.makedirs(outDir, exist_ok=True)
+    outPath = f'{outDir}/signatureMatrix.csv'
+    retDF.to_csv(outPath, index=False)
+
+    print(f'saved signature matrix to {outPath}')
 
     logger.warning("END")
     sys.exit(0)
 
 ################################################################################
 if __name__ == '__main__':
-    main()
+    debugCommandLineArgsList=[
+        #"--help",
+        #"-useMedian",
+        "--outDir", "./tmp",
+        "--normalizedCountFilePath", "/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv",
+        "--metaDataFilePath", "/private/groups/kimlab/data/tempus/illumina/20241107/raw/metaDataWithHeader.csv",
+        "--genesOfInterest", "X7D_LINE", "Zaphod", 
+    ]    
+    main(debugCommandLineArgsList)
+
+    #main()
