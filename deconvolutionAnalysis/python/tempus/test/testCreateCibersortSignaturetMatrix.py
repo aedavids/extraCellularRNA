@@ -122,9 +122,7 @@ class TestCreateCibersortSignatureMatrix(unittest.TestCase):
             'UD': {'X7D_LINE': 13.0, 'Zaphod': 16.0}
             } )
 
-        # cibersort expects the index name to be 'name'
-        # expectedDF.index.name = 'gene_id'
-        expectedDF.index.name = 'name'
+        expectedDF.index.name = 'gene_id'
 
         pd.testing.assert_frame_equal(expectedDF, retDF)
 

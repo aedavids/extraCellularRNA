@@ -165,9 +165,6 @@ def main(inCommandLineArgsList=None):
     selectRows = normalizedCountDF.index.isin(genesOfInterest)
     retDF = normalizedCountDF.loc[selectRows, :]
 
-    # cibersortx expects index name to be sampleTitle
-    retDF.index.name = "sampleTitle"
-
     # sort the sample names to make analysis easier
     sortedCols = sorted(retDF.columns, reverse=True)
     retDF = retDF.loc[:, sortedCols]
