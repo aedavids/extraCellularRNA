@@ -19,6 +19,10 @@ outDir="./tmp"
 normalizedCountFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv"
 metaDataFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/raw/metaDataWithHeader.csv"
 
+# cibersortx arguments
+cibersortUser="aedavids@ucsc.edu"
+cibersortToken="aac8366d23af037ef2423d0dbe8fffd8"
+
 set -x turn debug trace on. output goes to stderr, normal output goes to stdout
 
 set -euxo pipefail
@@ -91,4 +95,65 @@ python -m tempus.createCiberSortMixtureMatrix \
     --outDir ${outDir}  
 
 
-TODO AEDWIP run docker
+#
+# run the cibersortx docker container
+#
+printf "\n\n\n################### run the cibersortx docker container\n"
+# ref : extraCellularRNA/terra/cibersortx/wdl/README.md
+# ref : extraCellularRNA/terra/cibersortx/bin/run_cibersortx_fractions.sh
+cd ${outDir}
+mixtureMatrix=mixtureMatrix.tsv
+signatureMatrix=signatureMatrix.tsv
+
+# dateStamp example: 2019-12-09-23.01.43-UTC
+timeStamp=`date "+%Y-%m-%d-%H.%M.%S-%Z%n"`
+jobId="${scriptName}-${timeStamp}"
+
+
+# docker arguments
+# -d  --detach Run container in background and print container ID
+# -rm Automatically remove the container when it exits
+# -e set environment variable
+
+# mount the directory with the signature and matrix files as /src/data
+# use full path 
+dockerInputDir="${PWD}"
+dockerOutDir="${PWD}"
+
+# img="cibersortx/fractions"
+img="aedavids/cibersortx_fractions"
+
+#     --detach \
+
+USER_ID=`id -u`
+cmd="docker run \
+    --rm \
+    -e USERID=${USER_ID} \
+    -v ${dockerInputDir}:/src/data \
+    -v ${dockerOutDir}:/src/outdir ${img} \
+    --username ${cibersortUser} \
+    --token ${cibersortToken} \
+    --mixture ${mixtureMatrix}\
+    --sigmatrix ${signatureMatrix}\
+    --perm 100 \
+    --label $jobId \
+    --QN FALSE \
+    --verbose TRUE \
+"
+
+printf "\n\n\n************ run docker\n"
+echo "${cmd}" > "${dockerOutDir}/${scriptName}.parameters.txt"
+
+# scriptOut="$dockerOutDir/${scriptName}.meta.out"
+# echo "run on ${timeStamp}" > ${scriptOut}
+# echo "input src: ${bestSrc}/ciberSort/*"  >> ${scriptOut}
+# echo $cmd >> ${scriptOut}
+# echo ""   >> ${scriptOut}
+
+echo ""
+$cmd 
+exitStatus=$?
+if [ $exitStatus -ne 0 ]; then
+    printf "docker run failed with exit status : ${exitStatus}\n"
+    exit $exitStatus
+fi

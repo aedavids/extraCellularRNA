@@ -10,7 +10,7 @@
 
 # createCiberSortMixtureMatrices cli the doc string 
 '''
-create mixture.csv file for cbersortx from count data created by 
+create mixture.tsv file for cbersortx from count data created by 
 "Create", formally known as 'Complete Seq'
     
 ref:
@@ -172,8 +172,8 @@ def main(inCommandLineArgsList=None):
     # save output file
     #
     os.makedirs(outDir, exist_ok=True)
-    outPath = f'{outDir}/mixtureMatrix.csv'
-    retDF.to_csv(outPath, index=True)
+    outPath = f'{outDir}/mixtureMatrix.tsv'
+    retDF.to_csv(outPath, index=True, sep='\t')
 
     print(f'saved mixture matrix to {outPath}')
 

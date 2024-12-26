@@ -10,7 +10,7 @@
 
 # createCiberSortInputMatrices cli the doc string 
 '''
-create signatureMatrix.csv file for cbersortx from count data created by 
+create signatureMatrix.tsv file for cbersortx from count data created by 
 "Create", formally known as 'Complete Seq'
     
 ref:
@@ -291,8 +291,9 @@ def main(inCommandLineArgsList=None):
 
     # save output file
     os.makedirs(outDir, exist_ok=True)
-    outPath = f'{outDir}/signatureMatrix.csv'
-    retDF.to_csv(outPath, index=True)
+    outPath = f'{outDir}/signatureMatrix.tsv'
+    
+    retDF.to_csv(outPath, index=True, sep='\t')
 
     print(f'saved signature matrix to {outPath}')
 
