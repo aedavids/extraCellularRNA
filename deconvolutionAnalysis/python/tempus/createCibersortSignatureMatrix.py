@@ -64,9 +64,21 @@ class CreateSignatureMatrixCommandLine( BBaseCommandLine ):
         # optional arguments
         #
 
+        # self.requiredArg.add_argument( '-g', '--genesOfInterest', required=True, nargs='+', metavar="",
+        #                           action='store', 
+        #                           help="list of genes of interest"
+        # )
+        # --categoriesOfInterest
+        self.parser.add_argument( '-c', '--categoriesOfInterest', default=None, required=False, action='store', nargs='+', metavar="",
+                                  help="list of categories to include in the signature matrix. If None include all categories."
+                                        + " Example of use: You want to a limit of detection or dilution fractions series."
+                                        + " Your categories are control, undiluted, 1:10, 1:100, 1:1000. Your categoriesOfInterest"
+                                        + "would be ['control', 'undiluted']"
+        )
        
         self.parser.add_argument( '-u', '--useMedian', default=False, action='store_true', 
-                      help="use median to calculate the signature gene mean value for each category. Default is to use the mean")
+                      help="use median to calculate the signature gene mean value for each category. Default is to use the mean"
+        )
 
         # self.parser.add_argument( '-o', '--outDir', default=".", metavar="",
         #                                               action='store', 
@@ -109,7 +121,8 @@ def createSignatureMatrix(
         genesOfInterest : list[str],
         normalizedCountDF : pd.DataFrame,
         metaDF : pd.DataFrame,
-        useMedian : bool = False
+        useMedian : bool = False,
+        categoriesOfInterest : list[str] = None
     ) :
     '''
     create a signature matrix for CiberSort
@@ -145,6 +158,13 @@ def createSignatureMatrix(
         useMedian : bool
             if True use the median to calculate the signature gene mean value for each category
             if False use the mean to calculate the signature gene mean value for each category
+
+        categoriesOfInterest : list[str]
+            list of categories to include in the signature matrix. If None include all categories.
+            Example of use: You want to a limit of detection or dilution fractions series.
+            Your categories are control, undiluted, 1:10, 1:100, 1:1000. Your categoriesOfInterest
+            would be ['control', 'undiluted']
+            
         
     returns:
         pd.DataFrame with index name 'gene_id'. the column names are the list of categories
@@ -173,6 +193,10 @@ def createSignatureMatrix(
                         right_on="sample_id")      
     logger.info(f'joinDF.shape : {joinDF.shape}')
     logger.info(f'joinDF.head():\n{joinDF.head()}')
+
+    if categoriesOfInterest is not None:
+        selectRows = joinDF.loc[:, "category"].isin(set(categoriesOfInterest))
+        joinDF = joinDF.loc[selectRows, :]
 
     # calculate the expected values for each category  
     sortedGeneList = sorted( set(genesOfInterest) ) 
@@ -246,6 +270,7 @@ def main(inCommandLineArgsList=None):
     normalizedCountFilePath = cli.args.normalizedCountFilePath
     metaDataFilePath = cli.args.metaDataFilePath
     genesOfInterest = cli.args.genesOfInterest
+    categoriesOfInterest = cli.args.categoriesOfInterest
 
     if cli.args.useMedian:
         useMedian = True
@@ -285,7 +310,8 @@ def main(inCommandLineArgsList=None):
             genesOfInterest, 
             normalizedCountDF,
             metaDataDF,
-            useMedian
+            useMedian,
+            categoriesOfInterest
         )
 
     logger.info(f'retDF.shape():\n{retDF.shape}')
@@ -303,14 +329,15 @@ def main(inCommandLineArgsList=None):
 
 ################################################################################
 if __name__ == '__main__':
-    # debugCommandLineArgsList=[
-    #     #"--help",
-    #     #"-useMedian",
-    #     "--outDir", "./tmp",
-    #     "--normalizedCountFilePath", "/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv",
-    #     "--metaDataFilePath", "/private/groups/kimlab/data/tempus/illumina/20241107/raw/metaDataWithHeader.csv",
-    #     "--genesOfInterest", "X7D_LINE", "Zaphod", 
-    # ]    
-    # main(debugCommandLineArgsList)
+    debugCommandLineArgsList=[
+        #"--help",
+        #"-useMedian",
+        "--outDir", "./tmp",
+        "--normalizedCountFilePath", "/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv",
+        "--metaDataFilePath", "/private/groups/kimlab/data/tempus/illumina/20241107/raw/metaDataWithHeader.csv",
+        "--genesOfInterest", "X7D_LINE", "Zaphod", 
+        "--categoriesOfInterest", "Control", "UD"
+    ]    
+    main(debugCommandLineArgsList)
 
-    main()
+    # main()

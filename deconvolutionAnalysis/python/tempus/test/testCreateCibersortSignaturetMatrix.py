@@ -128,6 +128,43 @@ class TestCreateCibersortSignatureMatrix(unittest.TestCase):
 
         logger.info(f'END')
 
+
+    ################################################################################
+    def testCreateSignatureMatrixCategoiresOfInterest(self):
+        '''
+        TODO
+        '''
+        logger = logging.getLogger(__name__)
+        logger.info(f'BEGIN')
+
+        countData = self._getNormalizedCountData()
+
+        # drop the gene_name and biotype columns
+        countData = countData.drop(columns=["gene_name", "biotype"])
+
+        metaDataDF = self._getMetaDataDF()
+
+        retDF = createSignatureMatrix(
+            genesOfInterest = ["X7D_LINE", "Zaphod"],
+            normalizedCountDF = countData,
+            metaDF = metaDataDF,
+            useMedian = False,
+            categoriesOfInterest = ["Control"] 
+        )
+
+        logger.info(f'retDF:\n{retDF}')
+
+        expectedDF = pd.DataFrame(
+            {'Control': {'X7D_LINE': 7.0, 'Zaphod': 10.0}, 
+            #'UD': {'X7D_LINE': 13.0, 'Zaphod': 16.0}
+            } )
+
+        expectedDF.index.name = 'gene_id'
+
+        pd.testing.assert_frame_equal(expectedDF, retDF)
+
+        logger.info(f'END')
+
 ################################################################################
 if __name__ == "__main__":
     # we only configure logging in main module
