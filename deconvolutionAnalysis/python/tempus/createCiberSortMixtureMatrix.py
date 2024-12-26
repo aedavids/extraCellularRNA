@@ -63,15 +63,7 @@ class CreateMixtureMatrixCommandLine( BBaseCommandLine ):
         #
         # optional arguments
         #
-
-       
-        # self.parser.add_argument( '-u', '--useMedian', default=False, action='store_true', 
-        #               help="use median to calculate the signature gene mean value for each category. Default is to use the mean")
-
-        # self.parser.add_argument( '-o', '--outDir', default=".", metavar="",
-        #                                               action='store', 
-        #                                               help="locaiton to write output files"
-        # )
+        None
 
     
         #
@@ -82,7 +74,7 @@ class CreateMixtureMatrixCommandLine( BBaseCommandLine ):
 
         self.requiredArg.add_argument( '-o', '--outDir', default=".", metavar="",
                                                       action='store', 
-                                                      help="locaiton to write output files mixture.tsv file"
+                                                      help="locaiton to write output file mixture.tsv file"
         )        
 
         self.requiredArg.add_argument( '-n', '--normalizedCountFilePath', required=True, default=None, metavar="",
@@ -90,14 +82,7 @@ class CreateMixtureMatrixCommandLine( BBaseCommandLine ):
                                                       help="path to a csv file with normalized gene counts. "
                                                         + "ex. '/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv'"
                                                         + "1st 3 column are gene_id, gene_name, gene_biotype there is a column for each sample"
-                                    )
-        
-        # self.requiredArg.add_argument( '-m', '--metaDataFilePath', required=True, default=None, metavar="",
-        #                                               action='store', 
-        #                                               help="path to a csv file containing sample meta data in DESeq format"
-        #                                               + "ex. /private/groups/kimlab/data/tempus/illumina/20241107/raw/metaDataWithHeader.csv"
-        #                                               + "this file should not have a header, the first column should be sampleId, the second the sample type"
-        # )
+        )
 
         self.requiredArg.add_argument( '-g', '--genesOfInterest', required=True, nargs='+', metavar="",
                                   action='store', 
@@ -105,13 +90,13 @@ class CreateMixtureMatrixCommandLine( BBaseCommandLine ):
         )
 
 ################################################################################
-def createMixtureMatrix(
-        countDF: pd.DataFrame,
-        genesOfInterest = list[str]):
-    '''
-    TODO
-    '''
-    pass
+# def createMixtureMatrix(
+#         countDF: pd.DataFrame,
+#         genesOfInterest = list[str]):
+#     '''
+#     TODO
+#     '''
+#     pass
 
 ################################################################################
 def main(inCommandLineArgsList=None):
@@ -198,10 +183,10 @@ def main(inCommandLineArgsList=None):
 ################################################################################
 if __name__ == '__main__':
     debugCommandLineArgsList=[
-        #"--help",
-        "--outDir", "./tmp",
-        "--normalizedCountFilePath", "/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv",
-        "--genesOfInterest", "X7D_LINE", "Zaphod", 
+        "--help",
+        # "--outDir", "./tmp",
+        # "--normalizedCountFilePath", "/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv",
+        # "--genesOfInterest", "X7D_LINE", "Zaphod", 
     ]    
     main(debugCommandLineArgsList)
 

@@ -186,7 +186,7 @@ def main(inCommandLineArgsList=None):
 
     os.makedirs(outDir, exist_ok=True)
     biomarkerPath = f'{outDir}/biomarkerDESeq2Results.csv'
-    pd.to_csv(biomarkerPath, index=False)
+    biomarkerDF.to_csv(biomarkerPath, index=False)
 
     logger.warning(f'END')
     sys.exit(0)
