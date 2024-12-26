@@ -1,5 +1,5 @@
 #
-# createCiberSortInputMatrices.py
+# createCibersortSignatureMatrix.py
 #
 # Andrew E. Davidson
 # aedavids@ucsc.edu
@@ -190,7 +190,10 @@ def createSignatureMatrix(
     # convert to cibersort expected upload format
     ciberSortSignatueDF = signatureDF.transpose(copy=True)
     logger.info(f'ciberSortSignatueDF.shape : {ciberSortSignatueDF.shape}')
-    ciberSortSignatueDF.index.name = "gene_id"
+    
+    # cibersort expects index to be 'name', not 'gene_id'
+    #ciberSortSignatueDF.index.name = "gene_id"
+    ciberSortSignatueDF.index.name = "name"
     
     # weird. cciberSortSignatueDF.columns.name = 'category'. This name is not
     # saved by pd.to_csv(). Set to none to make it easier to write unit test

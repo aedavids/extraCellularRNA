@@ -1,7 +1,7 @@
 """
-testCreateCiberSortInputMatrices.py
+testCreateCibersortSignature.py
 
-Unit tests for the createCiberSortInputMatrices module.
+Unit tests for the createCibersortSignatureMatrix module.
 
 Author: Andrew E. Davidson
 aedavids@ucsc.edu
@@ -29,10 +29,10 @@ import pandas as pd
 import pathlib as pl
 import unittest
 
-#from tempus.createCiberSortInputMatrices import createSignatureMatrix
-from tempus.createCiberSortInputMatrices import createSignatureMatrix
+from tempus.createCibersortSignatureMatrix import createSignatureMatrix
+
 ################################################################################
-class TestCreateCiberSortInputMatrices(unittest.TestCase):
+class TestCreateCibersortSignatureMatrix(unittest.TestCase):
     '''
     TODO
     '''
@@ -121,7 +121,10 @@ class TestCreateCiberSortInputMatrices(unittest.TestCase):
             {'Control': {'X7D_LINE': 7.0, 'Zaphod': 10.0}, 
             'UD': {'X7D_LINE': 13.0, 'Zaphod': 16.0}
             } )
-        expectedDF.index.name = 'gene_id'
+
+        # cibersort expects the index name to be 'name'
+        # expectedDF.index.name = 'gene_id'
+        expectedDF.index.name = 'name'
 
         pd.testing.assert_frame_equal(expectedDF, retDF)
 

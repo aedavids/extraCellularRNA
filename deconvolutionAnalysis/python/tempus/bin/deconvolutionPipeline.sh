@@ -12,7 +12,10 @@ lfcThreshold=2.0
 topN=10
 padjThreshold=0.001
 deseq2ResultsFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/create/results/data/Control_vs_UD_deseq_results.csv"
-outDir="./tmp"
+
+# cibersort mount points must be full paths
+#cibersortInputDir="./tmp"
+cibersortInputDir="${PWD}/cibersortInputDir"
 
 # tempus.createCiberSortInputMatrices arguments
 #TODO add useMedian argument
@@ -63,7 +66,7 @@ python -m tempus.findBiomarkers  \
     --number ${topN} \
     --padjThreshold ${padjThreshold} \
     --deseq2ResultsFilePath ${deseq2ResultsFilePath} \
-    --outDir ${outDir} 
+    --outDir ${cibersortInputDir} 
 
 #
 # get the top N biomarkers
@@ -71,7 +74,7 @@ python -m tempus.findBiomarkers  \
 # grep -v remove the column header
 # xargs echo -n remove the newline
 #
-genesOfInterest=`cat ${outDir}/biomarkerDESeq2Results.csv | cut -d , -f 7 | grep -v gene_id | xargs echo -n`
+genesOfInterest=`cat ${cibersortInputDir}/biomarkerDESeq2Results.csv | cut -d , -f 7 | grep -v gene_id | xargs echo -n`
 printf "genesOfInterest : ${genesOfInterest}\n"
 
 #
@@ -79,20 +82,20 @@ printf "genesOfInterest : ${genesOfInterest}\n"
 #
 #TODO add useMedian argument
 printf "\n\n\n################### create the signature matrix for cibersortx\n"
-python -m tempus.createCiberSortInputMatrices \
+python -m tempus.createCibersortSignatureMatrix \
     --normalizedCountFilePath ${normalizedCountFilePath} \
     --genesOfInterest ${genesOfInterest} \
     --metaDataFilePath ${metaDataFilePath} \
-    --outDir ${outDir}  
+    --outDir ${cibersortInputDir}  
 
 #
 # create the cibersort mixture matrix
 #
 printf "\n\n\n################### create the cibersort mixture matrix\n"
-python -m tempus.createCiberSortMixtureMatrix \
+python -m tempus.createCibersortMixtureMatrix \
     --normalizedCountFilePath ${normalizedCountFilePath} \
     --genesOfInterest ${genesOfInterest} \
-    --outDir ${outDir}  
+    --outDir ${cibersortInputDir}  
 
 
 #
@@ -101,14 +104,14 @@ python -m tempus.createCiberSortMixtureMatrix \
 printf "\n\n\n################### run the cibersortx docker container\n"
 # ref : extraCellularRNA/terra/cibersortx/wdl/README.md
 # ref : extraCellularRNA/terra/cibersortx/bin/run_cibersortx_fractions.sh
-cd ${outDir}
+#aedwip cd ${cibersortInputDir}
 mixtureMatrix=mixtureMatrix.tsv
 signatureMatrix=signatureMatrix.tsv
 
 # dateStamp example: 2019-12-09-23.01.43-UTC
 timeStamp=`date "+%Y-%m-%d-%H.%M.%S-%Z%n"`
-jobId="${scriptName}-${timeStamp}"
-
+#jobId="${scriptName}-${timeStamp}"
+jobId="AEDWIPjobId"
 
 # docker arguments
 # -d  --detach Run container in background and print container ID
@@ -117,20 +120,26 @@ jobId="${scriptName}-${timeStamp}"
 
 # mount the directory with the signature and matrix files as /src/data
 # use full path 
-dockerInputDir="${PWD}"
-dockerOutDir="${PWD}"
+# dockerInputDir="${cibersortInputDir}"
+# dockerOutDir="${PWD}/aedwipOut"
+cibersortOutputDir="${PWD}/cibersortOutputDir"
+cibersortOutputDir=/scratch/aedavids/cibersortOut 
+mkdir -p $cibersortOutputDir
 
-# img="cibersortx/fractions"
-img="aedavids/cibersortx_fractions"
+img="cibersortx/fractions"
+#img="aedavids/cibersortx_fractions"
 
 #     --detach \
+#     --rm \
+
+# always exits, :-(    -it \
 
 USER_ID=`id -u`
 cmd="docker run \
-    --rm \
     -e USERID=${USER_ID} \
-    -v ${dockerInputDir}:/src/data \
-    -v ${dockerOutDir}:/src/outdir ${img} \
+    -v ${cibersortInputDir}:/src/data \
+    -v ${cibersortOutputDir}:/src/outdir \
+    ${img} \
     --username ${cibersortUser} \
     --token ${cibersortToken} \
     --mixture ${mixtureMatrix}\
@@ -138,13 +147,13 @@ cmd="docker run \
     --perm 100 \
     --label $jobId \
     --QN FALSE \
-    --verbose TRUE \
+    --verbose TRUE
 "
 
 printf "\n\n\n************ run docker\n"
-echo "${cmd}" > "${dockerOutDir}/${scriptName}.parameters.txt"
+echo "${cmd}" > "${cibersortInputDir}/${scriptName}.parameters.txt"
 
-# scriptOut="$dockerOutDir/${scriptName}.meta.out"
+# scriptOut="$cibersortInputDir/${scriptName}.meta.out"
 # echo "run on ${timeStamp}" > ${scriptOut}
 # echo "input src: ${bestSrc}/ciberSort/*"  >> ${scriptOut}
 # echo $cmd >> ${scriptOut}
