@@ -110,8 +110,7 @@ signatureMatrix=signatureMatrix.tsv
 
 # dateStamp example: 2019-12-09-23.01.43-UTC
 timeStamp=`date "+%Y-%m-%d-%H.%M.%S-%Z%n"`
-#jobId="${scriptName}-${timeStamp}"
-jobId="AEDWIPjobId"
+jobId="${scriptName}-${timeStamp}"
 
 # docker arguments
 # -d  --detach Run container in background and print container ID
@@ -127,7 +126,6 @@ cibersortOutputDir=/scratch/aedavids/cibersortOut
 mkdir -p $cibersortOutputDir
 
 img="cibersortx/fractions"
-#img="aedavids/cibersortx_fractions"
 
 #     --detach \
 #     --rm \
@@ -136,6 +134,8 @@ img="cibersortx/fractions"
 
 USER_ID=`id -u`
 cmd="docker run \
+    --detach \
+    --rm \
     -e USERID=${USER_ID} \
     -v ${cibersortInputDir}:/src/data \
     -v ${cibersortOutputDir}:/src/outdir \
