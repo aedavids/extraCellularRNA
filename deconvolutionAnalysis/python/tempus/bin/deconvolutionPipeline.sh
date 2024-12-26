@@ -74,8 +74,21 @@ printf "genesOfInterest : ${genesOfInterest}\n"
 # create the signature matrix for cibersortx
 #
 #TODO add useMedian argument
+printf "\n\n\n################### create the signature matrix for cibersortx\n"
 python -m tempus.createCiberSortInputMatrices \
     --normalizedCountFilePath ${normalizedCountFilePath} \
     --genesOfInterest ${genesOfInterest} \
     --metaDataFilePath ${metaDataFilePath} \
     --outDir ${outDir}  
+
+#
+# create the cibersort mixture matrix
+#
+printf "\n\n\n################### create the cibersort mixture matrix\n"
+python -m tempus.createCiberSortMixtureMatrix \
+    --normalizedCountFilePath ${normalizedCountFilePath} \
+    --genesOfInterest ${genesOfInterest} \
+    --outDir ${outDir}  
+
+
+TODO AEDWIP run docker

@@ -1,5 +1,5 @@
 #
-# createCiberSortMixtureMatrices.py
+# createCiberSortMixtureMatrix.py
 #
 # Andrew E. Davidson
 # aedavids@ucsc.edu
@@ -182,12 +182,12 @@ def main(inCommandLineArgsList=None):
 
 ################################################################################
 if __name__ == '__main__':
-    debugCommandLineArgsList=[
-        "--help",
-        # "--outDir", "./tmp",
-        # "--normalizedCountFilePath", "/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv",
-        # "--genesOfInterest", "X7D_LINE", "Zaphod", 
-    ]    
-    main(debugCommandLineArgsList)
+    # debugCommandLineArgsList=[
+    #     "--help",
+    #     # "--outDir", "./tmp",
+    #     # "--normalizedCountFilePath", "/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv",
+    #     # "--genesOfInterest", "X7D_LINE", "Zaphod", 
+    # ]    
+    # main(debugCommandLineArgsList)
 
-    #main()
+    main()
