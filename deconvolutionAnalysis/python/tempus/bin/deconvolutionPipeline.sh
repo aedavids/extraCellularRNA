@@ -119,18 +119,13 @@ jobId="${scriptName}-${timeStamp}"
 
 # mount the directory with the signature and matrix files as /src/data
 # use full path 
-# dockerInputDir="${cibersortInputDir}"
-# dockerOutDir="${PWD}/aedwipOut"
+# weird for unknown reasons cibersort raises an error if the output directory
+# in my home directory.
 cibersortOutputDir="${PWD}/cibersortOutputDir"
 cibersortOutputDir=/scratch/aedavids/cibersortOut 
 mkdir -p $cibersortOutputDir
 
 img="cibersortx/fractions"
-
-#     --detach \
-#     --rm \
-
-# always exits, :-(    -it \
 
 USER_ID=`id -u`
 cmd="docker run \
