@@ -7,12 +7,17 @@
 # TODO AEDWIP parse command line arguments
 scriptName=`basename $0`
 
+# tempus.findBiomarkers arguments
 lfcThreshold=2.0 
 topN=10
 padjThreshold=0.001
 deseq2ResultsFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/create/results/data/Control_vs_UD_deseq_results.csv"
 outDir="./tmp"
 
+# tempus.createCiberSortInputMatrices arguments
+#TODO add useMedian argument
+normalizedCountFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv"
+metaDataFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/raw/metaDataWithHeader.csv"
 
 set -x turn debug trace on. output goes to stderr, normal output goes to stdout
 
@@ -61,5 +66,16 @@ python -m tempus.findBiomarkers  \
 # use cut to get the gene_id column
 # grep -v remove the column header
 # xargs echo -n remove the newline
+#
 genesOfInterest=`cat ${outDir}/biomarkerDESeq2Results.csv | cut -d , -f 7 | grep -v gene_id | xargs echo -n`
 printf "genesOfInterest : ${genesOfInterest}\n"
+
+#
+# create the signature matrix for cibersortx
+#
+#TODO add useMedian argument
+python -m tempus.createCiberSortInputMatrices \
+    --normalizedCountFilePath ${normalizedCountFilePath} \
+    --genesOfInterest ${genesOfInterest} \
+    --metaDataFilePath ${metaDataFilePath} \
+    --outDir ${outDir}  

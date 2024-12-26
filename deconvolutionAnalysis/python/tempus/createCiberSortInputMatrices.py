@@ -301,14 +301,14 @@ def main(inCommandLineArgsList=None):
 
 ################################################################################
 if __name__ == '__main__':
-    debugCommandLineArgsList=[
-        #"--help",
-        #"-useMedian",
-        "--outDir", "./tmp",
-        "--normalizedCountFilePath", "/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv",
-        "--metaDataFilePath", "/private/groups/kimlab/data/tempus/illumina/20241107/raw/metaDataWithHeader.csv",
-        "--genesOfInterest", "X7D_LINE", "Zaphod", 
-    ]    
-    main(debugCommandLineArgsList)
+    # debugCommandLineArgsList=[
+    #     #"--help",
+    #     #"-useMedian",
+    #     "--outDir", "./tmp",
+    #     "--normalizedCountFilePath", "/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv",
+    #     "--metaDataFilePath", "/private/groups/kimlab/data/tempus/illumina/20241107/raw/metaDataWithHeader.csv",
+    #     "--genesOfInterest", "X7D_LINE", "Zaphod", 
+    # ]    
+    # main(debugCommandLineArgsList)
 
-    #main()
+    main()
