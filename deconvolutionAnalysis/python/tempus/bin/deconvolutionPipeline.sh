@@ -17,10 +17,11 @@ deseq2ResultsFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/crea
 #cibersortInputDir="./tmp"
 cibersortInputDir="${PWD}/cibersortInputDir"
 
-# tempus.createCiberSortInputMatrices arguments
+# tempus.createCibersortSignatureMatrix arguments
 #TODO add useMedian argument
 normalizedCountFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv"
 metaDataFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/raw/metaDataWithHeader.csv"
+categoriesOfInterest="UD Control"
 
 # cibersortx arguments
 cibersortUser="aedavids@ucsc.edu"
@@ -86,7 +87,8 @@ python -m tempus.createCibersortSignatureMatrix \
     --normalizedCountFilePath ${normalizedCountFilePath} \
     --genesOfInterest ${genesOfInterest} \
     --metaDataFilePath ${metaDataFilePath} \
-    --outDir ${cibersortInputDir}  
+    --outDir ${cibersortInputDir}  \
+    --categoriesOfInterest ${categoriesOfInterest}
 
 #
 # create the cibersort mixture matrix
