@@ -40,7 +40,6 @@ padjThreshold=0.001
 deseq2ResultsFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/create/results/data/Control_vs_UD_deseq_results.csv"
 
 
-
 # see bash man page "SHELL BUILTIN COMMANDS" for details
 # ref: https://gist.github.com/vncsna/64825d5609c146e80de8b1fd623011ca 
 set -euxo pipefail
@@ -54,15 +53,18 @@ set -euxo pipefail
 logFile="${0}.log"
 rm -f $logFile
 setsid sh -c "set -x; deconvolutionPipeline.sh \
-                        ${ciberSortSecurityToken} \
-                        ${ciberSortUser} \
-                        ${lfcThreshold} \
-                        ${topN} \
-                        ${padjThreshold} \
-                        ${deseq2ResultsFilePath}" \
-                            > $logFile 2>&1 & 
+    ${ciberSortSecurityToken} \
+    ${ciberSortUser} \
+    ${lfcThreshold} \
+    ${topN} \
+    ${padjThreshold} \
+    ${deseq2ResultsFilePath}" \
+        > $logFile 2>&1 & 
 
-sleep 10
-pstree $USER
- ps -e -o pid,ppid,pgid,command,user |head -n 1; ps -e -o pid,ppid,pgid,command,user |grep $USER
+#
+# display pipeline process information
+# it may take a couple of seconds for the docker container to start
+# sleep 10
+# pstree $USER
+#  ps -e -o pid,ppid,pgid,command,user |head -n 1; ps -e -o pid,ppid,pgid,command,user |grep $USER
 

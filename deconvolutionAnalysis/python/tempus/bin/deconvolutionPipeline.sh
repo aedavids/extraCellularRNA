@@ -21,7 +21,7 @@ do
 done
 
 # parse the arguments
-numberOfArguments=12
+numberOfArguments=6
 if [ $# -lt $numberOfArguments ];
     then
         printf "ERROR ${scriptName} missing command line arguments. expected $numberOfArguments recevied $# \n"
