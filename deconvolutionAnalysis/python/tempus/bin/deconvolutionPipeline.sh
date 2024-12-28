@@ -4,14 +4,47 @@
 # 12/25/2024
 # 
 
-# TODO AEDWIP parse command line arguments
-scriptName=`basename $0`
 
-# tempus.findBiomarkers arguments
-lfcThreshold=2.0 
-topN=10
-padjThreshold=0.001
-deseq2ResultsFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/create/results/data/Control_vs_UD_deseq_results.csv"
+#
+# output env info to make debugging easier
+#
+scriptName=`basename $0`
+pwd; 
+hostname; 
+date
+
+# print all the cli argumnents
+printf "${scriptName} : command line arguments \n"
+for var in "$@"
+do
+    printf "argument :$var \n"
+done
+
+# parse the arguments
+numberOfArguments=12
+if [ $# -lt $numberOfArguments ];
+    then
+        printf "ERROR ${scriptName} missing command line arguments. expected $numberOfArguments recevied $# \n"
+        exit 1 # error
+    fi
+
+set -x
+
+# cibersortx arguments
+cibersortUser=$1
+cibersortToken=$2
+# cibersortUser="aedavids@ucsc.edu"
+# cibersortToken="aac8366d23af037ef2423d0dbe8fffd8"
+
+#tempus.findBiomarkers arguments
+lfcThreshold=$3
+topN=$4
+padjThreshold=$5
+deseq2ResultsFilePath=$6
+# lfcThreshold=2.0 
+# topN=10
+# padjThreshold=0.001
+# deseq2ResultsFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/create/results/data/Control_vs_UD_deseq_results.csv"
 
 # cibersort mount points must be full paths
 #cibersortInputDir="./tmp"
@@ -23,11 +56,10 @@ normalizedCountFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/cr
 metaDataFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/raw/metaDataWithHeader.csv"
 categoriesOfInterest="UD Control"
 
-# cibersortx arguments
-cibersortUser="aedavids@ucsc.edu"
-cibersortToken="aac8366d23af037ef2423d0dbe8fffd8"
 
 set -x turn debug trace on. output goes to stderr, normal output goes to stdout
+
+printf "\n\n\n################### AEDWIP end argument rework\n"
 
 set -euxo pipefail
 # set -e Exit immediately if a pipeline see shell builtin command it is more complicated
