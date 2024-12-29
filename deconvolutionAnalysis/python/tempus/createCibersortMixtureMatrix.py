@@ -105,7 +105,8 @@ def main(inCommandLineArgsList=None):
     '''
     # we only configure logging in main module
     # loglevel = p.getProperty("LOG_LEVEL")
-    loglevel = "INFO"
+    # loglevel = "INFO"
+    loglevel = "WARN"
     # logFMT = p.getProperty("LOG_FMT")
     # logFMT = "%(asctime)s %(levelname)s [thr:%(threadName)s %(name)s %(funcName)s() line:%(lineno)s] [%(message)s]"
     logFMT = "%(asctime)s %(levelname)s %(name)s %(funcName)s() line:%(lineno)s] [%(message)s]"

@@ -63,6 +63,7 @@
 #
 # output env info to make debugging easier
 #
+printf "\n################# BEGIN ${0} \n"
 pwd; 
 hostname; 
 date
@@ -308,5 +309,5 @@ python -m analysis.findMisclassificationErrors \
 
 printf "\n\n\nEND Evaluate CIBERSORTx results as if output from k-way classifier\n"
 
-printf "END ${0}"
+printf "\n################### END ${0}"
 exit 0

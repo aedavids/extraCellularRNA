@@ -113,7 +113,8 @@ def main(inCommandLineArgsList=None):
     
     # we only configure logging in main module
     # loglevel = p.getProperty("LOG_LEVEL")
-    loglevel = "INFO"
+    # loglevel = "INFO"
+    loglevel = "WARN"
     # logFMT = p.getProperty("LOG_FMT")
     # logFMT = "%(asctime)s %(levelname)s [thr:%(threadName)s %(name)s %(funcName)s() line:%(lineno)s] [%(message)s]"
     logFMT = "%(asctime)s %(levelname)s %(name)s %(funcName)s() line:%(lineno)s] [%(message)s]"
@@ -160,7 +161,7 @@ def main(inCommandLineArgsList=None):
     logger.info(f'deseqDF.head()\n{deseqDF.head()}')
 
     expectedBioTypes = ['Coding', 'DNA', 'LINE', 'LTR', 'Microsatellite', 'Other', 'SINE', 'lncRNA']
-    if bioType is not expectedBioTypes:
+    if bioType is not None and bioType is not expectedBioTypes:
         logger.warning(f'bioType: {bioType} is not in {expectedBioTypes}')
 
     #logger.info(f'deseqDF.loc[:, "gene_biotype"].cat.categories: {deseqDF.loc[:, "gene_biotype"].cat.categories}')

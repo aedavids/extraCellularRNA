@@ -32,12 +32,29 @@ if [ $# -ne 2 ];
 set -x
 ciberSortSecurityToken=$1
 ciberSortUser=$2
+#
+# cibersort input and output directory mount points
+# You must use full paths. For unknown reasons cibersort raises an error if 
+# the output directory in my home directory.
+# the output and input directories can be the same
+cibersortInputDir="${PWD}/cibersortInputDir"
+cibersortOutputDir=/scratch/aedavids/cibersortOut 
+mkdir -p "${cibersortOutputDir}" "${cibersortOutputDir}"
 
 # tempus.findBiomarkers arguments
 lfcThreshold=2.0 
 topN=10
 padjThreshold=0.001
 deseq2ResultsFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/create/results/data/Control_vs_UD_deseq_results.csv"
+
+# tempus.createCibersortSignatureMatrix arguments
+normalizedCountFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv"
+metaDataFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/raw/metaDataWithHeader.csv"
+categoriesOfInterest="UD Control"
+
+#
+######################################################################
+# run the pipeline
 
 
 # see bash man page "SHELL BUILTIN COMMANDS" for details
@@ -58,13 +75,18 @@ setsid sh -c "set -x; deconvolutionPipeline.sh \
     ${lfcThreshold} \
     ${topN} \
     ${padjThreshold} \
-    ${deseq2ResultsFilePath}" \
+    ${deseq2ResultsFilePath} \
+    ${cibersortInputDir} \
+    ${cibersortOutputDir} \
+    ${normalizedCountFilePath} \
+    ${metaDataFilePath}  \
+    ${categoriesOfInterest}" \
         > $logFile 2>&1 & 
 
 #
 # display pipeline process information
 # it may take a couple of seconds for the docker container to start
-# sleep 10
-# pstree $USER
-#  ps -e -o pid,ppid,pgid,command,user |head -n 1; ps -e -o pid,ppid,pgid,command,user |grep $USER
+sleep 10
+pstree $USER
+ps -e -o pid,ppid,pgid,command,user |head -n 1; ps -e -o pid,ppid,pgid,command,user |grep $USER
 

@@ -4,7 +4,6 @@
 # 12/25/2024
 # 
 
-
 #
 # output env info to make debugging easier
 #
@@ -14,15 +13,16 @@ hostname;
 date
 
 # print all the cli argumnents
-printf "${scriptName} : command line arguments \n"
+printf "################ ${scriptName} : command line arguments \n"
 for var in "$@"
 do
     printf "argument :$var \n"
 done
 
 # parse the arguments
-numberOfArguments=6
-if [ $# -lt $numberOfArguments ];
+numberOfArguments=12
+
+if [ $# -ne $numberOfArguments ];
     then
         printf "ERROR ${scriptName} missing command line arguments. expected $numberOfArguments recevied $# \n"
         exit 1 # error
@@ -33,33 +33,30 @@ set -x
 # cibersortx arguments
 cibersortUser=$1
 cibersortToken=$2
-# cibersortUser="aedavids@ucsc.edu"
-# cibersortToken="aac8366d23af037ef2423d0dbe8fffd8"
 
 #tempus.findBiomarkers arguments
 lfcThreshold=$3
 topN=$4
 padjThreshold=$5
 deseq2ResultsFilePath=$6
-# lfcThreshold=2.0 
-# topN=10
-# padjThreshold=0.001
-# deseq2ResultsFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/create/results/data/Control_vs_UD_deseq_results.csv"
 
 # cibersort mount points must be full paths
-#cibersortInputDir="./tmp"
-cibersortInputDir="${PWD}/cibersortInputDir"
+cibersortInputDir=$7
+cibersortOutputDir=$8
+mkdir -p "${cibersortInputDir}" "${cibersortOutputDir}"
+
 
 # tempus.createCibersortSignatureMatrix arguments
-#TODO add useMedian argument
-normalizedCountFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv"
-metaDataFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/raw/metaDataWithHeader.csv"
-categoriesOfInterest="UD Control"
+# TODO add useMedian argument
+normalizedCountFilePath=$9
+metaDataFilePath="${10}"
+categoriesOfInterest="${11}"
+# normalizedCountFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv"
+# metaDataFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/raw/metaDataWithHeader.csv"
+# categoriesOfInterest="UD Control"
 
 
 set -x turn debug trace on. output goes to stderr, normal output goes to stdout
-
-printf "\n\n\n################### AEDWIP end argument rework\n"
 
 set -euxo pipefail
 # set -e Exit immediately if a pipeline see shell builtin command it is more complicated
@@ -71,7 +68,7 @@ set -euxo pipefail
 #
 # set up the python env
 #
-printf "\n\n\nset up python environment \n"
+printf "\n\n\n################ set up python environment \n"
 # start conda env
 condaBase=`conda info | grep -i 'base environment' | cut -d : -f 2 | cut '-d ' -f 2`
 source ${condaBase}/etc/profile.d/conda.sh
@@ -94,6 +91,7 @@ printf "PYTHONPATH : $PYTHONPATH \n"
 #
 # find biomarkers
 # 
+printf "\n\n\n################### find biomarkers\n"
 python -m tempus.findBiomarkers  \
     --lfcThreshold ${lfcThreshold} \
     --number ${topN} \
@@ -155,12 +153,18 @@ jobId="${scriptName}-${timeStamp}"
 # use full path 
 # weird for unknown reasons cibersort raises an error if the output directory
 # in my home directory.
-cibersortOutputDir="${PWD}/cibersortOutputDir"
-cibersortOutputDir=/scratch/aedavids/cibersortOut 
-mkdir -p $cibersortOutputDir
+# cibersortOutputDir="${PWD}/cibersortOutputDir"
+# cibersortOutputDir=/scratch/aedavids/cibersortOut 
+# mkdir -p $cibersortOutputDir
 
 img="cibersortx/fractions"
 
+printf "\n\n\n************ AEDWIP do not run docker we do not have a valid token\n"
+#
+# you can debug docker token problems by removing
+# the --detach flag, --rm and adding --interactive --tty
+# this will cause container error message to be written to the terminal
+#
 USER_ID=`id -u`
 cmd="docker run \
     --detach \
