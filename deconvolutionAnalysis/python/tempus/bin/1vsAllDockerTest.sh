@@ -7,6 +7,7 @@
 #
 # output env info to make debugging easier
 #
+set -x
 scriptName=`basename $0`
 pwd; 
 hostname; 
@@ -20,17 +21,32 @@ set -euxo pipefail
 
 img="aedavids/edu_ucsc_kim_lab-1vsall_1.0"
 
-outputDir="${scriptName}.output"
+outputDir="`pwd`/${scriptName}.output"
 mkdir -p "${outputDir}"
 printf "\n\n\n************ AEDWIP do not run docker we do not have a valid token\n"
 
-testDataRoot="/Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/terra/deseq/R/data"
+testDataRoot="/private/home/aedavids/extraCellularRNA/terra/deseq/R/data/1vsAllTest"
+
 #
 # you can debug docker token problems by removing
 # the --detach flag, --rm and adding --interactive --tty
 # this will cause container error message to be written to the terminal
 #
 USER_ID=`id -u`
+
+#         --design  '\"~ sex + tissue_id\"'   
+
+
+#
+# the following debug from cli works
+# start docker
+# run deseq on docker
+# testDataRoot="/private/home/aedavids/extraCellularRNA/terra/deseq/R/data/1vsAllTest"
+
+# outputDir="/scratch/aedavids/aedwip.output"
+# mkdir -p $outputDir
+# /home/rstudio/DESeqScript.R         --countMatrix /data/unitTestGroupByGenesCountMatrix.csv         --colData /data/unitTestColData.csv         --design  '~ sex + tissue_id'         --referenceLevel Lung         --outFile /outDir/aedwipResults.tsv         --estimateSizeFactorsOutfile /outDir/aedwipScalingFactors.tsv         --isCSV
+docker run  --interactive --tty -e USERID=30108 -v ${testDataRoot}:/data -v ${outputDir}:/outDir aedavids/edu_ucsc_kim_lab-1vsall_1.0 /bin/bash
 cmd="docker run \
     --interactive --tty \
     -e USERID=${USER_ID} \
@@ -38,14 +54,14 @@ cmd="docker run \
     -v ${outputDir}:/outDir \
     ${img} \
     /home/rstudio/DESeqScript.R \
-        --countMatrix /data/1vsAllTest/unitTestGroupByGenesCountMatrix.csv \
-        --colData /data/1vsAllTest/unitTestGroupByGenesColData.csv \
-        --design  '~ sex + tissue_id' \
+        --countMatrix /data/unitTestGroupByGenesCountMatrix.csv \
+        --colData /data/unitTestColData.csv \
         --referenceLevel Lung \
         --outFile /outDir/aedwipResults.tsv \
-        --estimateSizeFactorsOutfile outDir/aedwipScalingFactors.tsv \
+        --estimateSizeFactorsOutfile /outDir/aedwipScalingFactors.tsv \
         --isCSV \ 
-"
+        --design aedwipDesign
+    "
 
 #    --detach \
 #     --rm \
