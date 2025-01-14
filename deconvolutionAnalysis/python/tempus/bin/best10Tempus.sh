@@ -16,9 +16,10 @@
 
 if [ $# -ne 2 ];
     then
+        scriptName=`basename $0`
         printf "ERROR  \n"
-        printf "local install: cp ~/extraCellularRNA/deconvolutionAnalysis/python/tempus/bin/{${0},deconvolutionPipeline.sh} .\n"
-        printf "usage: $0 ciberSortSecurityToken ciberSortUser\n"
+        printf "local install: cp ~/extraCellularRNA/deconvolutionAnalysis/python/tempus/bin/{${scriptName},deconvolutionPipeline.sh} .\n"
+        printf "usage: $0 ciberSortUser ciberSortSecurityToken \n"
         printf "usage: tail -f ${0}.log \n"
         printf "follow 'Token and instruction access' @ https://cibersortx.stanford.edu/download.php \n"
         exit 1 # error
@@ -38,7 +39,8 @@ ciberSortUser=$2
 # the output directory in my home directory.
 # the output and input directories can be the same
 cibersortInputDir="${PWD}/cibersortInputDir"
-cibersortOutputDir=/scratch/aedavids/cibersortOut 
+# cibersortOutputDir=/scratch/aedavids/cibersortOut 
+cibersortOutputDir="${PWD}/cibersortOut" 
 mkdir -p "${cibersortOutputDir}" "${cibersortOutputDir}"
 
 # tempus.findBiomarkers arguments
