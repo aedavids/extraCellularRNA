@@ -46,7 +46,7 @@ USER_ID=`id -u`
 # outputDir="/scratch/aedavids/aedwip.output"
 # mkdir -p $outputDir
 # /home/rstudio/DESeqScript.R         --countMatrix /data/unitTestGroupByGenesCountMatrix.csv         --colData /data/unitTestColData.csv         --design  '~ sex + tissue_id'         --referenceLevel Lung         --outFile /outDir/aedwipResults.tsv         --estimateSizeFactorsOutfile /outDir/aedwipScalingFactors.tsv         --isCSV
-docker run  --interactive --tty -e USERID=30108 -v ${testDataRoot}:/data -v ${outputDir}:/outDir aedavids/edu_ucsc_kim_lab-1vsall_1.0 /bin/bash
+# docker run  --interactive --tty -e USERID=30108 -v ${testDataRoot}:/data -v ${outputDir}:/outDir aedavids/edu_ucsc_kim_lab-1vsall_1.0 /bin/bash
 cmd="docker run \
     --interactive --tty \
     -e USERID=${USER_ID} \
