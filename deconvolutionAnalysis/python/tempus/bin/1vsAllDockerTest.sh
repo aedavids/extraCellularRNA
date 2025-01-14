@@ -4,6 +4,10 @@
 # 1/14/2025
 # 
 
+# ref:
+# - extraCellularRNA/terra/deseq/bin
+# - extraCellularRNA/terra/wdl/README.md
+
 #
 # output env info to make debugging easier
 #
