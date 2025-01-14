@@ -51,9 +51,6 @@ mkdir -p "${cibersortInputDir}" "${cibersortOutputDir}"
 normalizedCountFilePath=$9
 metaDataFilePath="${10}"
 
-# categoriesOfInterest="${11}"
-# shift 11
-# categoriesOfInterest="$categoriesOfInterest $@"
 
 # use shift to get all the remaining arguments
 # it basically drop the 10 arguments
