@@ -50,8 +50,16 @@ mkdir -p "${cibersortInputDir}" "${cibersortOutputDir}"
 # TODO add useMedian argument
 normalizedCountFilePath=$9
 metaDataFilePath="${10}"
-categoriesOfInterest="${11}"
-# normalizedCountFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv"
+
+# categoriesOfInterest="${11}"
+# shift 11
+# categoriesOfInterest="$categoriesOfInterest $@"
+
+# use shift to get all the remaining arguments
+# it basically drop the 10 arguments
+# $@ is the list of all the remaining arguments
+shift 10
+categoriesOfInterest="$@"
 # metaDataFilePath="/private/groups/kimlab/data/tempus/illumina/20241107/raw/metaDataWithHeader.csv"
 # categoriesOfInterest="UD Control"
 
