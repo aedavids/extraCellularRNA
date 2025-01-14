@@ -21,7 +21,9 @@ set -euxo pipefail
 
 img="aedavids/edu_ucsc_kim_lab-1vsall_1.0"
 
-outputDir="`pwd`/${scriptName}.output"
+# is  write to /private/home/aedavids our bug
+#outputDir="`pwd`/${scriptName}.output"
+outputDir="/scratch/aedavids/${scriptName}.output"
 mkdir -p "${outputDir}"
 printf "\n\n\n************ AEDWIP do not run docker we do not have a valid token\n"
 
@@ -47,6 +49,8 @@ USER_ID=`id -u`
 # mkdir -p $outputDir
 # /home/rstudio/DESeqScript.R         --countMatrix /data/unitTestGroupByGenesCountMatrix.csv         --colData /data/unitTestColData.csv         --design  '~ sex + tissue_id'         --referenceLevel Lung         --outFile /outDir/aedwipResults.tsv         --estimateSizeFactorsOutfile /outDir/aedwipScalingFactors.tsv         --isCSV
 # docker run  --interactive --tty -e USERID=30108 -v ${testDataRoot}:/data -v ${outputDir}:/outDir aedavids/edu_ucsc_kim_lab-1vsall_1.0 /bin/bash
+
+design="~ sex + tissue_id"
 cmd="docker run \
     --interactive --tty \
     -e USERID=${USER_ID} \
@@ -59,8 +63,8 @@ cmd="docker run \
         --referenceLevel Lung \
         --outFile /outDir/aedwipResults.tsv \
         --estimateSizeFactorsOutfile /outDir/aedwipScalingFactors.tsv \
-        --isCSV \ 
-        --design aedwipDesign
+        --isCSV \
+        --design \"${design}\"
     "
 
 #    --detach \
@@ -88,7 +92,18 @@ echo "${cmd}" > "${scriptName}.docker.parameters.txt"
 # echo ""   >> ${scriptOut}
 
 echo ""
-$cmd 
+
+
+#
+# in all are other docker scripts we format a string then use
+# $cmd to run it
+# because design is a variable argument list this does not work
+# we can not pass the design string correctly
+# we get the error '/home/rstudio/DESeqScript.R: error: unrecognized arguments: sex + tissue_id"
+#
+# the eval command is needed to expand the quotes in the cmd string
+# $cmd
+eval $cmd 
 exitStatus=$?
 if [ $exitStatus -ne 0 ]; then
     printf "docker run failed with exit status : ${exitStatus}\n"
