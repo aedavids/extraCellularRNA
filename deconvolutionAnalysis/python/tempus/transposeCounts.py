@@ -69,15 +69,26 @@ class transposeCountsCommandLine( BBaseCommandLine ):
                                                         action='store', 
                                                         required=True, 
                                                         help="path to a csv file created by createTumorCountMatrix.sh. "
-                                                            + "ex. '/private/groups/kimlab/data/tempus/illumina/20241107/create/results/data/Control_vs_UD_deseq_results.csv'"
+                                                           
         )
  
-        self.requiredArg.add_argument( '-o', '--outFilePath', default=None, 
+        self.requiredArg.add_argument( '-m', '--outMixturePath', default=None, 
                                                         metavar="",
                                                         action='store', 
                                                         required=True, 
-                                                        help="path to the transposed csv file to"
-        )       
+                                                        help="path to the transposed csv file"
+                                                            + "Use this as the mixture matrix in CIBERSORTx. " 
+                                                            + "It has all the all the samples for a given tumor"
+        )    
+
+        self.requiredArg.add_argument( '-s', '--outSignaturePath', default=None, 
+                                                        metavar="",
+                                                        action='store', 
+                                                        required=True, 
+                                                        help="path to the transposed csv file"
+                                                            + "Use this as the count matrix in DESeq2. " 
+                                                            + "It only has the control and UD samples"
+        )              
 ################################################################################
 def main(inCommandLineArgsList=None):
     '''
@@ -119,7 +130,8 @@ def main(inCommandLineArgsList=None):
     logger.warning(f'command line arguments : {cli.args}')
     
     createTumorCountMatrixFilePath = cli.args.createTumorCountMatrixFilePath
-    outFilePath = cli.args.outFilePath
+    outMixturePath = cli.args.outMixturePath
+    outSignaturePath = cli.args.outSignaturePath
 
     # head createTumorCountMatrix.sh.output/T1GroupByGenesCounts.csv |  cut -d , -f 1,2,3,4,76539,76540 > transposeTest.csv
     # tumorCountFilePath = "/private/home/aedavids/extraCellularRNA/deconvolutionAnalysis/python/tempus/bin/transposeTest.csv"
@@ -129,31 +141,27 @@ def main(inCommandLineArgsList=None):
     
     retDF = tumorCountDF.transpose()
 
-    # geneId
+    retDF.to_csv(outMixturePath, index=True, index_label="geneId")
+    logger.warning(f"saved mixture count matrix to : {outMixturePath}")
 
-    retDF.to_csv(outFilePath, index=True, index_label="geneId")
-    logger.warning(f"saved transposed count matrix to : {outFilePath}")
+    # https://stackoverflow.com/a/4843172/18674034
+    # matching = [s for s in xs if "abc" in s]
+    matchingCols = [s for s in retDF.columns if 'Control' in s or 'UD' in s]
+    retSigDF = retDF.loc[:, matchingCols]
 
+    retSigDF.to_csv(outSignaturePath, index=True, index_label="geneId")
+    logger.warning(f"saved DESeq2 count  matrix to : {outMixturePath}")
     
     logger.warning("END")
 
 ################################################################################
 if __name__ == '__main__':
+
     # debugCommandLineArgsList=[
-    #     #"--help",
-    #     "--bioType", "Coding",
-    #     "--padjThreshold", "0.001",
-    #     "--lfcThreshold", "2.0",
-    #     "--number" , "10",
-    #     "--deseq2ResultsFilePath", "/private/groups/kimlab/data/tempus/illumina/20241107/create/results/data/Control_vs_UD_deseq_results.csv"
-    # ]    
-    # main(debugCommandLineArgsList)
+    #     "--createTumorCountMatrixFilePath", "/private/home/aedavids/extraCellularRNA/deconvolutionAnalysis/python/tempus/bin/transposeTest.csv",
+    #     "--outFilePath", "/private/home/aedavids/extraCellularRNA/deconvolutionAnalysis/python/tempus/transposeTest.csv"
+    # ]
+    #main(debugCommandLineArgsList)
 
-    debugCommandLineArgsList=[
-        "--createTumorCountMatrixFilePath", "/private/home/aedavids/extraCellularRNA/deconvolutionAnalysis/python/tempus/bin/transposeTest.csv",
-        "--outFilePath", "/private/home/aedavids/extraCellularRNA/deconvolutionAnalysis/python/tempus/transposeTest.csv"
-    ]
-    main(debugCommandLineArgsList)
-
-    #main()
+    main()
 
