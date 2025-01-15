@@ -49,12 +49,19 @@ dataDir=/private/groups/kimlab/data/tempus/illumina/20241107/create/results/data
 # grep $tumorToken "${dataDir}/raw_counts.csv" > "${outDir}/${tumorId}GroupByGenesCounts.csv"
 
 # ?? T4 is missing
-validTokens=("T1" "T2" "T3", "T5" "T6")
+validTokens=("T1" "T2" "T3" "T5" "T6")
 
 for tumorId in "${validTokens[@]}"; 
 do
     # printf "tumorId: %s\n" $tumorId
     tumorToken="_${tumorId}_"
-    grep $tumorToken "${dataDir}/raw_counts.csv" > "${outDir}/${tumorId}GroupByGenesCounts.csv"
+
+    # copy first line of raw file into output file
+    # it has the gene ids
+    outFile="${outDir}/${tumorId}GroupByGenesCounts.csv"
+    head -n 1 "${dataDir}/raw_counts.csv" > "${outFile}"
+
+    # copy all the lines with the tumor token into the output file
+    grep $tumorToken "${dataDir}/raw_counts.csv" >> "${outFile}"
     # printf "_${tumorId}_ exit code $? \n"
 done
