@@ -58,10 +58,12 @@ do
 
     # copy first line of raw file into output file
     # it has the gene ids
-    outFile="${outDir}/${tumorId}GroupByGenesCounts.csv"
-    head -n 1 "${dataDir}/raw_counts.csv" > "${outFile}"
+    outRawFile="${outDir}/${tumorId}RawGroupByGenesCounts.csv"
+    head -n 1 "${dataDir}/raw_counts.csv" > "${outRawFile}"
 
     # copy all the lines with the tumor token into the output file
-    grep $tumorToken "${dataDir}/raw_counts.csv" >> "${outFile}"
+    grep $tumorToken "${dataDir}/raw_counts.csv" >> "${outRawFile}"
     # printf "_${tumorId}_ exit code $? \n"
+
+    #run python to transpose
 done
