@@ -64,7 +64,7 @@ class transposeCountsCommandLine( BBaseCommandLine ):
         #
         self.requiredArg = self.parser.add_argument_group( 'required arguments' )
 
-        self.requiredArg.add_argument( '-c', '--createTumorCountMatrixFilePath', default=None, 
+        self.requiredArg.add_argument( '-t', '--tumorCountMatrixFilePath', default=None, 
                                                         metavar="",
                                                         action='store', 
                                                         required=True, 
@@ -72,16 +72,16 @@ class transposeCountsCommandLine( BBaseCommandLine ):
                                                            
         )
  
-        self.requiredArg.add_argument( '-m', '--outMixturePath', default=None, 
+        self.requiredArg.add_argument( '-a', '--outAllPath', default=None, 
                                                         metavar="",
                                                         action='store', 
                                                         required=True, 
                                                         help="path to the transposed csv file"
-                                                            + "Use this as the mixture matrix in CIBERSORTx. " 
+                                                            + "Use this as the count matrix in DESeq2. "
                                                             + "It has all the all the samples for a given tumor"
         )    
 
-        self.requiredArg.add_argument( '-s', '--outSignaturePath', default=None, 
+        self.requiredArg.add_argument( '-c', '--outCntrlUDPath', default=None, 
                                                         metavar="",
                                                         action='store', 
                                                         required=True, 
@@ -129,28 +129,28 @@ def main(inCommandLineArgsList=None):
 
     logger.warning(f'command line arguments : {cli.args}')
     
-    createTumorCountMatrixFilePath = cli.args.createTumorCountMatrixFilePath
-    outMixturePath = cli.args.outMixturePath
-    outSignaturePath = cli.args.outSignaturePath
+    tumorCountMatrixFilePath = cli.args.tumorCountMatrixFilePath
+    outAllPath = cli.args.outAllPath
+    outCntrlUDPath = cli.args.outCntrlUDPath
 
     # head createTumorCountMatrix.sh.output/T1GroupByGenesCounts.csv |  cut -d , -f 1,2,3,4,76539,76540 > transposeTest.csv
     # tumorCountFilePath = "/private/home/aedavids/extraCellularRNA/deconvolutionAnalysis/python/tempus/bin/transposeTest.csv"
  
-    tumorCountDF = pd.read_csv(createTumorCountMatrixFilePath,index_col="gene_id")
+    tumorCountDF = pd.read_csv(tumorCountMatrixFilePath, index_col="gene_id")
     logger.info(f'tumorCountDF.shape :{tumorCountDF.shape}')
     
     retDF = tumorCountDF.transpose()
 
-    retDF.to_csv(outMixturePath, index=True, index_label="geneId")
-    logger.warning(f"saved mixture count matrix to : {outMixturePath}")
+    retDF.to_csv(outAllPath, index=True, index_label="geneId")
+    logger.warning(f"saved count matrix to : {outAllPath}")
 
     # https://stackoverflow.com/a/4843172/18674034
     # matching = [s for s in xs if "abc" in s]
     matchingCols = [s for s in retDF.columns if 'Control' in s or 'UD' in s]
     retSigDF = retDF.loc[:, matchingCols]
 
-    retSigDF.to_csv(outSignaturePath, index=True, index_label="geneId")
-    logger.warning(f"saved DESeq2 count  matrix to : {outMixturePath}")
+    retSigDF.to_csv(outCntrlUDPath, index=True, index_label="geneId")
+    logger.warning(f"saved count matrix to : {outCntrlUDPath}")
     
     logger.warning("END")
 

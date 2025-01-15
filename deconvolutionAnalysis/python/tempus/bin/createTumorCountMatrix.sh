@@ -3,7 +3,20 @@
 # aedavids@ucsc.edu
 # 1/14/2025
 # 
-# create a count matrix from
+# reads tempus/illumina/20241107/create/results/data/raw_counts.csv
+# these are the group by gene counts from the salmon quant.sf files
+# each row is a sample and the columns are the gene ids
+# 
+# output
+# for each tumor type
+#   1. create createTumorCountMatrix.sh.output
+#   2. create tumor id RawGroupByGenesCounts.csv. each row is a sample and the columns are the gene ids
+#   3. create tumor id RawDESeq2FmtCounts.csv. This is the transpose of the RawGroupByGenesCounts.csv
+#   they are in the format DESeq expects 
+#   4. create tumor id RawDESeq2FmtControlUDCounts.csv.csv. This is the transpose of the RawGroupByGenesCounts.csv
+#      with only the Control and UD samples in the format DESeq@ expects
+
+
 
 set -euxo pipefail
 # set -e Exit immediately if a pipeline see shell builtin command it is more complicated
@@ -89,14 +102,14 @@ do
     grep $tumorToken "${dataDir}/raw_counts.csv" >> "${outRawFile}"
     # printf "_${tumorId}_ exit code $? \n"
 
-    outRawMixtureFile="${outDir}/${tumorId}RawMixtureCounts.csv"
-    outRawSignatureFile="${outDir}/${tumorId}RawSignatureCounts.csv"
+    outAllFile="${outDir}/${tumorId}RawDESeq2FmtCounts.csv"
+    controlUDFile="${outDir}/${tumorId}RawDESeq2FmtControlUDCounts.csv"
     
     #run python to transpose
     python -m tempus.transposeCounts \
-        --createTumorCountMatrixFilePath "${outRawFile}" \
-        --outMixturePath "${outRawMixtureFile}" \
-        --outSignaturePath "${outRawSignatureFile}"
+        --tumorCountMatrixFilePath "${outRawFile}" \
+        --outAllPath "${outAllFile}" \
+        --outCntrlUDPath "${controlUDFile}"
 
 done
 
