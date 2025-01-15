@@ -15,6 +15,7 @@ set -euxo pipefail
 # output env info to make debugging easier
 #
 scriptName=`basename $0`
+printf "\n ######### script name: %s BEGIN \n" $scriptName
 pwd; 
 hostname; 
 date
@@ -23,6 +24,29 @@ outDir="`pwd`/${scriptName}.output"
 mkdir -p "${outDir}"
 
 dataDir=/private/groups/kimlab/data/tempus/illumina/20241107/create/results/data
+
+#
+# set up the python env
+#
+printf "\n\n\n################ set up python environment \n"
+# start conda env
+condaBase=`conda info | grep -i 'base environment' | cut -d : -f 2 | cut '-d ' -f 2`
+source ${condaBase}/etc/profile.d/conda.sh
+# set -x
+conda activate extraCellularRNA
+
+pythonSrcRoot="/private/home/aedavids/extraCellularRNA"
+
+tempusPythonPath="${pythonSrcRoot}/deconvolutionAnalysis/python:${pythonSrcRoot}/deconvolutionAnalysis/python/tempus"
+if [ -z ${PYTHONPATH+x} ];
+    then
+        #PYTHONPATH is unset or set to the empty string:
+        export PYTHONPATH="${pythonSrcRoot}/src:${tempusPythonPath}"; 
+    else 
+        export PYTHONPATH="${PYTHONPATH}:${tempusPythonPath}"; 
+    fi
+
+printf "\n ########### PYTHONPATH : $PYTHONPATH \n"
 
 
 #
@@ -65,5 +89,16 @@ do
     grep $tumorToken "${dataDir}/raw_counts.csv" >> "${outRawFile}"
     # printf "_${tumorId}_ exit code $? \n"
 
+    outRawMixtureFile="${outDir}/${tumorId}RawMixtureCounts.csv"
+    outRawSignatureFile="${outDir}/${tumorId}RawSignatureCounts.csv"
+    
     #run python to transpose
+    python -m tempus.transposeCounts \
+        --createTumorCountMatrixFilePath "${outRawFile}" \
+        --outMixturePath "${outRawMixtureFile}" \
+        --outSignaturePath "${outRawSignatureFile}"
+
 done
+
+printf "\n ######### script name: %s END \n" $scriptName
+
