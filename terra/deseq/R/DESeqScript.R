@@ -274,10 +274,22 @@ print( head(counts(dds, normalized=TRUE))[,1:3] ) # get()
 # dispersions(dds)
 
 cat("\n Step 4, estimate dispersions")
-dds <- estimateDispersions( dds )
+# dds <- estimateDispersions( dds )
+# cat("\n head(mcols(dds))[,1:3]\n")
+# print( head(mcols(dds)) [,1:3])
+
+# Estimate dispersions
+dds <- tryCatch({
+  estimateDispersions(dds)
+}, error = function(e) {
+  message("Standard dispersion fitting failed, using gene-wise estimates.")
+  dds <- estimateDispersionsGeneEst(dds)
+  dispersions(dds) <- mcols(dds)$dispGeneEst
+  return(dds)
+})
+
 cat("\n head(mcols(dds))[,1:3]\n")
 print( head(mcols(dds)) [,1:3])
-
 
 cat("\n Step 5,  Negative Binomial GLM fitting and Wald statistics: nbinomWaldTest\n" )
 dds <- nbinomWaldTest(dds)
