@@ -3,6 +3,15 @@
 # aedavids@ucsc.edu
 # 1/15/2025
 # 
+
+I kept this for reference
+
+run DESeq2 on a single tumor control and a single tumor UD sample is meaningless
+There is no dispersion (ie variance) in the data. Also having a design
+with 2 parameters and only 2 samples is not valid. The hacks to work around these
+limitations are not valid.
+
+
 # assumes each tummor sample is unique
 # 1. select samples for tumor id and create count matrix we can use with DESeq2
 # 2. run DESeq2
