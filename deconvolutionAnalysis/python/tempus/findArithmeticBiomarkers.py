@@ -9,8 +9,9 @@ findArithmeticBiomarkers.py\n
 
 for tumor id: 
     finds the UD and Control samples from normalized counts
-    saves (controlSeries - undilutedSeries).abs().sort_values(ascending=False).head(n=topN)
+    saves ( undilutedSeries - controlSeries).abs().sort_values(ascending=False).head(n=topN)
     to a file name arithmeticBiomarkers_{tumorId}.csv
+    cibersort input matrices are also saved signatureMatrix.tsv, and mixtureMatrix.tsv
 '''
 
 # from analysis.bestSignatureGeneConfig import BestSignatureGeneConfig
@@ -113,8 +114,8 @@ def main(inCommandLineArgsList=None):
     
     # we only configure logging in main module
     # loglevel = p.getProperty("LOG_LEVEL")
-    loglevel = "INFO"
-    # loglevel = "WARN"
+    #loglevel = "INFO"
+    loglevel = "WARN"
     # logFMT = p.getProperty("LOG_FMT")
     # logFMT = "%(asctime)s %(levelname)s [thr:%(threadName)s %(name)s %(funcName)s() line:%(lineno)s] [%(message)s]"
     logFMT = "%(asctime)s %(levelname)s %(name)s %(funcName)s() line:%(lineno)s] [%(message)s]"
@@ -162,15 +163,44 @@ def main(inCommandLineArgsList=None):
     controlSeries = DF.loc[:, ControlColName]
     undilutedSeries = DF.loc[:, UDColName]
 
-
-    topBiomarkersSeries = (controlSeries - undilutedSeries).abs().sort_values(ascending=False).head(n=topN)
+    #
+    # find the arithmetic biomarkers
+    #
+    topBiomarkersSeries = (undilutedSeries - controlSeries).abs().sort_values(ascending=False).head(n=topN)
     
     topBiomarkersSeries.name = "arithmetic_diff"
     outPath = f'{outDir}/arithmeticBiomarkers_{tumorId}.csv'
     topBiomarkersSeries.to_csv(outPath, header=True)
 
     logger.warning(f'saved  {outPath} ')
-    
+
+    #
+    # create the CIBERSORTx signature matrix
+    #
+
+    #
+    # create the CIBERSORTx signature matrix
+    #
+    signatureDF = DF.loc[topBiomarkersSeries.index, [UDColName, ControlColName]]
+    signatureOutPath = f'{outDir}/signatureMatrix_{tumorId}.tsv'
+    signatureDF.to_csv(signatureOutPath, sep='\t', header=True)
+    logger.warning(f'saved  {signatureOutPath} ')
+
+    #
+    # create the CIBERSORTx mixture matrix
+    # include the control and UD samples. We know exactly what 
+    # the fractions should be
+    #
+
+    # select all columns except gene_name and gene_biotype
+    #cols = ~DF.columns.isin(['gene_name', 'gene_biotype'])
+    cols = DF.columns.str.contains(tumorId)
+    mixtureDF = DF.loc[topBiomarkersSeries.index, cols]
+    mixtureOutPath = f'{outDir}/mixtureMatrix_{tumorId}.tsv'
+    mixtureDF.to_csv(mixtureOutPath, sep='\t', header=True)
+    logger.warning(f'saved  {mixtureOutPath} ')
+
+
     logger.warning("END")
     sys.exit(0)
 
@@ -180,7 +210,7 @@ if __name__ == '__main__':
     # debugCommandLineArgsList=[
     #     #"--help",
     #     "--normalizedCountsPath", "/private/groups/kimlab/data/tempus/illumina/20241107/create/annotated_norm_counts.csv",
-    #     "--outDir", ".",
+    #     "--outDir", "./tmp",
     #     "--topN", "3",
     #     "--tumorId", "T1"
     # ]    
