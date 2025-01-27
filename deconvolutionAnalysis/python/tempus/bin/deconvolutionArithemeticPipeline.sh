@@ -121,9 +121,11 @@ printf "\n\n\n************ AEDWIP do not run docker we do not have a valid token
 # the --detach flag, --rm and adding --interactive --tty
 # this will cause container error message to be written to the terminal
 #
+#    --detach \
+#     --rm \
 USER_ID=`id -u`
 cmd="docker run \
-    --detach \
+   --detach \
     --rm \
     -e USERID=${USER_ID} \
     -v ${cibersortInputDir}:/src/data \
