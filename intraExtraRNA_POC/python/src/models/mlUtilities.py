@@ -33,11 +33,32 @@ def saveLabelEncoder(path : str,
     saves encoder as a dictionary
     '''
 
+    #sklearn label encoder internal types are np.str() and np.int64()
+    #convert to python types    
+    saveDict = {str(label): int(code) for label, code in zip(encoder.classes_, encoder.transform(encoder.classes_))}
+    saveDictionary(path, saveDict)
+
+################################################################################
+def saveLabelEncoderDepreciated(path : str,
+                     encoder : LabelEncoder):
+    '''
+    saves encoder as a dictionary
+    weird after a python update this stopped working
+
+    $ cat labelEncoder.dict 
+{   np.str_('Colorectal Cancer'): np.int64(0),
+    np.str_('Esophagus Cancer'): np.int64(1),
+    np.str_('Healthy donor'): np.int64(2),
+    np.str_('Liver Cancer'): np.int64(3),
+    np.str_('Lung Cancer'): np.int64(4),
+    np.str_('Stomach Cancer'): np.int64(5)}
+    '''
+
     saveDict = encoder2Dict(encoder)
     saveDictionary(path, saveDict)
 
 ################################################################################
-def encoder2Dict(encoder : LabelEncoder) -> dict  :
+def encoder2DictDeprecicated(encoder : LabelEncoder) -> dict  :
     '''
     key is class
     value is int
