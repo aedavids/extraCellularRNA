@@ -11,6 +11,7 @@ In general the 13 brain types have poor sensitivity. Try lumping them. The advan
 
 
 ## Step 1. run "brain" 1 vs. all
+metrics on mustard: run time about 14 hrs. total virtual memory < 9 gb. totalVERT.sh use top to report total usage for all process for $USER.
 
 a. create new colData. We can use sed
     ```
@@ -70,9 +71,9 @@ c. create a driver scripts
        - deseq_one_vs_all.one_vs_all.colData
          + /private/groups/kimlab/GTEx_TCGA/groupbyGeneTrainingSets/GTEx_TCGA_TrainLumpBrain.colData.csv
        - deseq_one_vs_all.one_vs_all.design
-         + "~  sex + tissue_id"
+         +  "~  gender + category"
        - deseq_one_vs_all.one_vs_all.countMatrix
-         + "/private/groups/kimlab/GTEx/GTExTrainGroupByGenesCountMatrix.csv"
+         + /private/groups/kimlab/GTEx_TCGA/groupbyGeneTrainingSets/GTEx_TCGA_TrainGroupby.csv
    * run.brain.vs.all.sh
      - --inputs
        +  brain.vs.all.input.json
@@ -85,11 +86,15 @@ c. create a driver scripts
    $ setsid sh -c 'set -x;run.brain.vs.all.sh' > run.brain.vs.all.sh.out 2>&1 &
    ```
     
-## Step 2. run  deconvolution hyper parameter tunning pipeline model best500FindAllDegree1_wl500
+    
+## Step 2. run  deconvolution hyper parameter tunning pipeline model best500GTExTCGALumpBrain
+totalVERT 5.40579e+07. 
 
 - this will crash and burn. we only need the intersection dictionary created by the upsetPlot code
 
-## Step 3. run deconvolution hyper parameter tunning pipeline model after best10CuratedDegree1.s
+## step 3. run  deconvolution hyper parameter tunning pipeline model best500FindAllDegree1_wl500LumpBrain
+
+## Step 4. run deconvolution hyper parameter tunning pipeline model after best10CuratedDegree1.s
 
 - create a new driver script. Model after extraCellularRNA/deconvolutionAnalysis/bin/1vsAll-~gender_category/best10CuratedDegree1.sh. This run is one of our best results. It also automatically select the degree 1 genes to use. It does not rely on curatedGeneSignature
 
