@@ -4,7 +4,10 @@ aedavids@ucsc.edu
 5/15/24  
 
 ref: 
-- [bestCuratedNotes.md](file:///./bestCuratedNotes.md)
+- intraExtraRNA_POC/adenocarcinoma.vs.control/enrichESCA.ipynb 
+- deconvolutionAnalysis/doc/addDegree2Genes.md
+- deconvolutionAnalysis/doc/bestCuratedNotes.md
+- intraExtraRNA_POC/adenocarcinoma.vs.control/enrichESCA.ipynb
 - deconvolutionAnalysis/jupyterNotebooks/hyperParameterTunning/findCandidateEnrichmentBiomarkers.ipynb
 
 
@@ -226,4 +229,28 @@ ESCA,STAD,13
 STAD,ESCA,17
 STAD,Esophagus_Mucosa,2
 STAD,Stomach,7
+```
+
+
+# ????????? Bug 
+
+
+these values have much higher base mean than best10CuratedDegree1_ce467ff
+```
+/private/groups/kimlab/aedavids/deconvolution/1vsAll-~gender_category/best10CuratedDegree1/training/best10CuratedDegree1.sh.out/GTEx_TCGA-design-tilda_gender_category-padj-0001-lfc-20-n-10
+
+$  cut -d , -f 1,2,3 ESCA_vs_all.results 
+name,baseMean,log2FoldChange
+
+name,       baseMean,          log2FoldChange
+MCRIP1,     2870.33818751656, -2.03709482774914
+IFFO1,      1498.01418347192, -2.00338443019926
+CAMK1,      1058.83394372702, -2.06536653484754
+ZNF667-AS1, 860.038393899797, -2.81341430542468
+KHDRBS3,    787.155544345561, -2.07207508901871
+DNALI1,     690.194131887099, -2.16737852595459
+ZNF471,     606.988558770845, -2.16316671279139
+C3orf18,    601.702161492102, -2.44478529553007
+FAM229B,    575.05392665072,  -2.17126693888998
+GGTA1P,     544.313205080983, -2.13903226293733
 ```

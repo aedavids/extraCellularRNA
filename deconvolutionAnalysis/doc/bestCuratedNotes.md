@@ -3,7 +3,12 @@ Andrew E. Davidson
 aedavids@ucsc.edu  
 1/10/24   
 
-see addDegree2Genes.md  
+ref:
+- intraExtraRNA_POC/adenocarcinoma.vs.control/enrichESCA.ipynb 
+- deconvolutionAnalysis/doc/addDegree2Genes.md
+- deconvolutionAnalysis/doc/bestCuratedNotes.md
+- intraExtraRNA_POC/adenocarcinoma.vs.control/enrichESCA.ipynb
+- deconvolutionAnalysis/jupyterNotebooks/hyperParameterTunning/findCandidateEnrichmentBiomarkers.ipynb
 
 **<span style="color:red">See comments in bestCuratedGeneConfig.py. algo may not match discription bellow</span>**
 
