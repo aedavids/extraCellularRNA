@@ -75,11 +75,11 @@ dependencies:
   # does nto work - tensorflow=2.17
   # fail - pip:
   #       - tensorflow==2.17
-  pyimagej # write FIJI/ImageJ macros in python
+  - pyimagej # write FIJI/ImageJ macros in python
 
 
   # install pytorch https://pytorch.org/get-started/locally/
-  # linux: conda install pytorch torchvision torchaudio cpuonly -c pytorch
+  # linux: pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
   # https://keras.io/getting_started/
   # pip install --upgrade keras
 
