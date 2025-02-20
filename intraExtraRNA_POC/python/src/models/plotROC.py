@@ -13,6 +13,7 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import scikitplot as skplt
 from sklearn.metrics import roc_curve
 from sklearn.metrics import roc_auc_score
@@ -104,14 +105,14 @@ def plotROC(
     return retDict
 
 ################################################################################
-def plotROCWrapper(XNP :np.array, 
+def plotROCWrapper(XDF : pd.DataFrame, 
                 yNP :np.array, 
                 model,
                 title:str,
                  classesToPlot=None ) -> tuple[plt.figure, plt.axes, dict[int, float]]:
     '''
     arguments:
-        XNP :
+        XDF :
             samples to create prediction for
         y : 
             ground truth labels
@@ -129,8 +130,8 @@ def plotROCWrapper(XNP :np.array,
             value = area under ROC curve
  
     '''
-    predictions  = model.predict(XNP)
-    yProbability = model.predict_proba(XNP)
+    predictions  = model.predict(XDF)
+    yProbability = model.predict_proba(XDF)
 
     fig, axs = plt.subplots(nrows=1, ncols=1, figsize=(4, 4), ) #sharey=True
     

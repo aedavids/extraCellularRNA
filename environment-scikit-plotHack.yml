@@ -1,0 +1,86 @@
+#
+# best practice install the libmamba package solver
+# https://www.anaconda.com/blog/a-faster-conda-for-a-growing-community/
+# it runs a lot faster than the standard conda solver
+#
+
+# https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#exporting-an-environment-file-across-platforms
+# https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#create-env-file-manually
+
+
+#
+# to update your enviroment, add new depedencies to the yml file
+# --prune remove dependencies that are no longer required
+# conda env update  --file testEnvironment.yml  --prune
+#
+
+#
+# clean up command
+# $ conda env remove -n testEnvironment
+#
+
+#
+# pip example. Sometimes you have no choice
+# https://github.com/binder-project/example-conda-environment/blob/master/environment.yml
+#
+
+
+name: scikit-plotHack
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  #- python=3.7.6
+  - python=3.11
+  #- pipy libmamba solver problem?
+  - numpy
+  - matplotlib
+  - gseapy
+  - jupyter_conda
+  - jupyterlab
+  - notebook
+  - scikit-learn
+  - trimmomatic
+  - sra-tools
+  - scipy=1.11.4 # https://github.com/mljar/mljar-supervised/issues/691
+  - salmon  
+  - fastqc
+  - gsutil
+  - pandas
+  - findspark
+  - multiqc
+  - cromwell
+  - openjdk # use this version of java to run cromwell
+  - firecloud # google cloud fissc
+  - umap-learn # https://umap-learn.readthedocs.io/en/latest/
+  - python-louvain
+  - PivotTableJS
+  - seaborn
+  - upsetplot
+  - ipynbname
+  - esri::scikit-plot # https://scikit-plot.readthedocs.io/en/stable/index.html
+  - pytables # required by pandas.DataFrame.to_hdf
+  #- pip:
+  #  - dumper # debug gcp/terra fissc error
+  #
+  # plasmaGAN dependencies
+  #- tensorflow
+  - h5py
+  - pydot
+  - graphviz
+  #- keras=3.4.*  # tensorflow 2.17.0  has keras 3.6.0  bundled in. it does not work use colab version
+  #jason does not support python 3.11 - tensorflow=2.3.0
+  #jason does not support python 3.11- keras=2.4.3
+  # does nto work - tensorflow=2.17
+  # fail - pip:
+  #       - tensorflow==2.17
+  - pyimagej # write FIJI/ImageJ macros in python
+
+
+  # install pytorch https://pytorch.org/get-started/locally/
+  # linux: pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+  # https://keras.io/getting_started/
+  # pip install --upgrade keras
+
+prefix: /public/home/aedavids/miniconda3/envs/extraCellularRNA
