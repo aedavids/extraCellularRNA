@@ -49,7 +49,15 @@ python -m unittest discover .
 
 example of how to run a specific test case
 ```
-(extraCellularRNA) $ python plots/test/testUpsetPlots.py  TestUpsetPlots.testFindDegrees
+xxx (extraCellularRNA) $ python plots/test/testUpsetPlots.py  TestUpsetPlots.testFindDegrees
+
+$cd extraCellularRNA
+
+# run all the unit test in a particular test module
+$ ppython deconvolutionAnalysis/python/plots/test/testUpsetPlots.py
+
+# run a specific test 
+$ python deconvolutionAnalysis/python/plots/test/testUpsetPlots.py TestUpsetPlots.testFindDegrees
 ```
 
 ## Spark Install
