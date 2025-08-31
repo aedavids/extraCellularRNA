@@ -154,6 +154,7 @@ task one_vs_all {
 
     output {
         File outFile="${referenceLevel}_vs_all.results"
+        File outFileLfcShrink="${referenceLevel}_vs_all.results.lfcShrink"
         File estimatedSizeFactors = "estimatedSizeFactors.csv"
     }
 
