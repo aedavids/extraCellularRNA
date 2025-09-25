@@ -23,10 +23,13 @@ set -x # turn debug on
 path=`echo $inputFile | sed 's/\/public\/groups\/kimlab\///g'`
 path=`echo $path | sed 's/\\//./g'`
 
-[[ -d img ]] || mkdir img
+#[[ -d img ]] || mkdir -p img
+mkdir -p img
+
 outputFile="img/${path}.png"
 
-python src/bme263DataVis/volcanoPlot.py \
+python -m src.bme263DataVis.volcanoPlot \
 		-i ${inputFile} \
-		-o ${outputFile} 
-		
+		-o ${outputFile}
+
+
