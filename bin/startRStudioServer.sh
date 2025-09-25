@@ -28,10 +28,10 @@ USER_ID=`id -u`
 #IMG='aedavids/ggplot2'
 #IMG='rocker/rstudio:3.5.0'
 #IMG='aedavids/biocworkshops' can not install Desq
-#IMG='bioconductor/bioconductor_docker:devel'
+IMG='bioconductor/bioconductor_docker:devel'
 #IMG='aedavids/biocworkshop2018desq2'
 #IMG='aedavids/extra_cellular_rna'
-IMG='aedavids/extra_cellular_rna_2_01' # starts rstudio-server
+#IMG='aedavids/extra_cellular_rna_2_01' # starts rstudio-server
 #IMG='aedavids/edu_ucsc_kim_lab-1vsall_1.0' # production version, support for DESeq, rstudio-server was removed
 
 # docker arguments
