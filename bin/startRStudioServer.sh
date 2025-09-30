@@ -23,17 +23,26 @@ HOST_PORT=`findUnusedPort.sh`
 echo "ssh tunnel port number: " $HOST_PORT
 CONTAINER_PORT=8787
 USER_ID=`id -u`
+#GROUP_ID=`id -g`
 
 #IMG='rocker/rstudio:4.0.0-ubuntu18.04'
 #IMG='aedavids/ggplot2'
 #IMG='rocker/rstudio:3.5.0'
 #IMG='aedavids/biocworkshops' can not install Desq
 #IMG='bioconductor/bioconductor_docker:devel'
-IMG='aedavids/extra_cellular_rna-v1.0'
+
+# dockerFile.exRNA_diease_biomarkers
+IMG='aedavids/ex-rna_diease_biomarkers-v1.0'
+
 #IMG='aedavids/biocworkshop2018desq2'
-#IMG='aedavids/extra_cellular_rna'
-#IMG='aedavids/extra_cellular_rna_2_01' # starts rstudio-server
-#IMG='aedavids/edu_ucsc_kim_lab-1vsall_1.0' # production version, support for DESeq, rstudio-server was removed
+
+# dockerFile.extra_cellular_RNA
+#IMG='aedavids/extra_cellular_rna' 
+
+# starts rstudio-server
+#IMG='aedavids/extra_cellular_rna_2_01'
+
+#IMG='aedavids/edu_ucsc_kim_lab-1vsall_1.0' # production version, support for DESeq, rstudio-server was removed dockerFile.1vsAll
 
 # docker arguments
 # -d  --detach Run container in background and print container ID
@@ -51,6 +60,13 @@ set -x # turn debug on
 # set +x # turn debug off
 
 
+#
+# 9/29/20
+# IMG='aedavids/ex-rna_diease_biomarkers-v1.0' is very slow to start
+# 'docker logs container_id' reports a lot of chmod permission problems
+# you can ignore these error
+# it just takes along time before you can connect to rstudio
+#
 
 docker run --rm \
        --detach \
@@ -58,9 +74,9 @@ docker run --rm \
        -e DISABLE_AUTH=true \
         -e USER=rstudio \
 	-e USERID=${USER_ID} \
-	-e PASSWORD=ggg \
-	-v /private/home/${USER}:/home/rstudio \
-	-v /private/groups/kimlab:/home/kimlab \
+	-e PASSWORD=bioc \
+        -v /private/home/${USER}:/home/rstudio \
+        -v /private/groups/kimlab:/home/kimlab \
         -v /scratch/aedavids:/scratch/aedavids \
         ${IMG}
 
@@ -73,3 +89,5 @@ docker ps | head -1
 
 # find our images id
 docker ps | grep ${IMG}
+
+printf "\nIt make take between 5 and 10 mins before you will be able to connect your browser\n"
