@@ -301,6 +301,8 @@ def main( inComandLineArgsList=None ):
     # png is an uncompressed bitmap format
     # output format is determined by output file name's suffix '.png'
     plt.savefig( outputFile, dpi=600 )  # BME163 style sheet should set dpi=600
+    
+    print(f'saved : {outputFile}')
 
 
 ########################################################################
