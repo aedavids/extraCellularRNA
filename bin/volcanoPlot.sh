@@ -20,8 +20,20 @@ set -x # turn debug on
 #set +x # turn debug off
 
 # create output file n
-path=`echo $inputFile | sed 's/\/public\/groups\/kimlab\///g'`
-path=`echo $path | sed 's/\\//./g'`
+# path=`echo $inputFile | sed 's/\/public\/groups\/kimlab\///g'`
+
+# echo "\nAEDWIP path 1 :\n$path"
+
+# path=`echo $path | sed 's/\\\\//./g'`
+
+# echo "\nAEDWIP path 2 :\n$path"
+
+# s#^/## If the first character (^/) is a /, remove it
+# ; separates multiple sed commands
+# s#/#.#g Replace all remaining / with .
+# use # as the delimitor instead of / so we do not need to escape / 
+path=`echo $inputFile | sed 's#^/##; s#/#.#g'`
+
 
 #[[ -d img ]] || mkdir -p img
 mkdir -p img
