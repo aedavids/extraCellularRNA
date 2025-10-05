@@ -20,13 +20,6 @@ set -x # turn debug on
 #set +x # turn debug off
 
 # create output file n
-# path=`echo $inputFile | sed 's/\/public\/groups\/kimlab\///g'`
-
-# echo "\nAEDWIP path 1 :\n$path"
-
-# path=`echo $path | sed 's/\\\\//./g'`
-
-# echo "\nAEDWIP path 2 :\n$path"
 
 # s#^/## If the first character (^/) is a /, remove it
 # ; separates multiple sed commands
