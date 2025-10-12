@@ -12,8 +12,15 @@
 #   docker rm -f container_id 
 #
 
-set -x # turn debug on
-# set + x # turn debug off
+
+# see bash man page "SHELL BUILTIN COMMANDS" for details
+# ref: https://gist.github.com/vncsna/64825d5609c146e80de8b1fd623011ca 
+set -euxo pipefail
+# set -e Exit immediately if a command in pipeline returns non-zero exit status
+# set -u Treat unset variables and parameters as  an  error
+# set -x turn debug trace on. output goes to stderr, normal output goes to stdout
+# set -o print value of current options
+
 
 #PORT=`findUnusedPort.sh`
 #PORT=8755
@@ -22,8 +29,9 @@ set -x # turn debug on
 HOST_PORT=`findUnusedPort.sh`
 echo "ssh tunnel port number: " $HOST_PORT
 CONTAINER_PORT=8787
-USER_ID=`id -u`
-#GROUP_ID=`id -g`
+USER_ID=`id -u`   # 600 needed so we can write to our home dir
+#GROUP_ID=`id -g`  # 
+KIMLAB_GID=614    # we need to set group id to access /private/groups/kimlab
 
 #IMG='rocker/rstudio:4.0.0-ubuntu18.04'
 #IMG='aedavids/ggplot2'
@@ -68,18 +76,69 @@ set -x # turn debug on
 # it just takes along time before you can connect to rstudio
 #
 
+# this will run rstudio but you can not access /home/kimlab/data
+# docker run --rm \
+#        --detach \
+#        --publish 127.0.0.1:${HOST_PORT}:${CONTAINER_PORT}/tcp \
+#        -e DISABLE_AUTH=true \
+#         -e USER=rstudio \
+# 	-e USERID=${USER_ID} \
+# 	-e PASSWORD=bioc \
+#         -v /private/home/${USER}:/home/rstudio \
+#         -v /private/groups/kimlab:/home/kimlab \
+#         -v /scratch/aedavids:/scratch/aedavids \
+#         ${IMG}
+
+
+# unable to connect browser to contain. I think rstudo does not start
+# docker run --rm \
+#        --detach \
+#        --publish 127.0.0.1:${HOST_PORT}:${CONTAINER_PORT}/tcp \
+#        --user ${USER_ID}:${GROUP_ID} \
+#        -e DISABLE_AUTH=true \
+# 	-e PASSWORD=bioc \
+#         -v /private/home/${USER}:/home/rstudio \
+#         -v /private/groups/kimlab:/home/kimlab \
+#         -v /scratch/aedavids:/scratch/aedavids \
+#         ${IMG}
+
+# this does not work
+# docker run --rm \
+#        --detach \
+#        --publish 127.0.0.1:${HOST_PORT}:${CONTAINER_PORT}/tcp \
+#        --user ${USER_ID}:${GROUP_ID} \
+#        -e DISABLE_AUTH=true \
+#         -e USER=rstudio \
+# 	-e USERID=${USER_ID} \
+# 	-e PASSWORD=bioc \
+#         -v /private/home/${USER}:/home/rstudio \
+#         -v /private/groups/kimlab:/home/kimlab \
+#         -v /scratch/aedavids:/scratch/aedavids \
+#         ${IMG}
+
+
+#
+# usally you would set the docker user id and group id using
+# --user ${USER_ID}:${GROUP_ID}
+# this does not work with rocker/rstudio    
+# you will not be able to connect to the container from your browser
+# 
 docker run --rm \
        --detach \
        --publish 127.0.0.1:${HOST_PORT}:${CONTAINER_PORT}/tcp \
        -e DISABLE_AUTH=true \
         -e USER=rstudio \
 	-e USERID=${USER_ID} \
+        -e GROUPID=${KIMLAB_GID} \
 	-e PASSWORD=bioc \
         -v /private/home/${USER}:/home/rstudio \
         -v /private/groups/kimlab:/home/kimlab \
         -v /scratch/aedavids:/scratch/aedavids \
         ${IMG}
 
+
+
+    
 #set -x # turn debug on
 set +x # turn debug off
 
