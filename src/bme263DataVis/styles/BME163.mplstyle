@@ -1,5 +1,5 @@
 font.size           : 8.0
-font.sans-serif     : Arial
+font.sans-serif     : Arial, Liberation Sans, DejaVu Sans, Noto Sans, Ubuntu
 xtick.major.size    : 2   
 xtick.major.width   : 0.75    
 xtick.labelsize     : 8.0 
