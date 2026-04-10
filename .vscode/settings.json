@@ -1,32 +1,28 @@
 {
-    "terminal.integrated.env.linux": {
-        "PYTHONPATH":"/private/home/aedavids/extraCellularRNA/deconvolutionAnalysis/python:/private/home/aedavids/extraCellularRNA/src:/private/home/aedavids/extraCellularRNA/intraExtraRNA_POC/python/src"
-
-    },
-    "terminal.integrated.env.osx": {
-        "PYTHONPATH":"/Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/deconvolutionAnalysis/python:/Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/src:/Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/intraExtraRNA_POC/python/src"
-    },
-
-    "python.terminal.executeInFileDir": true,
-
-    "search.exclude": {
-        "**/node_modules": true,
-        "**/bower_components": true,
-        "**/env": true,
-        "**/venv": true
-      },
-      "files.watcherExclude": {
-         "**/.git/objects/**": true,
-         "**/.git/subtree-cache/**": true,
-         "**/node_modules/*/**": true,
-        "**/.cache/**": true,
-        "**/.conda/**": true,
-        "**/.local/**": true,
-        "**/.nextflow/**": true,
-        "**/env/**": true,
-        "**/venv/**": true,
-        "**/work/**": true,
-        "**/private/groups/**": true
-    },
-    "r.lsp.promptToInstall": false
+  "terminal.integrated.env.linux": {
+    "PYTHONPATH": "/private/home/aedavids/extraCellularRNA/deconvolutionAnalysis/python:/private/home/aedavids/extraCellularRNA/src:/private/home/aedavids/extraCellularRNA/intraExtraRNA_POC/python/src"
+  },
+  "terminal.integrated.env.osx": {
+    "PYTHONPATH": "/Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/deconvolutionAnalysis/python:/Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/src:/Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/intraExtraRNA_POC/python/src"
+  },
+  "python.terminal.executeInFileDir": true,
+  "r.lsp.promptToInstall": false,
+  "search.exclude": {
+    "**": true
+  },
+  "files.watcherExclude": {
+    "**": true
+  },
+  "search.followSymlinks": false,
+  "editor.quickSuggestions": {
+    "other": false,
+    "comments": false,
+    "strings": false
+  },
+  "search.useIgnoreFiles": true,
+  "search.useGlobalIgnoreFiles": true,
+  "search.useRipgrep": false,
+  "search.quickOpen.includeHistory": false,
+  "search.quickOpen.includeSymbols": false,
+  "remote.SSH.enableRemotePhpProxy": false
 }
