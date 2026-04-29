@@ -125,7 +125,7 @@ class VolcanoPlot( object ):
 
         if colorByValues is not None :
             # scatter markersize is area
-            plotMarkersize = 0.6  # 0.75 #0.5 #1 #0.75 #0.5
+            plotMarkersize = 2 #1 # 10/5/2025 0.6  # 0.75 #0.5 #1 #0.75 #0.5
 
             plotMarkerArea = np.pi * ( ( plotMarkersize / 2 ) ** 2 )
             scatterMarkersize = plotMarkerArea * 2  # strange did not look good with * 2
@@ -134,7 +134,8 @@ class VolcanoPlot( object ):
                           s=scatterMarkersize,
                           facecolor=colorByValues,
                           linewidth=0,
-                          alpha=0.3 )
+                          alpha=0.8 #0.3 10/5/25 hack for plots with only 20 biomarkers
+                          )
 
         else:
             # plot is faster than scatter how ever does not allow points to be
@@ -182,13 +183,13 @@ class _VolcanoPlotData :
 
 
 ########################################################################
-def loadData( inputFile ):
+def loadData( inputFile ) -> _VolcanoPlotData:
     '''
     returns a _VolcanoPlotData object
     '''
     ret = _VolcanoPlotData()
 
-    print(f"AEDWIP inputFile : {inputFile}")
+    #print(f"AEDWIP inputFile : {inputFile}")
     dataLoader = DESeqSelect( inputFile )
     geneNamesNP, baseMeanNP, xlog2FoldChangeNP, yNeglog10pValueNP = dataLoader.readVolcanoPlotData()
 
@@ -198,7 +199,7 @@ def loadData( inputFile ):
     std = np.std( baseMeanNP )
     mean = np.mean( baseMeanNP )
     threshold = mean + 2 * std
-    print( "AEDWIP mean:{} std:{} threshold:{}".format( mean, std, threshold ) )
+    #print( "AEDWIP mean:{} std:{} threshold:{}".format( mean, std, threshold ) )
 
     for i in range( len( baseMeanNP ) ):
         bm = baseMeanNP[i]
