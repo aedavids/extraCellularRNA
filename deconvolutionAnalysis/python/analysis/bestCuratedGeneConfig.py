@@ -82,6 +82,14 @@ class BestCuratedGeneConfig(SignatureGeneConfiguration):
                     localCacheRootPath : str, 
                     title : str,
                     interesectionDictPath : str,
+
+                    # ascending default = False for backwards compatiblity
+                    # best1CuratedDegree1_ce467ff has best perforamance
+                    # we are unable to reproduce results
+                    # I think there was a bug in best1CuratedDegree1_ce467ff 
+                    # we sorted using ascending=True
+                    # this caused findGenes() to return genes with the smallest base mean
+                    ascending : bool = False,   
                     )  :
         super().__init__(
                     dataSetName=dataSetName,
@@ -103,8 +111,10 @@ class BestCuratedGeneConfig(SignatureGeneConfiguration):
         self.logger.info(f'BEGIN')
 
         self.interesectionDictPath = interesectionDictPath;
+        self.logger.info(f'self.interesectionDictPath:\n{self.interesectionDictPath}')
         self.intersectionDict = loadDictionary( self.interesectionDictPath )
         self.degree1Dict = findIntersectionsWithDegree( self.intersectionDict, degree=1 )
+        self.ascending = ascending
 
         self.logger.info(f'END')
 
@@ -116,8 +126,9 @@ class BestCuratedGeneConfig(SignatureGeneConfiguration):
 
         arguments:
             deseqDF:
-                results of DESeq2 as a pandas dataframe            
-
+                results of DESeq2 as a pandas dataframe  
+                this argument is not used. It is preserved so that we can use this
+                class with the driver.py module         
                 
             fileName:
                 useful for logging, debugging, and addition down stream processing   
@@ -135,9 +146,18 @@ class BestCuratedGeneConfig(SignatureGeneConfiguration):
         self.logger.info("BEGIN")
 
         key = fileNameToDictKey(fileName)
+        self.logger.debug(f'AEDWIP fileName : {fileName} key: {key}')
+        self.logger.info(f'key: {self.degree1Dict.keys()}')
+
+        #  we do not use deseqDF see method3 bellow
+        #deseqDF = deseqDF.sort_values(by="baseMean", ascending=False)
+        #deseqDF = deseqDF.sort_values(by="baseMean", ascending=self.ascending)
 
         retDF = None
         if key not in self.degree1Dict:
+            # use case 2
+            self.logger.info(f'BEGIN no degree 1 keys for {key}')
+
             #
             # method 1
             # return desqDF did not provide vest over all results
@@ -158,7 +178,8 @@ class BestCuratedGeneConfig(SignatureGeneConfiguration):
             # method 3
             #
             # retDF = super().findGenes(deseqDF, fileName)        
-            # sortedD1DF = d1DF.sort_values(by='baseMean')
+            # sortedD1DF = d1DF.sort_values(by='baseMean', ascending=False)
+            # sortedD1DF = d1DF.sort_values(by='baseMean', ascending=self.ascending)
             # retDF = sortedD1DF.head(n=self.n)
 
             #
@@ -173,9 +194,17 @@ class BestCuratedGeneConfig(SignatureGeneConfiguration):
             # upsetOut="${upstream}/training/${upstreamRun}.sh.out/upsetPlot.out"
             # intersectionDict="${upsetOut}/best${upstreamTopN}_findAllDegree${degree}_wl${upstreamTopN}.intersection.dict"
 
-            retDF = deseqDF.head(n=self.n)
+            # 5/21/24 I think the next line is a bug. it makes assumptions about the deseq results file
+            # that are probably not true in general. I think this line is part of method 3 and should be c
+            # commented out. method3 calls super().findGenes()
+            # retDF = deseqDF.head(n=self.n)
+
+            self.logger.info(f'END no degree 1 keys for {key}')
 
         else :
+            self.logger.info(f'BEGIN use case 1: hand crafted signature matrix')
+            # use case 1:
+
             # the stage that created the degree1 intersection dictionary was probably 
             # best500FindAllDegree1_wl500Degree1. It filtered by lfc and padj and sorted by baseMean
             # It is possible that the degree1 genes are outside of the lfc and padj ranges
@@ -186,11 +215,13 @@ class BestCuratedGeneConfig(SignatureGeneConfiguration):
 
             # we want to select degree1 genes that have the strongest signal
             # if we think about how we fit models. large baseMean should make
-            # linear regresion miss classifcation error residual greatly. This should improve model
+            # linear regresion miss classifcation error residual greater. This should improve model
             # results.
-            sortedD1DF = d1DF.sort_values(by='baseMean', ascending=False)
+            #sortedD1DF = d1DF.sort_values(by='baseMean', ascending=False)
+            sortedD1DF = d1DF.sort_values(by='baseMean', ascending=self.ascending)
             retDF = sortedD1DF.head(n=self.n)
 
+            self.logger.info(f'END use case 1: hand crafted signature matrix')
                       
 
         self.logger.info("END")

@@ -1,11 +1,78 @@
 {
-    "terminal.integrated.env.linux": {
-        "PYTHONPATH":"/private/home/aedavids/extraCellularRNA/deconvolutionAnalysis/python:/private/home/aedavids/extraCellularRNA/src:/private/home/aedavids/extraCellularRNA/intraExtraRNA_POC/python/src"
+  "terminal.integrated.env.linux": {},
+  "terminal.integrated.env.osx": {},
 
-    },
-    "terminal.integrated.env.osx": {
-        "PYTHONPATH":"/Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/deconvolutionAnalysis/python:/Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/src:/Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/intraExtraRNA_POC/python/src"
-    },
+  "python.terminal.activateEnvironment": true,
+  "python.terminal.executeInFileDir": true,
+  "python.envFile": "${workspaceFolder}/.env",
 
-    "python.terminal.executeInFileDir": true
+  // Python Language Server
+  "python.languageServer": "Pylance",
+  "python.jediEnabled": false,
+  "python.autoComplete.addBrackets": true,
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/src/python"   
+  ],
+  "python.linting.enabled": false,
+  "python.linting.pylintEnabled": false,
+  "python.linting.flake8Enabled": false,
+
+  "python.defaultInterpreterPath": "/private/home/aedavids/miniconda3/envs/extraCellularRNA/bin/python",
+  "python.pythonPath": "/private/home/aedavids/miniconda3/envs/extraCellularRNA/bin/python",
+
+  // IMPORTANT: index the whole workspace
+  "python.analysis.diagnosticMode": "workspace",
+  "python.analysis.indexing": true,
+  "python.analysis.autoImportCompletions": true,
+
+
+  "python-envs.defaultEnvManager": "ms-python.python:conda",
+  "python-envs.defaultPackageManager": "ms-python.python:conda",
+  "python-envs.pythonProjects": [],
+  "python.testing.unittestArgs": [
+    "-v",
+    "-s", "./src/python",
+    "-p", "test*.py"
+  ],
+  "python.testing.pytestEnabled": false,
+  "python.testing.unittestEnabled": true,
+  "python.testing.cwd": "${workspaceFolder}",
+  "python.testing.autoTestDiscoverOnSaveEnabled": true,
+
+
+  "search.exclude": {
+      "**/private/groups/**": true,
+      "**/.git": true,
+      "**/__pycache__": true,
+      "**/.ipynb_checkpoints": true,
+      "**/node_modules": true,
+  },
+
+  },
+  "files.watcherExclude": {
+     "**/private/groups/**": true,        
+     "**/.git/**": true,
+     "**/__pycache__/**": true,
+     "**/.ipynb_checkpoints/**": true,
+     "**/node_modules/**": true
+      
+  }
+
+  "search.followSymlinks": false,
+
+  "editor.quickSuggestions": {
+        "other": false,
+        "comments": false,
+        "strings": false
+  },
+
+  "search.useIgnoreFiles": true,
+  "search.useGlobalIgnoreFiles": true,
+  "search.useRipgrep": true,
+  "search.quickOpen.includeHistory": false,
+  "search.quickOpen.includeSymbols": false,
+  "remote.SSH.enableRemotePhpProxy": false,
+
+  "notebook.outline.showCodeSymbols": true,
+  "outline.collapseItems": "alwaysExpand"
 }

@@ -155,18 +155,18 @@ class UpsetPlot( object ):
         retIntersectionDict = dict()
         for key, item in groupByDF:
             # key is tuple of booleans
-            self.logger.info(f'key: {key}')
+            self.logger.debug(f'key: {key}')
 
             # combine all the intersection set names into a single key
             # use numpy fancy indexing
             # intersectionSetNames = token.join( setNamesNP[ list(key) ] )
             intersectionSetNames = tuple( sorted(setNamesNP[ list(key) ]) )
-            self.logger.info(f'intersectionSetNames: {intersectionSetNames}')
+            self.logger.debug(f'intersectionSetNames: {intersectionSetNames}')
             self.logger.debug(f'get_group({key}) \n{groupByDF.get_group(key)}, "\n\n"')
             ggDF = groupByDF.get_group(key)
             # self.logger.info(f'type(ggDF) : {type(ggDF)} ggDF.columns : {ggDF.columns}')
             # self.logger.info(f'aedwip : {ggDF["id"]} aedwip')
-            self.logger.info(f'ggDF["id"].tolist() : {ggDF["id"].tolist()}')
+            self.logger.debug(f'ggDF["id"].tolist() : {ggDF["id"].tolist()}')
 
             retIntersectionDict[intersectionSetNames] = ggDF["id"].tolist()
             

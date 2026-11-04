@@ -26,4 +26,6 @@ export PYTHONPATH="${PYTHONPATH}:`pwd`/src:`pwd`/../unmappedReadsAnalysis/python
 
 
 # $@ == $1 $2, ...
-jupyter notebook "$@"
+# jupyter notebook "$@"
+jupyter lab "$@"
+

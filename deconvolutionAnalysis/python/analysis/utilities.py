@@ -20,6 +20,7 @@ public functions:
     loadlist
     loadPipelineStageIntersectionDict
     saveDict
+    saveList
     saveSet
 '''
 
@@ -164,11 +165,21 @@ def findSignatureGenesForPipelineStage(
         pipelineStageName : str,         
         #LOCAL_CACHE_DIR : str, 
         deconvolutionRoot : str = "/private/groups/kimlab/aedavids/deconvolution/1vsAll-~gender_category",
-    ) -> list[str]:
+        colName : str = "name",
+        ascendingDecendingHack : bool = False,
+    ) -> list:
     '''
     example 
         category = "LUSC"
         pipelineStageName = "best10CuratedDegree1_ce467ff"
+        colName = "name"
+
+    7/2/24 added ascendingDecendingHack. default value = False
+    this is a work around for 
+    deconvolutionAnalysis/jupyterNotebooks/hyperParameterTunning/ascending-vs.-DescendingBaseMeanGeneSignatureSelection.ipynb
+    best10CuratedDegree1 has 2 out dirs best10CuratedDegree1.sh.out-sortOrder-bug and  best10CuratedDegree1.sh.out
+
+    returns a list. The type of the list items is determined by pandas read_csv()
     '''
     # load lung cancer signature, (biomarker), genes
     
@@ -176,19 +187,21 @@ def findSignatureGenesForPipelineStage(
     #upsetPlotDir = f'{deconvolutionRoot}/{pipelineStageName}/training/best10CuratedDegree1.sh.out/upsetPlot.out'
     searchRoot = f'{deconvolutionRoot}/{pipelineStageName}'
     ciberSortInputList = findDir(searchRoot, "ciberSortInput")
-    if len(ciberSortInputList) != 1:
-        logger.error(f'pipelineStageName : {pipelineStageName} category : {category}unable to find upsetPlot.out in searchRoot: {searchRoot} found {ciberSortInputList}')
-        return 
+
+    if not ascendingDecendingHack :
+        if len(ciberSortInputList) != 1:
+            logger.error(f'pipelineStageName : {pipelineStageName} category : {category} unable to find results in searchRoot: {searchRoot} found {ciberSortInputList}')
+            return 
 
     # find the deseq results file used to create the signature matrix
     deseqResultsDir = os.path.dirname( ciberSortInputList[0] )
     resultFile = os.path.join(deseqResultsDir, category + '_vs_all.results')
     logger.info(f'resultFile : {resultFile}')
     numRowsToSkip = _countExtraHeaderLines(resultFile)
-    logger.info(f'numRowsToSkip : {numRowsToSkip}')
+    logger.debug(f'numRowsToSkip : {numRowsToSkip}')
 
     deseqDF = pd.read_csv(resultFile, skiprows=numRowsToSkip)
-    retList = deseqDF.loc[:, "name"].tolist()
+    retList = deseqDF.loc[:, colName].tolist()
 
     return retList
 
@@ -281,7 +294,20 @@ def saveDictionary(dictPath : str, d: dict):
     '''
     with open(dictPath, "w") as f: 
         f.write(pp.pformat(d,  indent=4, sort_dicts=True)) 
+        f.write("\n")
 
+################################################################################
+def saveList(listPath : str, l : list, isSingleItemLine : bool=False):
+    '''
+    TODO
+    '''
+    with open(listPath, "w") as f:
+        if not isSingleItemLine:
+            f.write(str(l))
+        else:
+            for value in l:
+                f.write(str(value) +"\n")
+    
 ################################################################################
 def saveSet(setPath : str, s: set):
     '''

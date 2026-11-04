@@ -11,7 +11,25 @@ import pathlib
 # type hint for standard collection requires python 3.9 GeneList = list[str]
 #LoadTx2GenesTuple = tuple(pd.DataFrame, GeneList)
 # def loadTx2Genes(filePath : pathlib.Path) -> LoadTx2GenesTuple:
-def loadTx2Genes(filePath : pathlib.Path) -> (pd.DataFrame, list):
+def loadTx2Genes_bug(filePath : pathlib.Path) -> (pd.DataFrame, list):
+    
+The bottom of /scratch/aedavids/tmp/private/groups/kimlab/genomes.annotations/gencode.35/gencode.v35.ucsc.rmsk.tx.to.gene.csv are repeats. Note all repeats are TE’s
+
+
+Search for usages
+
+file:///Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/intraExtraRNA_POC/jupyterNotebooks/testIntraCellular-TE-Biomarkers.html
+
+TE’s are     TEClades = ['SINE', 'LINE', 'LTR']
+
+See file:///Users/andrewdavidson/googleUCSC/kimLab/extraCellularRNA/terra/GTExTCGA_Release/jupyterNotebooks/boxPlots.html 
+Cell [28] def getTEGenesIdx
+
+Cell [25] def createCladeDict
+
+Cell [21]
+
+
     '''
     assume filePath file is a two column file, first column is a transcript id, the second is a gene id
     The top of the file contains gene code entries of the form

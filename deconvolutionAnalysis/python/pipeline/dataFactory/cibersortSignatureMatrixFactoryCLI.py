@@ -47,7 +47,12 @@ class CibersortSignatureMatrixFactoryCLI( BBaseCommandLine ):
                                                       help="locaiton to write output files"
         )
 
-    
+        self.parser.add_argument( '-u', '--useMedian', 
+                                                      action='store_true', # if flag is present returns true else false
+                                                      help="boolean, default = false. "
+                                                      + "if true use mean, else use mean to calculate expected count values for each gene in a category"
+        )
+   
         #
         # group required arguments. This will create a better help message
         # make sure to set required=True
@@ -95,4 +100,3 @@ class CibersortSignatureMatrixFactoryCLI( BBaseCommandLine ):
                                                       help="when reading files will first check localCache. "
                                                       + "If not in cache will copy. Ensures file are localized."
         )
-

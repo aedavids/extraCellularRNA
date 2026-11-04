@@ -28,7 +28,7 @@ import os
 import pandas as pd
 from pipeline.dataFactory.utilities import loadCache
 from pipeline.dataFactory.cibersortSignatureMatrixFactoryCLI import CibersortSignatureMatrixFactoryCLI
-
+import sys
 
 __all__ = []
 __version__ = 0.1
@@ -62,7 +62,8 @@ class CibersortSignatureMatrixFactory( object ):
                 localCacheDir : str, 
                 outdir  : str ="ciberSort",
                 testSize : bool=None,
-                verbose: bool=False) :
+                verbose: bool=False,
+                useMedian : bool=False) :
         '''
         arguments
             geneSignatureProfilesDataRootDir: str
@@ -149,6 +150,10 @@ class CibersortSignatureMatrixFactory( object ):
             verbose:
                 boolean, default = False
                 argument passed to loadCache()
+
+            median:
+                boolean, default = false
+                if true use mean, else use mean to calculate expected count values for each gene in a category
         '''
         self.localCacheDir = localCacheDir
 
@@ -164,6 +169,7 @@ class CibersortSignatureMatrixFactory( object ):
         self.outdir = outdir
         self.testSize = testSize
         self.verbose = verbose
+        self.useMedian = useMedian
         
         # get a list of results files we want to use
         # and their deconvolution types. 
@@ -416,7 +422,13 @@ class CibersortSignatureMatrixFactory( object ):
 
         # calculate the expected values for each category      
         genesDF = joinDF.loc[ :,self.geneListsorted + ["category"] ] 
-        signatureDF = genesDF.groupby("category").mean()
+        if self.useMedian :
+            # weird duplicated log so I can set debugger break points
+            self.logger.info(f'useMedian : {self.useMedian} calling median()')
+            signatureDF = genesDF.groupby("category").median()
+        else:
+            self.logger.info(f'useMedian : {self.useMedian} calling mean()')
+            signatureDF = genesDF.groupby("category").mean()
         
         # convert to cibersort expected upload format
         ciberSortSignatueDF = signatureDF.transpose(copy=True)
@@ -428,6 +440,85 @@ class CibersortSignatureMatrixFactory( object ):
         self.ciberSortSignatueDF.columns.name = None
 
         self.logger.info("END")        
+
+################################################################################
+def testLogCLI(logger, cli):
+    logger.info("BEGIN")
+    geneSignatureProfilesDataRootDir = cli.args.geneSignatureProfilesDataRootDir
+    logger.info(f'geneSignatureProfilesDataRootDir : {geneSignatureProfilesDataRootDir}')
+
+    groupByGeneCountFilePath = cli.args.groupByGeneCountFilePath
+    logger.info(f' groupByGeneCountFilePath : {groupByGeneCountFilePath}')
+
+    colDataFilePath = cli.args.colDataFilePath
+    logger.info(f' colDataFilePath : {colDataFilePath}')
+
+    scalingFactorsPath = cli.args.scalingFactorsPath
+    logger.info(f' scalingFactorsPath : {scalingFactorsPath}')
+
+    localCacheDir = cli.args.localCacheDir
+    logger.info(f' localCacheDir : {localCacheDir}')
+
+    outDir = cli.args.outDir
+    logger.info(f' outDir : {outDir}')
+
+    if cli.args.useMedian:
+        useMedian = True
+    else :
+        useMedian = False
+    logger.info(f' useMedian : {useMedian}')
+
+    logger.info("END")
+
+################################################################################
+def testCLI(logger):
+    logger.info("BEGIN")
+
+    cli = CibersortSignatureMatrixFactoryCLI( 
+                                             version=__version__ , 
+                                             author=__author__ ,
+                                             date=__date__, 
+                                             update=__updated__)
+
+    vargs= ["-varg1", "v1ArgData" ,
+            "-varg2", "v2ArgData" ]
+
+    # test backwards compatiblity, useMedian is not passed
+    inCommandLineArgsListMean = [
+                    "--groupByGeneCountFilePath", "groupByGeneCountFilePathArg",
+                    "--geneSignatureProfilesDataRootDir", "geneSignatureProfilesDataRootDirArg",
+                    "--colDataFilePath", "colDataFilePathArg",
+                    "--scalingFactorsPath", "estimatedScalingFactorsArg",
+                    "--localCacheDir", "localCacheDirArg",
+            ]
+
+    cli.parse( inCommandLineArgsListMean )
+    
+    logger.info(f'command line arguments : {cli.args}')
+    testLogCLI(logger, cli)
+
+    # test useMedian 
+    logger.info(f'########## test useMedian ')
+    inCommandLineArgsListMedian = [
+                    "--groupByGeneCountFilePath", "groupByGeneCountFilePathArg",
+                    "--geneSignatureProfilesDataRootDir", "geneSignatureProfilesDataRootDirArg",
+                    "--colDataFilePath", "colDataFilePathArg",
+                    "--scalingFactorsPath", "estimatedScalingFactorsArg",
+                    "--localCacheDir", "localCacheDirArg",
+                    "--useMedian"
+            ]
+    cliMedian = CibersortSignatureMatrixFactoryCLI( 
+                                             version=__version__ , 
+                                             author=__author__ ,
+                                             date=__date__, 
+                                             update=__updated__)
+
+    cliMedian.parse( inCommandLineArgsListMedian )
+
+    logger.info(f'command line arguments : {cliMedian.args}')
+    testLogCLI(logger, cliMedian)
+ 
+    logger.info("END")
 
 ################################################################################
 def main(inCommandLineArgsList=None):
@@ -444,6 +535,11 @@ def main(inCommandLineArgsList=None):
     logging.basicConfig(format=logFMT, level=loglevel)    
 
     logger = logging.getLogger(os.path.basename(__file__))
+
+    # testCLI(logger)
+    # logger.error('ERROR AEDWIP comment out testCLI!!!!!')
+    # sys.exit(-1)
+
     cli = CibersortSignatureMatrixFactoryCLI( 
                                              version=__version__ , 
                                              author=__author__ ,
@@ -463,6 +559,12 @@ def main(inCommandLineArgsList=None):
     scalingFactorsPath = cli.args.scalingFactorsPath
     localCacheDir = cli.args.localCacheDir
     outDir = cli.args.outDir
+    if cli.args.useMedian:
+        useMedian = True
+    else :
+        useMedian = False
+    logger.info(f' useMedian : {useMedian}')
+
 
     csmf = CibersortSignatureMatrixFactory(
             geneSignatureProfilesDataRootDir=geneSignatureProfilesDataRootDir,
@@ -472,7 +574,8 @@ def main(inCommandLineArgsList=None):
             localCacheDir=localCacheDir,
             outdir = outDir,
             testSize = None, 
-            verbose = False
+            verbose = False,
+            useMedian = useMedian
    )    
 
 ################################################################################

@@ -1,0 +1,13 @@
+{
+    "deseq_one_vs_all.one_vs_all.memoryGb": "64",
+    "deseq_one_vs_all.one_vs_all.runTimeCpu": "2",
+    "deseq_one_vs_all.one_vs_all.colData": "/private/groups/kimlab/GTEx_TCGA/groupbyGeneTrainingSets/GTEx_TCGA_TrainLumpBrain.colData.csv", 
+    "deseq_one_vs_all.one_vs_all.isCSV": "true",
+    "deseq_one_vs_all.one_vs_all.isDebug": "true",
+    "deseq_one_vs_all.one_vs_all.referenceLevel": "Brain",
+    "deseq_one_vs_all.one_vs_all.diskSpaceGb": "80",
+    "deseq_one_vs_all.one_vs_all.design": "~  gender + category",
+    "deseq_one_vs_all.one_vs_all.dockerImg": "aedavids/edu_ucsc_kim_lab-1vsall_1.0",
+    "deseq_one_vs_all.one_vs_all.runTimePreemptible": "1",
+    "deseq_one_vs_all.one_vs_all.countMatrix": "/private/groups/kimlab/GTEx_TCGA/groupbyGeneTrainingSets/GTEx_TCGA_TrainGroupby.csv"
+}

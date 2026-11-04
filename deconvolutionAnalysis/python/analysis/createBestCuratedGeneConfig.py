@@ -65,6 +65,14 @@ def createSignatureGeneConfig(outDirPath : str, vargs : list = None ) -> Signatu
     localCacheRoot  = cli.args.localCacheRoot
     interesectionDictPath = cli.args.interesectionDictPath
 
+    if not cli.args.ascending:
+        # backwards compatiblity default
+        ascending = True
+    else :
+        ascending = False
+    logger.info(f' ascending : {ascending}')
+
+    
     ret  = BestCuratedGeneConfig(
                     dataSetName=dataSetName, 
                     design=design, 
@@ -74,6 +82,7 @@ def createSignatureGeneConfig(outDirPath : str, vargs : list = None ) -> Signatu
                     localCacheRootPath=localCacheRoot, 
                     title=title,
                     interesectionDictPath=interesectionDictPath,
+                    ascending=ascending
     )
 
     logger.info("END")

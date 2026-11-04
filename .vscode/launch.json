@@ -1,8 +1,9 @@
 {
     "configurations": [
+
         {
             "name": "fp exploreClassificationErrors",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "analysis.exploreClassificationErrors",
             "justMyCode": true,
@@ -22,7 +23,7 @@
         },
         {
             "name": "sg exploreClassificationErrors",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "analysis.exploreClassificationErrors",
             "justMyCode": true,
@@ -42,7 +43,7 @@
         },        
         {
             "name": "upstreamPipelineCLI",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "pipeline.upstreamPipeline",
             "justMyCode": true,
@@ -66,8 +67,27 @@
             ],
         },
         {
+            "name": "RandomForestHyperparmeterSearch",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "models.randomForestHyperparmeterSearch",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/deconvolutionAnalysis/python/:${workspaceFolder}/src:${workspaceFolder}/intraExtraRNA_POC/python/src"
+            },
+            "cwd": "${workspaceFolder}/intraExtraRNA_POC/python/src",
+            "args": [
+                "--outDir",
+                "./tmp",
+                "--features",
+                "Colon_Sigmoid", 
+                "--elife",
+                "Healthy donor", "Colorectal Cancer"
+            ],
+        },        
+        {
             "name": "Python: Current File",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",

@@ -220,10 +220,27 @@ print( head(colDataDF) )
 # [,-1] means drop the first column
 countMatrix <- data.matrix( countMatrixDF[,-1] )
 
+# 8/30/25
+# cbind fails on
+# /private/groups/kimlab/data/elife/elife_all_norm_counts_2023-05-18.csv
+# this is because it assumes we have a column named 'geneId'
+# check that a column named "geneId" exists
+gene_col <- NULL
+if ("geneId" %in% colnames(countMatrixDF)) {
+  gene_col <- "geneId"
+} else if ("gene" %in% colnames(countMatrixDF)) {
+  gene_col <- "gene"
+} else {
+  stop(sprintf(
+    "Expected a column named 'gene' or 'geneId' in %s, but found: %s",
+    countMatrixFile,
+    paste(colnames(countMatrixDF), collapse = ", ")
+  ))
+}
+
 # add row names to matrix so that gene names will be printed in final output
-# row names are not considered data in the actual matrix
-geneNameVector <- countMatrixDF$geneId
-rownames( countMatrix ) <- geneNameVector
+geneNameVector <- countMatrixDF[[gene_col]]
+rownames(countMatrix) <- geneNameVector
 
 cat("\n head(countMatrix)[,1:3] \n")
 print( head(countMatrix)[,1:3] )
@@ -274,10 +291,22 @@ print( head(counts(dds, normalized=TRUE))[,1:3] ) # get()
 # dispersions(dds)
 
 cat("\n Step 4, estimate dispersions")
-dds <- estimateDispersions( dds )
+# dds <- estimateDispersions( dds )
+# cat("\n head(mcols(dds))[,1:3]\n")
+# print( head(mcols(dds)) [,1:3])
+
+# Estimate dispersions
+dds <- tryCatch({
+  estimateDispersions(dds)
+}, error = function(e) {
+  message("Standard dispersion fitting failed, using gene-wise estimates.")
+  dds <- estimateDispersionsGeneEst(dds)
+  dispersions(dds) <- mcols(dds)$dispGeneEst
+  return(dds)
+})
+
 cat("\n head(mcols(dds))[,1:3]\n")
 print( head(mcols(dds)) [,1:3])
-
 
 cat("\n Step 5,  Negative Binomial GLM fitting and Wald statistics: nbinomWaldTest\n" )
 dds <- nbinomWaldTest(dds)

@@ -84,8 +84,9 @@ class VolcanoPlot( object ):
         return colorMapTuple
 
     ###############################################################################
-    def plot( self, panel, xList, yList, colorByValues, volcanoPlotData ):
+    def plotDepreciated( self, panel, xList, yList, colorByValues, volcanoPlotData, plotNames ):
         '''
+        04/30/2026. seems like we are getting over plotting
         arguments:
             panel:
                 type matplotlib.pyplot.axes
@@ -99,11 +100,17 @@ class VolcanoPlot( object ):
                 
             volcanoPlotData
                 12/2/22 rework: we want to change marker size to make eassier to see TE
+
+            plotNames:
+                boolean: if true print the name of the colored values
         '''
         # make sure all points are plotted
         xMin = np.floor( np.min( xList ) )
         xMax = np.ceil( np.max( xList ) )
-        panel.set_xlim( xMin, xMax )
+
+        # want the x axis to be balanced. It is posible min = -10 and max = 5
+        limit = np.max( np.abs([xMin, xMax]) )
+        panel.set_xlim( limit * -1  , limit )
 
         # make sure all points are plotted
         yMin = np.floor( np.min( yList ) )
@@ -150,29 +157,35 @@ class VolcanoPlot( object ):
             # of all other planes 
             zorder = 1           
             if volcanoPlotData.isTE[i]:
-                color = 'red'
+                print(f'AEDWIP 159 isTE i : {i}')
+                # color =' #3b528b' #blueshttps://waldyrious.net/viridis-palette-generator/
+                color = '#a2da37' # greenish
+                # color = 'red'
                 markersize= markersize + markersize * 0.25 #2,  # diameter of mark
                 alpha = 0.8 
                 zorder = 1
-                
-                # add gene name to plot
-                gn = volcanoPlotData.geneName[i].strip()
-                labelY = yList[i]
-                if xList[i] > 0:
-                    # up regulated
-                    ha = 'left'
-                    labelX = xList[i]
-                    gn = "  " + gn
-                else:
-                    ha = 'right'
-                    labelX = xList[i]
-                    gn = gn + "  "
-                    
-                panel.text(labelX, labelY, gn, fontsize=2, 
-                           horizontalalignment=ha, 
-                           verticalalignment='center',
-                           color=color,
-                           zorder=zorder)
+
+                # print(f'AEDWIP line : 168 boolean plotNames : {plotNames}')
+                if plotNames:
+                    # add gene name to plot
+                    gn = volcanoPlotData.geneName[i].strip()
+                    labelY = yList[i]
+                    # print(f'AEDWIP l : 171 labelY : {labelY} gn : {gn}')
+                    if xList[i] > 0:
+                        # up regulated
+                        ha = 'left'
+                        labelX = xList[i]
+                        gn = "  " + gn
+                    else:
+                        ha = 'right'
+                        labelX = xList[i]
+                        gn = gn + "  "
+                        
+                    panel.text(labelX, labelY, gn, fontsize=2, 
+                            horizontalalignment=ha, 
+                            verticalalignment='center',
+                            color=color,
+                            zorder=zorder)
                 
             panel.plot( xList[i],
                        yList[i],
@@ -204,6 +217,150 @@ class VolcanoPlot( object ):
 #                           right=False, labelright=False,
 #                           top=False, labeltop=False)
 
+
+   ###############################################################################
+    def plot( self, panel, xList, yList, colorByValues, volcanoPlotData, plotNames ):
+        '''
+        arguments:
+            panel:
+                type matplotlib.pyplot.axes
+
+            x, y:
+                array like object
+
+            colorByValue:
+                array type object of color tuples.  example color = (0.5, 0.3, 07)
+                default = None
+                
+            volcanoPlotData
+                12/2/22 rework: we want to change marker size to make eassier to see TE
+
+            plotNames:
+                boolean: if true print the name of the colored values
+        '''
+        # make sure all points are plotted
+        xMin = np.floor( np.min( xList ) )
+        xMax = np.ceil( np.max( xList ) )
+
+        # want the x axis to be balanced. It is posible min = -10 and max = 5
+        limit = np.max( np.abs([xMin, xMax]) )
+        panel.set_xlim( limit * -1  , limit )
+
+        # make sure all points are plotted
+        yMin = np.floor( np.min( yList ) )
+        yMax = np.ceil( np.max( yList ) )
+        panel.set_ylim( yMin, yMax )
+
+        # https://matplotlib.org/tutorials/text/mathtext.html
+        panel.set_xlabel( r'$log_2(fold\ change)$' )
+        panel.set_ylabel( r'$-log_{10}(adj\ p\ value)$' )
+
+        
+        # collect the points by the zorder they should be rendered
+        # so that we plot all the TE's on top
+        # should make zorder more consistent
+        xPlotList = list()
+        yPlotList = list()
+        
+        xPlotTEList = list()
+        yPlotTEList = list()
+       
+        # label to the right of point
+        TELabelRightList = list()
+        xPlotTERightList = list()
+        yPlotTERightList = list()
+        
+        # label to the left of point
+        TELabelLeftList = list()
+        xPlotTELeftList = list()
+        yPlotTELeftList = list()
+        
+
+        for i in range(len(xList)):
+            # color = 'black'
+            # markersize=1.5 #1.5,  # diameter of mark
+            # alpha=0.3
+            # # zorder is used to for our TE points and txt to be on top
+            # # of all other planes 
+            # zorder = 1     
+                 
+            if volcanoPlotData.isTE[i]:
+                xPlotTEList.append(xList[i])
+                yPlotTEList.append(yList[i])
+                
+                if plotNames:
+                    # add gene name to plot
+                    gn = volcanoPlotData.geneName[i].strip()
+                    
+                    if xList[i] > 0:
+                        # ha = 'left'
+                        # labelX = xList[i]
+                        xPlotTELeftList.append(xList[i])
+                        yPlotTELeftList.append(yList[i])
+                        gn = "  " + gn
+                        TELabelLeftList.append(gn)
+                    else:
+                        # ha = 'right'
+                        xPlotTERightList.append(xList[i])
+                        yPlotTERightList.append(yList[i])
+                        gn = gn + "  "
+                        TELabelRightList.append(gn)
+                    
+            else :
+                xPlotList.append(xList[i])
+                yPlotList.append(yList[i])
+                
+        # plot the background points first 
+        panel.plot( xPlotList,
+                    yPlotList,
+                    marker='o',
+                    # markerfacecolor='black',  # (56/255,66/255,156/255),
+                    # markeredgecolor='black',
+                    markerfacecolor='black',
+                    markeredgecolor='black',
+                    #markersize=1.5,  # diameter of mark
+                    markersize=1.5, 
+                    markeredgewidth=0,
+                    linewidth=0,
+                    alpha=0.3,
+                    zorder=1 ) # low values are on bottom/back
+ 
+        # plot TE's on top
+        # color =' #3b528b' #blueshttps://waldyrious.net/viridis-palette-generator/
+        color = '#a2da37' # greenish
+        # color = 'red'
+        panel.plot( xPlotTEList,
+                    yPlotTEList,
+                    marker='o',
+                    markerfacecolor=color,
+                    markeredgecolor=color,
+                    markersize=1.5,  # diameter of mark
+                    markeredgewidth=0,
+                    linewidth=0,
+                    alpha=0.8,
+                    zorder=2 ) # low values are on bottom/back
+           
+        # plot names on top
+        if plotNames:
+            
+            for i in range(len(xPlotTELeftList)):
+                panel.text(xPlotTELeftList[i], yPlotTELeftList[i], TELabelLeftList[i], 
+                        fontsize=2, 
+                        horizontalalignment='left', 
+                        verticalalignment='center',
+                        color=color,
+                        zorder=2)
+            
+            for i in range(len(xPlotTERightList)):
+                panel.text(xPlotTERightList[i], yPlotTERightList[i], TELabelRightList[i], 
+                        fontsize=2, 
+                        horizontalalignment='right', 
+                        verticalalignment='center',
+                        color=color,
+                        zorder=2)
+
+            
+     
 
 ########################################################################
 class _VolcanoPlotData:
@@ -328,7 +485,7 @@ def loadData( inputFile, numHeaderLines, teGeneNamesSet=None ):
 
         if teGeneNamesSet:
             if geneName in teGeneNamesSet:
-                #print( "AEDWIP geneName:{} isTE".format( geneName ) )
+                # print( "AEDWIP lL 340 geneName:{} isTE".format( geneName ) )
                 #ret.isTE.append( True )
                 ret.isTE[i] = True
             # else:
@@ -340,6 +497,9 @@ def loadData( inputFile, numHeaderLines, teGeneNamesSet=None ):
     # find the range of tick mark values for the color gradient panel
     # ret.minAbundanceValue = int( np.floor( threshold ) )
     # ret.maxAbundanceValue = int( np.ceil( np.max( baseMeanNP ) ) )
+    
+    # print(f'l: 353 AEDWIP sum(ret.isTE) : {np.sum(ret.isTE)}')
+    # print(f'l 354 AEDWIP len(teGeneNamesSet) : {len(teGeneNamesSet)}')
 
     return ret
 
@@ -356,7 +516,7 @@ def main( inComandLineArgsList=None ):
         cli.parse()( inComandLineArgsList )
 
     mplu = MatPlotLibUtilities()
-    mplu.loadStyle()
+    # missing fonts on mustard mplu.loadStyle()
 
     print( "DEBUG cli.args.geneNamesFile:{}".format( cli.args.geneNamesFile ) )
 
@@ -368,6 +528,12 @@ def main( inComandLineArgsList=None ):
             for line in f:
                 geneName = f.readline().strip()
                 teGeneNamesSet.add( geneName )
+
+    plotNames = False
+    if cli.args.label :
+        plotNames = True
+
+    # print(f'############## AEDWIP plotNames:{plotNames}')
 
     # print(teGeneNamesSet)
 
@@ -430,7 +596,8 @@ def main( inComandLineArgsList=None ):
     # allX = volcanoPlotData.x + volcanoPlotData.abundantX
     # allY = volcanoPlotData.y + volcanoPlotData.abundantY
     # volcanoPlot.plot( volcanoPanel, allX, allY, allColors )
-    volcanoPlot.plot( volcanoPanel, volcanoPlotData.x, volcanoPlotData.y, allColors, volcanoPlotData )
+    volcanoPlot.plot( volcanoPanel, volcanoPlotData.x, volcanoPlotData.y, 
+                        allColors, volcanoPlotData, plotNames )
 
     title = cli.args.title
     if title:

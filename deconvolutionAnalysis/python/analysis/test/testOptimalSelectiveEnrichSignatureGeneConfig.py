@@ -379,6 +379,65 @@ class TestOptimalSelectiveEnrichSignatureGeneConfig(unittest.TestCase):
 #         ]
 #         return retList
 
+   ################################################################################
+    @unittest.skip("skip. it is not a real test")
+    def testReverseEngineerBest500FindAllDegree1_wl500_sh(self):
+        '''
+        Best500FindAllDegree1_wl500 what does this do?
+
+        seems to just return best500
+        '''
+        self.logger.info("BEGIN")
+
+        # values from /private/groups/kimlab/aedavids/deconvolution/1vsAll-~gender_category/
+        # best500FindAllDegree1_wl500/training/best500FindAllDegree1_wl500.sh.log
+        colDataPath = '/private/groups/kimlab/GTEx_TCGA/groupbyGeneTrainingSets/GTEx_TCGA_TrainColData.csv'
+        countDataPath = '/private/groups/kimlab/GTEx_TCGA/groupbyGeneTrainingSets/GTEx_TCGA_TrainGroupby.csv' 
+        deseqResultsDir = '/private/groups/kimlab/aedavids/deconvolution/1vsAll-~gender_category/best500GTEx_TCGA/training/best500GTEx_TCGA.sh.out/GTEx_TCGA-design-tilda_gender_category-padj-0001-lfc-20-n-500'
+        estimatedScalingFactors = '/private/groups/kimlab/GTEx_TCGA/1vsAll/estimatedSizeFactors.csv' 
+        findModule = 'analysis.createOptimalSelectiveEnrichSignatureGeneConfig' 
+        #outDir = '/private/groups/kimlab/aedavids/deconvolution/1vsAll-~gender_category/best500FindAllDegree1_wl500/training/./best500FindAllDegree1_wl500.sh.out'
+        #--vargs 
+        design = 'tilda_gender_category '
+        padjThreshold = 0.001 
+        lfcThreshold = 2.0 
+        dataSetName = 'GTEx_TCGA '
+        windowLength = 500 
+        title = 'best500_findAllDegree1_wl500'
+        # --localCacheRoot /private/groups/kimlab/aedavids/deconvolution/1vsAll-~gender_category/best500FindAllDegree1_wl500/training/./best500FindAllDegree1_wl500.sh.out 
+        classes = 'Brain_Amygdala LIHC TGCT COAD Lung Esophagus_Gastroesophageal_Junction Brain_Substantia_nigra Kidney_Cortex THCA Adrenal_Gland Breast_Mammary_Tissue ACC KIRP LGG Uterus Artery_Coronary BRCA HNSC Nerve_Tibial Brain_Putamen_basal_ganglia KICH Brain_Caudate_basal_ganglia Brain_Nucleus_accumbens_basal_ganglia Adipose_Subcutaneous Brain_Hippocampus CHOL Cells_Cultured_fibroblasts Cells_EBV-transformed_lymphocytes PCPG Skin_Not_Sun_Exposed_Suprapubic Adipose_Visceral_Omentum Colon_Sigmoid Brain_Cerebellum SKCM Brain_Cerebellar_Hemisphere DLBC Pituitary Small_Intestine_Terminal_Ileum Vagina Brain_Frontal_Cortex_BA9 Ovary MESO Heart_Atrial_Appendage STAD Colon_Transverse Esophagus_Muscularis Whole_Blood Artery_Aorta Pancreas THYM Cervix_Endocervix BLCA Brain_Anterior_cingulate_cortex_BA24 Brain_Hypothalamus Skin_Sun_Exposed_Lower_leg LUSC LUAD PAAD CESC UCS GBM Brain_Cortex Heart_Left_Ventricle Brain_Spinal_cord_cervical_c-1 READ Minor_Salivary_Gland Stomach PRAD Testis OV Esophagus_Mucosa Prostate Artery_Tibial Muscle_Skeletal UCEC Bladder Spleen KIRC Thyroid SARC Liver ESCA UVM'
+        categories = classes
+        localCacheRootPath="./"
+        historicGeneSetPath = '/private/groups/kimlab/aedavids/deconvolution/1vsAll-~gender_category/best500FindAllDegree1_wl500/training/./best500FindAllDegree1_wl500.sh.out/historicGeneSet.txt'
+        maxNumberOfGenes = 10000 
+        resultsDir = '/private/groups/kimlab/GTEx_TCGA/1vsAll'
+        startIdx = 500 
+        upStreamIntersectionDictionaryPath = '/private/groups/kimlab/aedavids/deconvolution/1vsAll-~gender_category/best500GTEx_TCGA/training/best500GTEx_TCGA.sh.out/upsetPlot.out/best500.intersection.dict'
+            
+        osesgc = OptimalSelectiveEnrichSignatureGeneConfig(
+                                dataSetName, 
+                                design, 
+                                padjThreshold, 
+                                lfcThreshold, 
+                                windowLength, 
+                                localCacheRootPath, 
+                                title,
+                                deseqResultsDir,
+                                #upstreamDeseqResultsDir : str, do we need this? _step1 will pass this to findGenes()
+                                categories,
+                                startIdx,
+                                maxNumberOfGenes,
+                                upStreamIntersectionDictionaryPath,
+                                historicGeneSetPath
+        )
+
+        fileName = f'ESCA_vs_all.results'
+        ESCAPath = f'{deseqResultsDir}/{fileName}'
+        escaDESeqResultsDF = pd.read_csv(ESCAPath) #, skiprows=numRowsToSkip)
+        osesgc.findGenes(escaDESeqResultsDF, fileName)
+
+        self.logger.info("END\n")            
+
 ################################################################################
 if __name__ == "__main__":
     # we only configure logging in main module

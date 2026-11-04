@@ -32,6 +32,14 @@ class BestCuratedGeneConfigCommandLine( BestSignatureGeneConfigCommandLine ):
     def _build( self ):
         super()._build() 
 
+        self.parser.add_argument( '-a', '--ascending', 
+                                        action='store_false', # if flag is present returns false else true
+                                        help="boolean, default = false. "
+                                        + "if false findGenes() sorts baseMeans in decending order else ascending order"
+        )
+         
+
+
         self.requiredArg.add_argument( '-id', '--interesectionDictPath', required=True, default=".", metavar="",   
                                             action='store', 
                                             help="path to a intersection dictionary. see upsetPlot.py"

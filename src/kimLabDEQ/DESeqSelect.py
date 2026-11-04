@@ -31,6 +31,8 @@ class DESeqSelect(object):
     ################################################################################ 
     def readVolcanoPlotData(self):   
         '''
+        AEDWIP 10/6/25 ??? how come we did not use pd.read_csv()?
+        
         returns: (geneNames, x, y)
             type: numpy array
                 geneNames: list of strings
@@ -51,8 +53,15 @@ class DESeqSelect(object):
             for line in fd:
                 tokens = line.strip().split(',')                
                 fancy = np.array(tokens)[ [self.BASE_MEAN_IDX, self.LOG_IDX, self.P_ADJ_IDX] ]
-                # array length is 2, 'in' will be fast                 
-                if "NA" in fancy:
+                # array length is 3, 'in' will be fast                 
+                #if "NA" in fancy:
+                if any(value in ("", "NA", "NaN", "nan") for value in fancy):
+                    # deseq results from extra vs intra has some rows like
+                    # Empty value at row 73982: ['0.160145225207371' '0.867392389948567' '']
+                    # Empty value at row 73983: ['0' '' '']
+                    # Empty value at row 73984: ['0' '' '']
+                    # Probably low-count / independent filtering caused missing padj.
+                    # No expression, so no meaningful log2 fold change or adjusted p-value.
                     continue
                     
                 baseMean, log2Fold, adjP =  fancy.astype(float)

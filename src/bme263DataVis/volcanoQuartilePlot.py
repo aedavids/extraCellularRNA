@@ -24,6 +24,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 __all__ = []
+__author__ = 'aedavids@ucsc.edu'
 __version__ = 0.1
 __date__ = '2020-06-18'
 __updated__ = '2020-06-18'
@@ -123,7 +124,7 @@ def main( inComandLineArgsList=None ):
     '''
     process command line arguments load data and  call createPlot()
     '''
-    cli = VolcanoQuartilePlotCommandLine( __version__, __date__, __updated__ )
+    cli = VolcanoQuartilePlotCommandLine(__author__,  __version__, __date__, __updated__ )
     if inComandLineArgsList is None:
         cli.parse()
     else:

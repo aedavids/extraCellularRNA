@@ -16,11 +16,11 @@
 #SBATCH --job-name=aedavids-pipeline.slurm.sh
 #
 # Partition - This is the queue it goes in:
-#SBATCH --partition=main
+#SBATCH --partition=long
 #
 # Where to send email (optional)
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=$aedavids@ucsc.edu
+#SBATCH --mail-user=aedavids@ucsc.edu
 #
 
 #
@@ -31,23 +31,29 @@
 #
 # Memory needed for the jobs.  Try very hard to make this accurate.  DEFAULT = 4gb
 # S-aedwip-BATCH --mem=4gb
-#SBATCH --mem=32G # total memory per node
+#S-aedwip-OOM-BATCH --mem=32G # total memory per node
+#SBATCH --mem=64G # total memory per node
 #
 # Number of tasks (one for each CPU desired for use case) (example):
 #SBATCH --ntasks=1
 #
 # Processors per task:
 # At least eight times the number of GPUs needed for nVidia RTX A5500
-#SBATCH --cpus-per-task=1
+# ref https://giwiki.gi.ucsc.edu/index.php?title=Using_Docker_under_Slurm
+# slurm cannot limit the resources that docker uses. 
+# set to number of samples / CIBERSORTxFractionsWorkflow.wdl.input.json CIBERSORTxFractionsWorkflow.numSamplesInPartition
+#SBATCH --cpus-per-task=32
 #
 # Number of GPUs, this can be in the format of "--gres=gpu:[1-8]", or "--gres=gpu:A5500:[1-8]" with the type included (optional)
 #SBATCH --gres=gpu:1
 #
 # Standard output and error log
-#SBATCH --output=serial_test_%j.log
+#SBATCH --output=serial_test_%j.log 
 #
 # Wall clock limit in hrs:min:sec:
-#SBATCH --time=10:02:30
+# best500GTEx* timmed out
+#S-AEDWIP-BATCH --time=10:02:30
+#SBATCH --time=24:00:00
 #
 
 #
@@ -57,6 +63,7 @@
 #
 # output env info to make debugging easier
 #
+printf "\n################# BEGIN ${0} \n"
 pwd; 
 hostname; 
 date
@@ -107,7 +114,21 @@ done
 printf "vargs: $vargs\n"
 
 
-    
+#
+# 5/29/24
+# pipeline.upstreamPipeline.py createSignatureMatrix() has an extra boolean flag argument
+# if true use mean, else use mean to calculate expected count values for each gene in a category
+# for backwards compatiblity the default value is False and we use an environmental variable
+# to pass the flag
+if [[ -z "${USE_MEDIAN}" ]]; then
+    # True if the length of string is zero
+    useMedian=""
+else
+  #MY_SCRIPT_VARIABLE="${DEPLOY_ENV}"
+  useMedian="--useMedian"
+fi
+
+printf "useMedian : ${useMedian}\n"
 
 # see bash man page "SHELL BUILTIN COMMANDS" for details
 # ref: https://gist.github.com/vncsna/64825d5609c146e80de8b1fd623011ca 
@@ -152,6 +173,7 @@ python -m pipeline.upstreamPipeline \
             --estimatedScalingFactors "${estimatedScalingFactors}" \
             --findModule "${findModule}" \
             --outDir "${outDir}" \
+            "${useMedian}" \
             --vargs ${vargs}
 
 printf "END upstream pipeline  \n"
@@ -287,5 +309,5 @@ python -m analysis.findMisclassificationErrors \
 
 printf "\n\n\nEND Evaluate CIBERSORTx results as if output from k-way classifier\n"
 
-printf "END ${0}"
+printf "\n################### END ${0}"
 exit 0

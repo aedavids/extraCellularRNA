@@ -49,7 +49,7 @@ class MatPlotLibUtilities( object ):
 
         panel.set_ylim( minY, maxY )
 
-        tickList = np.linspace( minY, maxY, 10 + 1, dtype=np.int )
+        tickList = np.linspace( minY, maxY, 10 + 1, dtype=np.int32 )
         panel.set_yticks( tickList )
 
         panel.set_ylabel( yLabel )

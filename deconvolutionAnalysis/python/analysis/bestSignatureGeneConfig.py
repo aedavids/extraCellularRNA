@@ -63,6 +63,10 @@ class BestSignatureGeneConfig(SignatureGeneConfiguration):
     def findGenes(self, deseqDF : pd.DataFrame, fileName : str ) -> pd.DataFrame :
         '''
         Find genes that that are statistically signifigant with  lfc <= -2.0 or >= 2.0
+        sorted by baseMean
+
+        This algorithm selects biomarkers with the strongest 'signal' not biomarkers that
+        are the most differentially expressed
 
         arguments:
             deseqDF:

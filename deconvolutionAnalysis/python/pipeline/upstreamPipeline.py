@@ -144,7 +144,7 @@ def _step2(logger           : logging.Logger,
     logger.info("BEGIN")
     logger.info('step 2 create plots and find intersection elements')
     upsetFactory = UpsetPlotDataFactory()
-    logger.error(f'AEDWIP debug selectedGeneSetsDict\n{pp.pformat(selectedGeneSetsDict)}')
+    logger.debug(f'AEDWIP debug selectedGeneSetsDict\n{pp.pformat(selectedGeneSetsDict)}')
     upsetPlotDataDF, geneSetsDict = upsetFactory.createUpsetPlotDataFromSetDict(selectedGeneSetsDict)
     logger.info(f'upsetPlotDataDF:\n{pp.pformat(upsetPlotDataDF)}')
 
@@ -249,6 +249,13 @@ def main(inCommandLineArgsList=None):
     outDir          = cli.args.outDir
     vargs           = cli.args.vargs
 
+    if cli.args.useMedian:
+        useMedian = True
+    else :
+        useMedian = False
+    logger.info(f' useMedian : {useMedian}')
+
+
     logger.info(f"vargs: {vargs}")
 
     #
@@ -275,7 +282,8 @@ def main(inCommandLineArgsList=None):
         localCacheDir= outDir, 
         outdir = "ciberSortInput", 
         testSize = None, 
-        verbose = False
+        verbose = False,
+        useMedian=useMedian, 
     )
         
     signatureGeneDF = csmf.getCiberSortSignatueDF()

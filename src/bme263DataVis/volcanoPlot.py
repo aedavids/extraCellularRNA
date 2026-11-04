@@ -22,6 +22,18 @@ from kimLabDEQ.DESeqSelect import DESeqSelect
 import matplotlib.pyplot as plt
 import numpy as np
 
+import logging
+logger = logging.getLogger(__name__)
+
+def configure_logging(level: str = "INFO"):
+    fmt = "%(asctime)s %(levelname)s %(filename)s %(funcName)s() line:%(lineno)s] [%(message)s]"
+    numeric = logging._nameToLevel.get(level.upper(), logging.INFO)
+    logging.basicConfig(level=numeric, format=fmt, force=True)
+
+    # Make sure module logger uses root’s handlers unless you add your own
+    logger.setLevel(logging.NOTSET)       # defer level to root
+    logger.propagate = True               # ensure messages bubble up
+
 __all__ = []
 __version__ = 0.1
 __date__ = '2020-05-26'
@@ -113,7 +125,7 @@ class VolcanoPlot( object ):
 
         if colorByValues is not None :
             # scatter markersize is area
-            plotMarkersize = 0.6  # 0.75 #0.5 #1 #0.75 #0.5
+            plotMarkersize = 2 #1 # 10/5/2025 0.6  # 0.75 #0.5 #1 #0.75 #0.5
 
             plotMarkerArea = np.pi * ( ( plotMarkersize / 2 ) ** 2 )
             scatterMarkersize = plotMarkerArea * 2  # strange did not look good with * 2
@@ -122,7 +134,8 @@ class VolcanoPlot( object ):
                           s=scatterMarkersize,
                           facecolor=colorByValues,
                           linewidth=0,
-                          alpha=0.3 )
+                          alpha=0.8 #0.3 10/5/25 hack for plots with only 20 biomarkers
+                          )
 
         else:
             # plot is faster than scatter how ever does not allow points to be
@@ -170,12 +183,13 @@ class _VolcanoPlotData :
 
 
 ########################################################################
-def loadData( inputFile ):
+def loadData( inputFile ) -> _VolcanoPlotData:
     '''
     returns a _VolcanoPlotData object
     '''
     ret = _VolcanoPlotData()
 
+    #print(f"AEDWIP inputFile : {inputFile}")
     dataLoader = DESeqSelect( inputFile )
     geneNamesNP, baseMeanNP, xlog2FoldChangeNP, yNeglog10pValueNP = dataLoader.readVolcanoPlotData()
 
@@ -185,7 +199,7 @@ def loadData( inputFile ):
     std = np.std( baseMeanNP )
     mean = np.mean( baseMeanNP )
     threshold = mean + 2 * std
-    print( "AEDWIP mean:{} std:{} threshold:{}".format( mean, std, threshold ) )
+    #print( "AEDWIP mean:{} std:{} threshold:{}".format( mean, std, threshold ) )
 
     for i in range( len( baseMeanNP ) ):
         bm = baseMeanNP[i]
@@ -212,8 +226,10 @@ def loadData( inputFile ):
 ########################################################################
 def main( inComandLineArgsList=None ):
     '''
-    process command line arguments load data and  call createPlot()
+    process command line arguments load data and call createPlot()
     '''
+    configure_logging()
+    
     cli = VolcanoPlotCommandLine( __user_name__, __version__, __date__, __updated__ )
     if inComandLineArgsList is None:
         cli.parse()
@@ -223,6 +239,7 @@ def main( inComandLineArgsList=None ):
     mplu = MatPlotLibUtilities()
     mplu.loadStyle()
 
+    logger.error(f"AEDWIP cli.args :\n{cli.args}")
     volcanoPlotData = loadData( cli.args.inputFile )
 
     # set up figure
@@ -285,6 +302,8 @@ def main( inComandLineArgsList=None ):
     # png is an uncompressed bitmap format
     # output format is determined by output file name's suffix '.png'
     plt.savefig( outputFile, dpi=600 )  # BME163 style sheet should set dpi=600
+    
+    print(f'saved : {outputFile}')
 
 
 ########################################################################

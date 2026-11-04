@@ -84,7 +84,7 @@ class TestCibersortSignatureMatrixFactory(unittest.TestCase):
         self.logger.info("END\n")            
                 
     ################################################################################
-    def testFactory(self):
+    def testFactoryMean(self):
         self.logger.info("BEGIN")
 
         csmf = CibersortSignatureMatrixFactory(
@@ -96,7 +96,50 @@ class TestCibersortSignatureMatrixFactory(unittest.TestCase):
             localCacheDir= str(self.localCacheDir),
             outdir = "ciberSortInput", 
             testSize = None, 
-            verbose = False
+            verbose = False,
+            useMedian = False,
+        )
+            
+        signatureGeneDF = csmf.getCiberSortSignatueDF()
+
+        #
+        # goofy hack to taht assert will work
+        # for unknow reason 
+        self.logger.info("signatureGeneDF.shape:{}".format(signatureGeneDF.shape))
+        self.logger.info( f'bestSignatureGeneDF\n {signatureGeneDF}' )
+        pathToSignatureFile = csmf.save()
+
+        pathToSignatureFile = self.relativeRootPath.joinpath(pathToSignatureFile)
+        self.logger.info(f'pathToSignatureFile : {pathToSignatureFile}')
+
+        self.assertEqual(self.expectedSignatureFilePath, pathToSignatureFile)
+
+        expectedSignatureDF = self.getExpectedSignatureDF()
+        self.logger.info(f'expectedSignature Data Frame\n{expectedSignatureDF}')
+        self.logger.info(f'signatureGeneDF Data Frame\n{signatureGeneDF}')
+        pd.testing.assert_frame_equal(expectedSignatureDF, signatureGeneDF)
+
+        self.logger.info("END\n") 
+
+    ################################################################################
+    def testFactoryMedian(self):
+        '''
+        this is not a good test. We can use logging to see the code calls median() how ever
+        the test data is was constructed in a way such that the mean() and median() are the same
+        '''
+        self.logger.info("BEGIN")
+
+        csmf = CibersortSignatureMatrixFactory(
+            geneSignatureProfilesDataRootDir = str(self.relativeRootPath.joinpath("data/geneSignatureProfiles/best")),
+            #oneVsAllDataDir = "data/1vsAll", 
+            groupByGeneCountFilePath = str(self.relativeRootPath.joinpath("data/trainGroupby.csv")),
+            colDataFilePath = str(self.relativeRootPath.joinpath("data/trainColData.csv")), 
+            estimatedScalingFactorsFilePath = str(self.relativeRootPath.joinpath("data/1vsAll/estimatedSizeFactors.csv")), 
+            localCacheDir= str(self.localCacheDir),
+            outdir = "ciberSortInput", 
+            testSize = None, 
+            verbose = False,
+            useMedian = True,
         )
             
         signatureGeneDF = csmf.getCiberSortSignatueDF()

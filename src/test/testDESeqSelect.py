@@ -7,6 +7,7 @@ Created on May 26, 2020
 from kimLabDEQ.DESeqSelect import DESeqSelect
 import logging
 import numpy as np
+import os
 from   setupLogging import setupLogging
 import tempfile
 import unittest

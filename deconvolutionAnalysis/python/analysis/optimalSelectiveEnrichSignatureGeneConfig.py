@@ -162,7 +162,7 @@ class OptimalSelectiveEnrichSignatureGeneConfig(BestSignatureGeneConfig):
         #
            
         self.candidateResultsFiles  = self._findCandidateResultsFiles()
-        self.logger.info(f'startIdx : {self.startIdx} n : {self.n} len(self.candidateResultsFiles) : {self.candidateResultsFiles}, endIdx : {self.endIdx}')
+        self.logger.info(f'startIdx : {self.startIdx} n : {self.n} len(self.candidateResultsFiles) : {len(self.candidateResultsFiles)}, endIdx : {self.endIdx}')
         self.candidateRankedDF = self._loadLocallyRankedResults()
 
         candidateIntersectionDict, candidateDegree1Dict = self._getCandidateDegree1Dict()

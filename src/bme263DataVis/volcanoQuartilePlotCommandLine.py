@@ -11,8 +11,8 @@ class VolcanoQuartilePlotCommandLine( VolcanoPlotCommandLine ):
     Handle the command line, usage and help requests.
     '''
     ###############################################################################
-    def __init__( self, version, date, buildDate ):
-        super().__init__(version, date, buildDate)
+    def __init__( self, author, version, date, buildDate ):
+        super().__init__(author, version, date, buildDate)
 
         
     ###############################################################################

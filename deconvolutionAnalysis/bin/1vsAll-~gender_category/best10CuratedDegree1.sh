@@ -93,7 +93,7 @@ set -euxo pipefail
 # set -o print value of current options
 
 
-#
+
 # prepare cromwell/wdl workflow input
 # The pipeline will call cromwell and pass the cibersort input files
 #

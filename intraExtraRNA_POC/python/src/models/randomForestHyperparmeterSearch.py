@@ -2,7 +2,7 @@
 # randomForestHyperparmeterSearch.py
 # Andrew E. Davidson
 # aedavids@ucsc.edu
-# 02/01/2012
+# 02/01/2024
 #
 # ref: extracelluarRNA/intraExtraRNA_POC/jupyterNotebooks/elife/lungCancer/randomForestIntraCellularLungCancerBiomarkersOnExtracellularSamples.ipynb
 #
@@ -20,11 +20,12 @@ import pandas as pd
 from sklearn.ensemble        import RandomForestClassifier
 from sklearn.model_selection import  cross_validate
 from sklearn.metrics         import recall_score
+from sklearn.metrics         import roc_auc_score
 from sklearn.metrics         import make_scorer
 from sklearn.model_selection import RepeatedStratifiedKFold
 import sys
 
-from intraExtraRNA.elifeUtilities import loadElifeLungTrainingData
+from intraExtraRNA.elifeUtilities import loadElifeTrainingData
 from models.randomForestHyperparmeterSearchCLI import RandomForestHyperparmeterSearchCLI
 
 meaningOfLife = 42
@@ -48,6 +49,9 @@ def evaluateModel(logger : logging.Logger,
     '''
     logger.info("BEGIN")
 
+    logger.debug(f'AEDWIP model : {str(model)} {model}')
+    logger.debug(f'AEDWIP yNP.shape : {yNP.shape} yNP[0:5]: {yNP[0:5]}')
+    logger.debug(f'AEDWIP xNP.shape : {XNP.shape} xNP: \n{XNP}')
     # define the evaluation procedure
     # crossValidationGenerator = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=meaningOfLife)
     crossValidationGenerator = RepeatedStratifiedKFold(n_splits=5, n_repeats=1, random_state=randomSeed)
@@ -62,18 +66,21 @@ def evaluateModel(logger : logging.Logger,
 def createScoringMetricsDict(logger : logging.Logger) -> dict:
     '''
     https://stackoverflow.com/a/64540588/4586180
-    The specifity is basically the True Negative Rate which is the same as the True Positive Rate (Recall)
+    The specifity is the True Negative Rate which is the same as the True Positive Rate (Recall)
     but for the negative class
     !!! this assume we have a binary classifier.
     
     '''
     logger.info("BEGIN")
     specificity = make_scorer(recall_score, pos_label=0)
+    auc = make_scorer( roc_auc_score )
 
     scoringMetricsDict = {
         'accuracy' : 'accuracy', # TP
         'sensitivity' : 'recall',
         'specificity' : specificity,
+        'auc' : auc,
+
         #'f1' : 'f1'
     } 
 
@@ -123,7 +130,7 @@ def createMaxFeatures(logger : logging.Logger,
     if start < 1:
         start = 1
     end = medianNFeatures + bound
-    logger.error(f'AEDWIP start : {start} medianNFeatures: {medianNFeatures} bound : {bound} end : {end}')
+    logger.debug(f'AEDWIP start : {start} medianNFeatures: {medianNFeatures} bound : {bound} end : {end}')
     maxFeatures = tuple( it.product( ['max_features'], np.arange(start, end, 1) ) )
 
     logger.info(f'ret : {maxFeatures}')
@@ -244,11 +251,22 @@ def tunningFramework(logger : logging.Logger,
             resultsDict[metricName + "_std"].append(std)
 
             #logger.info(f'{parameters}={hyperparameterValue} {metricName}\tmean : %.3f std : %.3f)' % ( np.mean(values), np.std(values)))
-            
+        
         #print(f'scores.keys\n {scores.keys()}')
 
     logger.info("END")
     return resultsDict
+
+################################################################################
+def cleanWhiteSpace(logger,  args = list[str] ):
+    ret = []
+    for i in range(len(args)):
+        c = args[i]
+        cc = c.strip()
+        logger.debug(f'AEDWIP c : xxx{c}xxx cc : xxx{cc}xxx')
+        ret.append( cc)
+
+    return ret
 
 ################################################################################
 def main(inCommandLineArgsList=None):
@@ -288,19 +306,30 @@ def main(inCommandLineArgsList=None):
 
     logger.warning(f'command line arguments : {cli.args}')
 
-    features = cli.args.features 
+    features = cleanWhiteSpace(logger,  cli.args.features )
     outDir   = cli.args.outDir   
     os.makedirs(outDir, exist_ok=True)
     pipelineStageName = cli.args.pipelineStageName
+    selectElifeCategories = cleanWhiteSpace(logger, cli.args.elife )
 
     logger.info(f'features: {features}')
     logger.info(f'outDir: {outDir}')
     logger.info(f'pipelineStageName: {pipelineStageName}')
+    logger.info(f'selectElifeCategories: {selectElifeCategories}')
 
-
+ 
     # load training data
 
-    HUGO_lungGenes, elifeLungGenes, countDF, metaDF, XNP, yNP = loadElifeLungTrainingData(pipelineStageName, features)
+    # HUGO_lungGenes, elifeLungGenes, countDF, metaDF, XNP, yNP = loadElifeLungTrainingData(pipelineStageName, features)
+    tt = loadElifeTrainingData(pipelineStageName, 
+                                features, 
+                                selectElifeCategories)
+    #HUGO_lungGenes, elifeLungGenes, countDF, metaDF, XNP, yNP, labelEncoder, mapDF = tt
+    HUGOGenes, elifeLungGenes, missingElifeGenes, transposedCountsDF, metaDF, XNP, yNP, labelEncoder, mapDF  = tt 
+
+    if len(missingElifeGenes) > 0:
+        logger.warning( f'missingElifeGenes\n : {missingElifeGenes}' )
+
 
     parameterKwags= createSearchParameters(logger, XNP, debug=False)
 
@@ -331,11 +360,19 @@ def main(inCommandLineArgsList=None):
     # create model for each set of parameters we which to evaluate
     #
     models = list()
+    # aedwip = 0
     for kwags in searchGridParameters:
         rf = RandomForestClassifier(**kwags) 
+        logger.debug(f'AEDWIP creating rf with  parameters {kwags}')
+ 
+
         # make sure we know the models configuration
         rf.aedwipKwags = kwags
         models.append( rf )
+               
+        # aedwip = aedwip + 1
+        # if aedwip == 20:
+        #     break
 
     logger.warning(f'len(models) : {len(models)}')
 
@@ -346,17 +383,43 @@ def main(inCommandLineArgsList=None):
                        scoringMetricsDict)
 
     df = pd.DataFrame( resultsDict ) 
-    df = df.sort_values(by='sensitivity_mean', ascending=False)
+    # df = df.sort_values(by='sensitivity_mean', ascending=False)
+    df = df.sort_values(by='auc_mean', ascending=False)
     # parameters is a dictionary. split into columns
     expandedDictCols = df['parameters'].apply(pd.Series)
-    logger.error(expandedDictCols.to_string())
+    logger.debug(expandedDictCols.to_string())
     # works but puts expand cols at end 
     df = df.join(expandedDictCols)
     df = df.drop('parameters', axis=1)
     #print(df.to_string())
 
-    print('*************\ntop 10 results sorted by sensitivity_mean')
-    print(df.head(n=10) )
+
+    logger.warning('*************\ntop 10 results sorted by auc_mean')
+    logger.warning(df.head(n=10) )
+
+    # logger.error(f'AEDWIP df.info()\n {df.info()}')
+
+    # 
+    # If Pandas is writing integer columns as floats when you use the to_csv method,
+    # it's likely due to the presence of missing values (NaN) in those columns.
+    # In Pandas, NaN is considered a floating-point number, and since a column 
+    # can only have one data type, the entire column gets 
+    # cast to float if it contains any NaN values.
+    # Convert to Integers with Nullable Integer Type
+    #
+    # this cause problems with read_csv() the col will be type float not in
+    # we could put in a marker value like -99999. I do not know what scikitlearn
+    # will do?
+    #
+    # why do we care?
+    # some random forest parameters behave very differently is the
+    # value is float or an integer
+    #
+    df['max_depth'] = df['max_depth'].astype('Int32')
+    df['max_features'] = df['max_features'].astype('Int32')
+    df['n_estimators'] = df['n_estimators'].astype('Int32')
+
+    logger.debug(f'AEDWIP df.info()\n {df.info()}')
 
     outFile =  f'{outDir}/randomForestHyperparmeterSearch.csv'
     df.to_csv(outFile, index=False)
@@ -412,7 +475,7 @@ def mainCLITest(inCommandLineArgsList=None):
 if __name__ == '__main__':
     main()
     
-    # hack used to test parsing of vargs
+    #hack used to test parsing of vargs
     # mainCLITest(
     #     #inCommandLineArgsList=['-h']
     #     inCommandLineArgsList=[
