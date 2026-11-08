@@ -20,6 +20,7 @@ import pandas as pd
 from sklearn.ensemble        import RandomForestClassifier
 from sklearn.model_selection import  cross_validate
 from sklearn.metrics         import recall_score
+from sklearn.metrics         import roc_curve
 from sklearn.metrics         import roc_auc_score
 from sklearn.metrics         import make_scorer
 from sklearn.model_selection import RepeatedStratifiedKFold
@@ -54,13 +55,37 @@ def evaluateModel(logger : logging.Logger,
     logger.debug(f'AEDWIP xNP.shape : {XNP.shape} xNP: \n{XNP}')
     # define the evaluation procedure
     # crossValidationGenerator = RepeatedStratifiedKFold(n_splits=10, n_repeats=3, random_state=meaningOfLife)
-    crossValidationGenerator = RepeatedStratifiedKFold(n_splits=5, n_repeats=1, random_state=randomSeed)
+    # crossValidationGenerator = RepeatedStratifiedKFold(n_splits=5, n_repeats=1, random_state=randomSeed)
+
+    # 11/7/26 update for manuscript. 
+    # n_splits = 5 -> 20% hold out
+    # n_repeats = 5 -> metrics calculated using 25 folds
+    crossValidationGenerator = RepeatedStratifiedKFold(n_splits=5, n_repeats=5, random_state=randomSeed)
     
     # evaluate the model and collect the results
     scoresDict = cross_validate(model, XNP, yNP, scoring=scoringMetricsDict, cv=crossValidationGenerator, n_jobs=-1)
     
     logger.info("END")
     return scoresDict
+
+################################################################################
+def sensitivityAt90Specificity(model, X, y):
+    """
+    Calculate sensitivity at >= 90% specificity.
+
+    Assumes binary labels: 0 = healthy, 1 = cancer.
+    """
+    positiveClassIndex = list(model.classes_).index(1)
+    yScore = model.predict_proba(X)[:, positiveClassIndex]
+
+    fpr, tpr, thresholds = roc_curve(
+        y, yScore, pos_label=1, drop_intermediate=False
+    )
+
+    # Specificity >= 0.90 means FPR <= 0.10
+    valid = fpr <= 0.10
+
+    return np.max(tpr[valid])
 
 ################################################################################
 def createScoringMetricsDict(logger : logging.Logger) -> dict:
@@ -73,13 +98,20 @@ def createScoringMetricsDict(logger : logging.Logger) -> dict:
     '''
     logger.info("BEGIN")
     specificity = make_scorer(recall_score, pos_label=0)
-    auc = make_scorer( roc_auc_score )
+    
+    # 11/7/26
+    # do not use roc_auc_score 
+    # it will call rmodel.predict() this returns labels ie 0 or 1
+    # auc = make_scorer( roc_auc_score )
 
     scoringMetricsDict = {
         'accuracy' : 'accuracy', # TP
         'sensitivity' : 'recall',
         'specificity' : specificity,
-        'auc' : auc,
+        #'auc' : auc,
+        'auc' : "roc_auc",
+        'sensitivityAt90Specificity': sensitivityAt90Specificity,
+
 
         #'f1' : 'f1'
     } 
@@ -420,9 +452,10 @@ def main(inCommandLineArgsList=None):
     df['n_estimators'] = df['n_estimators'].astype('Int32')
 
     logger.debug(f'AEDWIP df.info()\n {df.info()}')
-
+    
     outFile =  f'{outDir}/randomForestHyperparmeterSearch.csv'
-    df.to_csv(outFile, index=False)
+    # round all floats to 2 decimal places
+    df.to_csv(outFile, index=False, float_format="%.2f")
     logger.warning(f'saved file to {outFile}')
 
     logger.warning("END")
