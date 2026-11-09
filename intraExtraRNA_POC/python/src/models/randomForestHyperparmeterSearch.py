@@ -306,8 +306,8 @@ def main(inCommandLineArgsList=None):
     TODO
     '''
     # we only configure logging in main module
-    #loglevel = "WARN"
-    loglevel = "INFO"
+    loglevel = "WARN"
+    # loglevel = "INFO"
     # logFMT = "%(asctime)s %(levelname)s [thr:%(threadName)s %(name)s %(funcName)s() line:%(lineno)s] [%(message)s]"
     logFMT = "%(asctime)s %(levelname)s %(name)s %(funcName)s() line:%(lineno)s] [%(message)s]"
     logging.basicConfig(format=logFMT, level=loglevel)    
@@ -344,10 +344,10 @@ def main(inCommandLineArgsList=None):
     pipelineStageName = cli.args.pipelineStageName
     selectElifeCategories = cleanWhiteSpace(logger, cli.args.elife )
 
-    logger.info(f'features: {features}')
-    logger.info(f'outDir: {outDir}')
-    logger.info(f'pipelineStageName: {pipelineStageName}')
-    logger.info(f'selectElifeCategories: {selectElifeCategories}')
+    logger.warning(f'features: {features}')
+    logger.warning(f'outDir: {outDir}')
+    logger.warning(f'pipelineStageName: {pipelineStageName}')
+    logger.warning(f'selectElifeCategories: {selectElifeCategories}')
 
  
     # load training data
@@ -358,6 +358,10 @@ def main(inCommandLineArgsList=None):
                                 selectElifeCategories)
     #HUGO_lungGenes, elifeLungGenes, countDF, metaDF, XNP, yNP, labelEncoder, mapDF = tt
     HUGOGenes, elifeLungGenes, missingElifeGenes, transposedCountsDF, metaDF, XNP, yNP, labelEncoder, mapDF  = tt 
+    logger.warning(f'Are all gene loci present XNP.shape : {XNP.shape}')
+    if isinstance(XNP, pd.DataFrame):
+        logger.warning(f'Dataframe XNP.columns : {XNP.columns}')
+ 
 
     if len(missingElifeGenes) > 0:
         logger.warning( f'missingElifeGenes\n : {missingElifeGenes}' )
