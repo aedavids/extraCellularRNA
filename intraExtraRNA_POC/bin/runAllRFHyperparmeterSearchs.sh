@@ -25,6 +25,7 @@ mkdir -p $outdir
 # randomForestHyperparmeterLIHC_Search.sh $outdir
 
 # ran second half 11/8/26 3:58
+# esoph finshed around   18:42:47
 randomForestHyperparmeterCOAD_Search.sh  $outdir
 randomForestHyperparmeterColon_TransverseSearch.sh $outdir
 randomForestHyperparmeterColon_SigmoidSearch.sh $outdir
