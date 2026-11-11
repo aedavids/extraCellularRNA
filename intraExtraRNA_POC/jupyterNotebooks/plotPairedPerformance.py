@@ -86,9 +86,10 @@ def plotPairedPerformance(
                 fmt=markers[source],
                 color=colors[source],
                 markersize=4.5,
-                markeredgewidth=0,
+                #markeredgewidth=0,
                 elinewidth=1.0,
-                capsize=2.4,
+                capsize=3, #2.4,
+                # capsize=10, # unit is points
                 capthick=1.0,
                 linestyle="none",
                 zorder=3 if source == "TCGA" else 2,
