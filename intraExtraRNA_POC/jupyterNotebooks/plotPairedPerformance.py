@@ -1,4 +1,5 @@
-"""Paired GTEx/TCGA performance plots for journal figures.
+"""
+Paired GTEx/TCGA performance plots for journal figures.
 
 Input: one row per cancer and feature source, with mean and standard deviation.
 Error bars denote standard deviations, not confidence intervals.
@@ -10,30 +11,31 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-
+################################################################################
 def plotPairedPerformance(
-    dataFrame: pd.DataFrame,
-    title: str,
-    meanCol: str = "aucMean",
-    stdCol: str = "aucStd",
-    cancerCol: str = "cancer",
-    sourceCol: str = "source",
-    cancerOrder: tuple[str, ...] = (
-        "Colorectal", "Esophagus", "Liver", "Lung", "Stomach"
-    ),
-    ax=None,
-    xLabel: str = "Mean AUC",
-    xLimits: tuple[float, float] = (0.5, 1.0),
-    panelLabel: str | None = None,
-    showLegend: bool = True,
-    yOffset: float = 0.0,
-):
+        dataFrame: pd.DataFrame,
+        title: str,
+        meanCol: str = "aucMean",
+        stdCol: str = "aucStd",
+        cancerCol: str = "cancer",
+        sourceCol: str = "source",
+        cancerOrder: tuple[str, ...] = (
+            "Colorectal", "Esophagus", "Liver", "Lung", "Stomach"
+        ),
+        ax=None,
+        xLabel: str = "Mean AUC",
+        xLimits: tuple[float, float] = (0.5, 1.0),
+        panelLabel: str | None = None,
+        showLegend: bool = True,
+        yOffset: float = 0.0,
+    ) -> tuple[plt.figure, plt.axes]:
     """
     Plot GTEx (blue circles) and TCGA (red squares) as mean ± SD.
 
     Input dataFrame columns default to: cancer, source, aucMean, aucStd.
     The source values must be 'GTEx' or 'TCGA'. Missing source pairs are allowed.
     A supplied ax lets the same function make panels A and B on one figure.
+    
     Returns (fig, ax).
     """
     requiredCols = [cancerCol, sourceCol, meanCol, stdCol]
